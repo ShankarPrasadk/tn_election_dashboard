@@ -1,0 +1,196 @@
+import { useState } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  LineChart, Line, Legend, PieChart, Pie, Cell
+} from 'recharts';
+import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
+import { AlertTriangle, ShieldAlert, TrendingUp, Scale } from 'lucide-react';
+import { CRIMINAL_STATS, PARTY_COLORS, KEY_CANDIDATES } from '../data/electionData';
+
+const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
+  if (!active || !payload) return null;
+  return (
+    <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl">
+      <p className="text-sm font-medium text-white mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} className="text-xs" style={{ color: p.color }}>
+          {p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}%
+        </p>
+      ))}
+    </div>
+  );
+};
+
+export default function CriminalPage() {
+  const [year, setYear] = useState(2021);
+  const data = CRIMINAL_STATS[year];
+
+  const trendData = Object.entries(CRIMINAL_STATS).map(([yr, d]) => ({
+    year: Number(yr),
+    'With Cases (%)': d.percentWithCases,
+    'Serious Cases (%)': d.percentSerious,
+    'Avg Cases': d.avgCases,
+  }));
+
+  const pieData = [
+    { name: 'Clean', value: 100 - data.percentWithCases, color: '#22c55e' },
+    { name: 'Normal Cases', value: data.percentWithCases - data.percentSerious, color: '#f59e0b' },
+    { name: 'Serious Cases', value: data.percentSerious, color: '#ef4444' },
+  ];
+
+  // Top candidates with most criminal cases
+  const topCriminals = [...KEY_CANDIDATES]
+    .filter(c => c.criminalCases.total > 0)
+    .sort((a, b) => b.criminalCases.total - a.criminalCases.total);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Criminal Records Tracker</h1>
+          <p className="text-slate-400 mt-1">Criminal cases declared by candidates in election affidavits</p>
+        </div>
+        <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021]} />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="With Criminal Cases"
+          value={`${data.percentWithCases}%`}
+          subtitle={`${data.withCriminalCases} candidates`}
+          icon={AlertTriangle}
+          color="red"
+        />
+        <StatCard
+          title="Serious Cases"
+          value={`${data.percentSerious}%`}
+          subtitle={`${data.withSeriousCases} candidates`}
+          icon={ShieldAlert}
+          color="amber"
+        />
+        <StatCard
+          title="Avg Cases Per Candidate"
+          value={data.avgCases}
+          icon={Scale}
+          color="purple"
+        />
+        <StatCard
+          title="Total Analyzed"
+          value={data.totalCandidatesAnalyzed.toLocaleString()}
+          subtitle="from affidavits"
+          icon={TrendingUp}
+          color="blue"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Criminal Cases by Party */}
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+          <SectionHeader title={`Criminal Cases by Party (${year})`} />
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data.topParties} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" unit="%" />
+              <YAxis type="category" dataKey="party" width={60} />
+              <Tooltip content={CUSTOM_TOOLTIP} />
+              <Bar dataKey="percent" radius={[0, 4, 4, 0]} name="Candidates with Cases">
+                {data.topParties.map((entry) => (
+                  <Cell key={entry.party} fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Case Distribution Pie */}
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+          <SectionHeader title="Case Distribution" />
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                innerRadius={60}
+                label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+              >
+                {pieData.map((entry, i) => (
+                  <Cell key={i} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Trend Over Years */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <SectionHeader title="Criminal Cases Trend (2006–2021)" subtitle="Percentage of candidates with criminal records is increasing" />
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={trendData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="year" />
+            <YAxis />
+            <Tooltip content={CUSTOM_TOOLTIP} />
+            <Legend />
+            <Line type="monotone" dataKey="With Cases (%)" stroke="#f59e0b" strokeWidth={2} dot={{ r: 5 }} />
+            <Line type="monotone" dataKey="Serious Cases (%)" stroke="#ef4444" strokeWidth={2} dot={{ r: 5 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Top Candidates with Cases */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <SectionHeader title="Candidates with Most Criminal Cases" />
+        <div className="space-y-3">
+          {topCriminals.map((c, i) => (
+            <div key={c.id} className="flex items-center justify-between bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
+              <div className="flex items-center gap-4">
+                <span className="text-lg font-bold text-slate-500 w-8">#{i + 1}</span>
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                  style={{ backgroundColor: `${PARTY_COLORS[c.party]}20`, color: PARTY_COLORS[c.party] }}
+                >
+                  {c.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-white font-medium">{c.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <PartyBadge party={c.party} />
+                    <span className="text-xs text-slate-400">{c.constituency}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">Total</p>
+                  <p className="text-xl font-bold text-amber-400">{c.criminalCases.total}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">Serious</p>
+                  <p className="text-xl font-bold text-red-400">{c.criminalCases.serious}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">
+        <h4 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Criminal Case Data Notice</h4>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          The criminal case data is sourced from myneta.info and based on self-declarations made by candidates
+          in their official election affidavits. These refer to <strong className="text-slate-300">pending cases and allegations,
+          not proven convictions</strong>. This information is provided for transparency and should not be interpreted
+          as a determination of guilt. Users are encouraged to independently verify this data.
+        </p>
+      </div>
+    </div>
+  );
+}
