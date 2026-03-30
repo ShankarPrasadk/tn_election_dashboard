@@ -4,6 +4,7 @@ import {
 } from 'recharts';
 import { SectionHeader } from '../components/UIComponents';
 import { VOTE_SHARE_TREND, SEATS_TREND, PARTY_COLORS, ELECTION_SUMMARY, CRIMINAL_STATS, ASSET_STATS } from '../data/electionData';
+import PartySymbolIcon from '../components/PartySymbolIcon';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -69,7 +70,7 @@ export default function TrendsPage() {
             >
               <p className="text-xs text-slate-400">{cm.period}</p>
               <p className="text-lg font-bold text-white mt-1">{cm.cm}</p>
-              <p className="text-sm mt-1" style={{ color: cm.color }}>{cm.party}</p>
+              <p className="text-sm mt-1 flex items-center gap-1" style={{ color: cm.color }}><PartySymbolIcon party={cm.party} size={16} color={cm.color} /> {cm.party}</p>
             </div>
           ))}
         </div>

@@ -10,6 +10,9 @@ const SUGGESTED_QUESTIONS = [
   'Which candidates have the highest assets in 2026?',
   'Compare DMK and AIADMK candidate profiles in 2021',
   'Show BJP candidates in Tamil Nadu 2026 assembly election',
+  'Who is the richest candidate in 2021?',
+  'List NTK candidates in Chennai',
+  'Show candidates from Kolathur constituency',
 ];
 
 function Citation({ citation }) {
@@ -92,10 +95,16 @@ function Message({ message }) {
         )}
 
         {message.mode && (
-          <p className="text-[10px] text-slate-600 mt-1">
-            {message.mode === 'deterministic-rag-preview' ? 'Deterministic RAG' : message.mode}
-            {message.retrieval?.total != null && ` \u00b7 ${message.retrieval.total} records matched`}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="inline-flex items-center gap-1 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 rounded px-1.5 py-0.5">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+              Source Verified
+            </span>
+            <span className="text-[10px] text-slate-600">
+              {message.mode === 'deterministic-rag-preview' ? 'Deterministic RAG' : message.mode}
+              {message.retrieval?.total != null && ` \u00b7 ${message.retrieval.total} records matched`}
+            </span>
+          </div>
         )}
       </div>
 
@@ -283,7 +292,11 @@ export default function AskPage() {
           </button>
         </form>
         <p className="text-[10px] text-slate-600 mt-2 text-center">
-          Powered by deterministic RAG over official election affidavit data. No LLM hallucinations — every answer is grounded in source records.
+          Powered by deterministic RAG over official election affidavit data. No LLM hallucinations &mdash; every answer is grounded in source records.
+          <span className="inline-flex items-center gap-1 ml-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded px-1.5 py-0.5">
+            <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+            Source Verified
+          </span>
         </p>
       </div>
     </div>

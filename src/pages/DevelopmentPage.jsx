@@ -4,7 +4,7 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend
 } from 'recharts';
 import { StatCard, SectionHeader } from '../components/UIComponents';
-import { Building2, Heart, AlertOctagon, Factory, School, Stethoscope } from 'lucide-react';
+import { Building2, Heart, AlertOctagon, Factory, School, Stethoscope, Info } from 'lucide-react';
 import { DEVELOPMENT_DATA } from '../data/electionData';
 
 const PERIODS = Object.keys(DEVELOPMENT_DATA);
@@ -58,6 +58,19 @@ export default function DevelopmentPage() {
               {p}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Source Disclaimer */}
+      <div className="flex items-start gap-3 bg-amber-500/5 border border-amber-500/20 rounded-xl px-5 py-4">
+        <Info size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm text-amber-300 font-medium">Data Source Disclaimer</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Development metrics are compiled from published government announcements, press releases, and budget documents.
+            These are estimated figures and may differ from final audited numbers.
+            Corruption allegations are sourced from court filings and media reports &mdash; outcomes may vary.
+          </p>
         </div>
       </div>
 

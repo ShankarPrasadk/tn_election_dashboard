@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion } from 'lucide-react';
+import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
   { to: '/development', icon: Building2, label: 'Development' },
   { to: '/trends', icon: TrendingUp, label: 'Trends' },
+  { to: '/constituency', icon: MapPin, label: 'My Constituency' },
   { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
 ];
 
@@ -32,15 +33,15 @@ export default function Sidebar() {
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="p-6 border-b border-slate-700/50">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span className="text-2xl">🗳️</span>
-            <span>
+          <div className="flex items-center gap-3">
+            <img src="/tnsec-emblem.png" alt="Tamil Nadu State Election Commission" className="w-12 h-12 flex-shrink-0 object-contain" />
+            <h1 className="text-xl font-bold text-white">
               <span className="text-amber-400">TN</span> Election
               <span className="block text-xs font-normal text-slate-400 mt-0.5">
                 Dashboard • 2006–2026
               </span>
-            </span>
-          </h1>
+            </h1>
+          </div>
         </div>
 
         <nav className="p-4 space-y-1">
@@ -64,7 +65,7 @@ export default function Sidebar() {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
           <p className="text-xs text-slate-500 text-center">
-            Data: myneta.info, ECI
+            Source: <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">TNSEC</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ECI</a> · myneta.info
             <br />
             Based on candidate affidavits
           </p>

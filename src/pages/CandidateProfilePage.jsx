@@ -22,6 +22,7 @@ import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfi
 import { findDirectoryCandidate, loadCandidateDirectory } from '../data/candidateDirectory';
 import { PARTY_COLORS } from '../data/electionData';
 import { getBrowserPublicProfile } from '../data/publicProfileEnrichment';
+import PartySymbolIcon from '../components/PartySymbolIcon';
 
 function formatList(values) {
   if (!values?.length) {
@@ -534,7 +535,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
                   <img src={profile.photo} alt={profile.name} className="w-full h-full object-cover" />
                 </div>
                 <p className="text-xs font-semibold text-white text-center truncate w-full">{profile.name}</p>
-                <p className="text-[10px] text-slate-500">{profile.party}</p>
+                <p className="text-[10px] text-slate-500 flex items-center gap-0.5"><PartySymbolIcon party={profile.party} size={10} color={PARTY_COLORS[profile.party] || '#6b7280'} /> {profile.party}</p>
               </Link>
             );
           })}

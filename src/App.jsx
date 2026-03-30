@@ -8,6 +8,7 @@ import CriminalPage from './pages/CriminalPage';
 import DevelopmentPage from './pages/DevelopmentPage';
 import TrendsPage from './pages/TrendsPage';
 import AskPage from './pages/AskPage';
+import ConstituencyPage from './pages/ConstituencyPage';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/criminal" element={<CriminalPage />} />
             <Route path="/development" element={<DevelopmentPage />} />
             <Route path="/trends" element={<TrendsPage />} />
+            <Route path="/constituency" element={<ConstituencyPage />} />
             <Route path="/ask" element={<AskPage />} />
           </Routes>
         </main>

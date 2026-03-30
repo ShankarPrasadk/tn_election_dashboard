@@ -1,4 +1,5 @@
 import { PARTY_COLORS } from '../data/electionData';
+import PartySymbolIcon from './PartySymbolIcon';
 
 export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'amber' }) {
   const colorMap = {
@@ -29,11 +30,13 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'a
 export function PartyBadge({ party, size = 'sm' }) {
   const color = PARTY_COLORS[party] || PARTY_COLORS.Others;
   const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm';
+  const iconSize = size === 'sm' ? 12 : 16;
   return (
     <span
-      className={`${sizeClass} rounded-full font-semibold inline-flex items-center`}
+      className={`${sizeClass} rounded-full font-semibold inline-flex items-center gap-1`}
       style={{ backgroundColor: `${color}20`, color: color, border: `1px solid ${color}40` }}
     >
+      <PartySymbolIcon party={party} size={iconSize} color={color} />
       {party}
     </span>
   );

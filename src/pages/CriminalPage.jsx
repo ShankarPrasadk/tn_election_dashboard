@@ -6,6 +6,7 @@ import {
 import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
 import { AlertTriangle, ShieldAlert, TrendingUp, Scale } from 'lucide-react';
 import { CRIMINAL_STATS, PARTY_COLORS, KEY_CANDIDATES } from '../data/electionData';
+import PartySymbolIcon from '../components/PartySymbolIcon';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -153,10 +154,10 @@ export default function CriminalPage() {
               <div className="flex items-center gap-4">
                 <span className="text-lg font-bold text-slate-500 w-8">#{i + 1}</span>
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
-                  style={{ backgroundColor: `${PARTY_COLORS[c.party]}20`, color: PARTY_COLORS[c.party] }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: `${PARTY_COLORS[c.party]}20` }}
                 >
-                  {c.name.charAt(0)}
+                  <PartySymbolIcon party={c.party} size={22} color={PARTY_COLORS[c.party]} />
                 </div>
                 <div>
                   <p className="text-white font-medium">{c.name}</p>
