@@ -6,6 +6,7 @@ import {
 import { Users, AlertTriangle, Banknote, GraduationCap, Vote, TrendingUp, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
+import AdBanner from '../components/AdBanner';
 import {
   ELECTION_SUMMARY, PARTY_COLORS, CRIMINAL_STATS, ASSET_STATS,
   EDUCATION_DATA, AGE_DATA, VOTE_SHARE_TREND, SEATS_TREND
@@ -170,6 +171,9 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Ad Banner */}
+      <AdBanner variant="banner" />
+
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Party Seats */}
@@ -214,6 +218,9 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Ad Banner */}
+      <AdBanner variant="in-feed" />
 
       {/* Charts Row 2 */}
       {EDUCATION_DATA[year] && AGE_DATA[year] && (
