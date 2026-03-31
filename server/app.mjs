@@ -182,19 +182,26 @@ Rules:
 6. You can discuss election predictions, analysis, and political history
 7. For non-election questions, politely redirect to election topics`;
 
-    // Build Gemini contents array
+    // Build Gemini contents array, ensuring alternating user/model roles
     const geminiContents = [];
-
-    // Add conversation history (last 10 messages)
     for (const m of messages.slice(-10)) {
-      geminiContents.push({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: String(m.content || '').slice(0, 2000) }],
-      });
+      const role = m.role === 'user' ? 'user' : 'model';
+      const text = String(m.content || '').slice(0, 2000);
+      const last = geminiContents[geminiContents.length - 1];
+      // Gemini requires alternating roles — merge consecutive same-role messages
+      if (last && last.role === role) {
+        last.parts[0].text += '\n' + text;
+      } else {
+        geminiContents.push({ role, parts: [{ text }] });
+      }
+    }
+    // Gemini requires the first message to be from user
+    if (geminiContents.length > 0 && geminiContents[0].role !== 'user') {
+      geminiContents.shift();
     }
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -211,12 +218,13 @@ Rules:
 
     if (!geminiRes.ok) {
       const err = await geminiRes.json().catch(() => ({}));
-      console.error('Gemini API error:', geminiRes.status, err);
+      const detail = err?.error?.message || JSON.stringify(err);
+      console.error('Gemini API error:', geminiRes.status, detail);
       if (geminiRes.status === 429) {
         response.status(429).json({ message: 'AI is busy right now. Please try again in a moment.' });
         return;
       }
-      response.status(502).json({ message: 'AI service temporarily unavailable. Please try again.' });
+      response.status(502).json({ message: `AI service error: ${detail}` });
       return;
     }
 
