@@ -153,7 +153,7 @@ app.post('/api/ask', async (request, response, next) => {
       return;
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       response.status(503).json({ message: 'AI service is not configured. Please contact the administrator.' });
       return;
@@ -182,32 +182,37 @@ Rules:
 6. You can discuss election predictions, analysis, and political history
 7. For non-election questions, politely redirect to election topics`;
 
-    const openaiMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages.slice(-10).map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: String(m.content || '').slice(0, 2000),
-      })),
-    ];
+    // Build Gemini contents array
+    const geminiContents = [];
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: openaiMessages,
-        max_tokens: 1024,
-        temperature: 0.7,
-      }),
-    });
+    // Add conversation history (last 10 messages)
+    for (const m of messages.slice(-10)) {
+      geminiContents.push({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: String(m.content || '').slice(0, 2000) }],
+      });
+    }
 
-    if (!openaiRes.ok) {
-      const err = await openaiRes.json().catch(() => ({}));
-      console.error('OpenAI API error:', openaiRes.status, err);
-      if (openaiRes.status === 429) {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: geminiContents,
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const err = await geminiRes.json().catch(() => ({}));
+      console.error('Gemini API error:', geminiRes.status, err);
+      if (geminiRes.status === 429) {
         response.status(429).json({ message: 'AI is busy right now. Please try again in a moment.' });
         return;
       }
@@ -215,8 +220,8 @@ Rules:
       return;
     }
 
-    const data = await openaiRes.json();
-    const content = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+    const data = await geminiRes.json();
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
 
     response.json({ content });
   } catch (error) {
