@@ -500,9 +500,9 @@ export const HISTORICAL_ELECTIONS = [
       VCK: { seats: 1, voteShare: 0.9 },
       CPI: { seats: 3, voteShare: 1.4 },
       'CPI(M)': { seats: 2, voteShare: 1.6 },
-      BJP: { seats: 4, voteShare: 2.3 },
+      BJP: { seats: 0, voteShare: 2.3 },
       PT: { seats: 3, voteShare: 0.8 },
-      IND: { seats: 11, voteShare: 5.4 },
+      IND: { seats: 15, voteShare: 5.4 },
       Others: { seats: 0, voteShare: 9.2 },
     },
     alliances: {
