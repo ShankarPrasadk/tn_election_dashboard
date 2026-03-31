@@ -9,8 +9,9 @@ import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components
 import AdBanner from '../components/AdBanner';
 import {
   ELECTION_SUMMARY, PARTY_COLORS, CRIMINAL_STATS, ASSET_STATS,
-  EDUCATION_DATA, AGE_DATA, VOTE_SHARE_TREND, SEATS_TREND
+  EDUCATION_DATA, AGE_DATA
 } from '../data/electionData';
+import { HISTORICAL_VOTE_SHARE, HISTORICAL_SEATS, HISTORICAL_TURNOUT } from '../data/historicalElections';
 import { CANDIDATES_2026, ELECTION_SCHEDULE_2026, VOTER_STATS_2026 } from '../data/candidates2026';
 import { CANDIDATE_PROFILES } from '../data/candidateProfiles';
 
@@ -255,22 +256,42 @@ export default function DashboardPage() {
       </div>
       )}
 
-      {/* Historical Trends Quick Glance */}
+      {/* Historical Trends Quick Glance — full 1952–2021 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Vote Share Trend (2006–2021)" />
+        <div className="flex items-center justify-between mb-4">
+          <SectionHeader title="Vote Share Trend (1952–2021)" subtitle="74 years of electoral history" />
+          <Link to="/trends" className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <TrendingUp className="w-3 h-3" /> Full Trends <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={VOTE_SHARE_TREND.filter(d => d.DMK !== null)}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis />
+          <AreaChart data={HISTORICAL_VOTE_SHARE}>
+            <defs>
+              <linearGradient id="dashGradDMK" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="dashGradAIADMK" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="dashGradINC" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={PARTY_COLORS.INC} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+            <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} />
             <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill={`${PARTY_COLORS.DMK}30`} name="DMK" />
-            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill={`${PARTY_COLORS.AIADMK}30`} name="AIADMK" />
-            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill={`${PARTY_COLORS.INC}30`} name="INC" />
-            <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill={`${PARTY_COLORS.BJP}30`} name="BJP" />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={{ r: 3 }} />
+            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 3 }} />
+            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 3 }} />
+            <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={1.5} name="BJP" dot={{ r: 2 }} strokeDasharray="5 3" />
           </AreaChart>
         </ResponsiveContainer>
+        <p className="text-[10px] text-slate-500 text-center mt-2">Congress dominant 1952–1962 → DMK wins 1967 → AIADMK emerges 1977 → Two-party Dravidian era begins</p>
       </div>
 
       {/* Alliance Results */}

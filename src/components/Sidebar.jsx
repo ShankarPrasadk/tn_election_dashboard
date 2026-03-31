@@ -4,14 +4,14 @@ import { useState } from 'react';
 
 const NAV_ITEMS = [
   { to: '/', icon: BarChart3, label: 'Dashboard' },
+  { to: '/trends', icon: TrendingUp, label: 'Trends (1952–2026)' },
+  { to: '/news', icon: Newspaper, label: 'Live News' },
   { to: '/candidates', icon: Users, label: 'Candidates' },
   { to: '/comparison', icon: Scale, label: 'Compare' },
   { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
   { to: '/development', icon: Building2, label: 'Development' },
-  { to: '/trends', icon: TrendingUp, label: 'Trends' },
   { to: '/constituency', icon: MapPin, label: 'My Constituency' },
   { to: '/map', icon: Map, label: 'Map' },
-  { to: '/news', icon: Newspaper, label: 'News' },
   { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
 ];
 
@@ -40,7 +40,7 @@ export default function Sidebar() {
             <h1 className="text-xl font-bold text-white">
               <span className="text-amber-400">TN</span> Election
               <span className="block text-xs font-normal text-slate-400 mt-0.5">
-                Dashboard • 2006–2026
+                Dashboard • 1952–2026
               </span>
             </h1>
           </div>

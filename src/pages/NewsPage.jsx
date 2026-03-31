@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag, Timer } from 'lucide-react';
 
 const CATEGORY_LABELS = {
   all: 'All News',
@@ -55,6 +55,18 @@ export default function NewsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [partyFilter, setPartyFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [nextRefreshIn, setNextRefreshIn] = useState(REFRESH_INTERVAL_MS / 1000);
+  const lastFetchTime = useRef(Date.now());
+
+  // Countdown timer for next refresh
+  useEffect(() => {
+    const tick = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - lastFetchTime.current) / 1000);
+      const remaining = Math.max(0, (REFRESH_INTERVAL_MS / 1000) - elapsed);
+      setNextRefreshIn(remaining);
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
 
   const fetchNews = useCallback(async (manual = false) => {
     try {
@@ -68,6 +80,8 @@ export default function NewsPage() {
       setArticles(data.articles || []);
       setLastFetched(data.fetchedAt);
       setError(null);
+      lastFetchTime.current = Date.now();
+      setNextRefreshIn(REFRESH_INTERVAL_MS / 1000);
     } catch (err) {
       console.error('Failed to fetch news:', err);
       setError('Failed to load news. Will retry automatically.');
@@ -135,10 +149,19 @@ export default function NewsPage() {
         </div>
       </div>
 
-      {/* Auto-refresh indicator */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-2 flex items-center gap-2 text-xs text-slate-400">
-        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-        Auto-refreshing every 10 minutes • {filtered.length} articles
+      {/* Auto-refresh indicator with countdown */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-2 flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          Auto-refreshing • {filtered.length} articles
+        </div>
+        <div className="flex items-center gap-1.5 bg-slate-700/50 px-2.5 py-1 rounded-full">
+          <Timer size={11} className="text-amber-400" />
+          <span className="tabular-nums text-amber-400 font-medium">
+            {String(Math.floor(nextRefreshIn / 60)).padStart(2, '0')}:{String(nextRefreshIn % 60).padStart(2, '0')}
+          </span>
+          <span className="text-slate-500">until refresh</span>
+        </div>
       </div>
 
       {error && (
