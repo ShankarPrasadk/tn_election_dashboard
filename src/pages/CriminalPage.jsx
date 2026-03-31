@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   LineChart, Line, Legend, PieChart, Pie, Cell
@@ -7,6 +7,8 @@ import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components
 import { AlertTriangle, ShieldAlert, TrendingUp, Scale } from 'lucide-react';
 import { CRIMINAL_STATS, PARTY_COLORS, KEY_CANDIDATES } from '../data/electionData';
 import PartySymbolIcon from '../components/PartySymbolIcon';
+import { loadCandidateDirectory } from '../data/candidateDirectory';
+import { computeLiveStats } from '../data/liveStats';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -23,15 +25,42 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
 };
 
 export default function CriminalPage() {
-  const [year, setYear] = useState(2021);
-  const data = CRIMINAL_STATS[year];
+  const [year, setYear] = useState(2026);
+  const [liveStats, setLiveStats] = useState(null);
 
-  const trendData = Object.entries(CRIMINAL_STATS).map(([yr, d]) => ({
+  useEffect(() => {
+    loadCandidateDirectory()
+      .then(dir => setLiveStats(computeLiveStats(dir.entries)))
+      .catch(() => {});
+  }, []);
+
+  const is2026 = year === 2026;
+  const data = is2026 ? liveStats?.criminal : CRIMINAL_STATS[year];
+
+  const allStats = { ...CRIMINAL_STATS };
+  if (liveStats?.criminal) allStats[2026] = liveStats.criminal;
+
+  const trendData = Object.entries(allStats).map(([yr, d]) => ({
     year: Number(yr),
     'With Cases (%)': d.percentWithCases,
     'Serious Cases (%)': d.percentSerious,
     'Avg Cases': d.avgCases,
   }));
+
+  if (!data) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Criminal Records Tracker</h1>
+            <p className="text-slate-400 mt-1">Criminal cases declared by candidates in election affidavits</p>
+          </div>
+          <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021, 2026]} />
+        </div>
+        <div className="text-center py-12 text-slate-400">Loading affidavit data…</div>
+      </div>
+    );
+  }
 
   const pieData = [
     { name: 'Clean', value: 100 - data.percentWithCases, color: '#22c55e' },
@@ -40,9 +69,11 @@ export default function CriminalPage() {
   ];
 
   // Top candidates with most criminal cases
-  const topCriminals = [...KEY_CANDIDATES]
-    .filter(c => c.criminalCases.total > 0)
-    .sort((a, b) => b.criminalCases.total - a.criminalCases.total);
+  const topCriminals = is2026
+    ? (liveStats?.topCriminals || [])
+    : [...KEY_CANDIDATES]
+        .filter(c => c.criminalCases.total > 0)
+        .sort((a, b) => b.criminalCases.total - a.criminalCases.total);
 
   return (
     <div className="space-y-8">
@@ -51,7 +82,7 @@ export default function CriminalPage() {
           <h1 className="text-3xl font-bold text-white">Criminal Records Tracker</h1>
           <p className="text-slate-400 mt-1">Criminal cases declared by candidates in election affidavits</p>
         </div>
-        <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021]} />
+        <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021, 2026]} />
       </div>
 
       {/* Stats */}

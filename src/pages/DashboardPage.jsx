@@ -14,6 +14,8 @@ import {
 import { HISTORICAL_VOTE_SHARE, HISTORICAL_SEATS, HISTORICAL_TURNOUT } from '../data/historicalElections';
 import { CANDIDATES_2026, ELECTION_SCHEDULE_2026, VOTER_STATS_2026 } from '../data/candidates2026';
 import { CANDIDATE_PROFILES } from '../data/candidateProfiles';
+import { loadCandidateDirectory } from '../data/candidateDirectory';
+import { computeLiveStats } from '../data/liveStats';
 
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -72,11 +74,22 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
 
 export default function DashboardPage() {
   const [year, setYear] = useState(2026);
+  const [liveStats, setLiveStats] = useState(null);
   const summary = ELECTION_SUMMARY[year];
-  const criminal = CRIMINAL_STATS[year];
-  const assets = ASSET_STATS[year];
   const is2026 = year === 2026;
-  const announcedCandidates2026 = CANDIDATES_2026.reduce((count, seat) => count + Object.values(seat.candidates).filter((name) => name && name !== 'TBD').length, 0);
+
+  useEffect(() => {
+    loadCandidateDirectory()
+      .then(dir => setLiveStats(computeLiveStats(dir.entries)))
+      .catch(() => {});
+  }, []);
+
+  const criminal = is2026 ? liveStats?.criminal : CRIMINAL_STATS[year];
+  const assets = is2026 ? liveStats?.assets : ASSET_STATS[year];
+  const liveEducation = is2026 ? liveStats?.education : null;
+  const liveAge = is2026 ? liveStats?.age : null;
+  const totalCandidates2026 = liveStats?.totalCandidates || 0;
+  const announcedCandidates2026 = is2026 ? totalCandidates2026 : CANDIDATES_2026.reduce((count, seat) => count + Object.values(seat.candidates).filter((name) => name && name !== 'TBD').length, 0);
 
   const partyData = Object.entries(summary.results)
     .map(([party, data]) => ({ party, seats: data.seats, voteShare: data.voteShare }))
@@ -150,23 +163,23 @@ export default function DashboardPage() {
           color="amber"
         />
         <StatCard
-          title={is2026 ? 'Affidavit Status' : 'Criminal Records'}
-          value={is2026 ? 'Pending filings' : criminal ? `${criminal.percentWithCases}%` : 'TBD'}
-          subtitle={is2026 ? 'Detailed criminal, asset, and education disclosures will appear after final affidavit publication' : criminal ? `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates` : 'Post-nomination data'}
+          title={is2026 ? 'Criminal Records' : 'Criminal Records'}
+          value={criminal ? `${criminal.percentWithCases}%` : 'Loading…'}
+          subtitle={criminal ? `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates` : 'Fetching affidavit data…'}
           icon={AlertTriangle}
           color="red"
         />
         <StatCard
-          title={is2026 ? 'Registered Voters' : 'Avg Assets (Winners)'}
-          value={is2026 ? `${(VOTER_STATS_2026.totalVoters / 10000000).toFixed(2)} Cr` : `₹${assets?.avgAssets} Cr`}
-          subtitle={is2026 ? `${VOTER_STATS_2026.changeFromPrevious}% change` : `Richest: ₹${assets?.richest} Cr`}
+          title={is2026 ? 'Avg Assets' : 'Avg Assets (Winners)'}
+          value={assets ? `₹${assets.avgAssets} Cr` : is2026 ? 'Loading…' : 'TBD'}
+          subtitle={is2026 ? (assets ? `Richest: ₹${assets.richest} Cr • ${assets.medianAssets} Cr median` : 'Fetching affidavit data…') : (assets ? `Richest: ₹${assets.richest} Cr` : '')}
           icon={Banknote}
           color="green"
         />
         <StatCard
-          title={is2026 ? 'Announced Candidates' : 'Total Candidates'}
+          title={is2026 ? 'Total Candidates' : 'Total Candidates'}
           value={is2026 ? announcedCandidates2026.toLocaleString() : summary.totalCandidates ? summary.totalCandidates.toLocaleString() : '4500+'}
-          subtitle={is2026 ? 'Currently captured from public candidate announcement lists' : `${summary.turnoutPercent}% voter turnout`}
+          subtitle={is2026 ? `From ECI affidavit portal • ${VOTER_STATS_2026.totalVoters ? (VOTER_STATS_2026.totalVoters / 10000000).toFixed(2) + ' Cr voters' : ''}` : `${summary.turnoutPercent}% voter turnout`}
           icon={Vote}
           color="blue"
         />
@@ -224,32 +237,32 @@ export default function DashboardPage() {
       <AdBanner variant="in-feed" />
 
       {/* Charts Row 2 */}
-      {EDUCATION_DATA[year] && AGE_DATA[year] && (
+      {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Education */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-          <SectionHeader title="Education of Elected MLAs" />
+          <SectionHeader title={is2026 ? 'Education of Candidates' : 'Education of Elected MLAs'} />
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={EDUCATION_DATA[year]}>
+            <BarChart data={is2026 ? liveEducation : EDUCATION_DATA[year]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="level" tick={{ fontSize: 9 }} angle={-35} textAnchor="end" height={60} />
               <YAxis />
               <Tooltip content={CUSTOM_TOOLTIP} />
-              <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="MLAs" />
+              <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Age Demographics */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-          <SectionHeader title="Age Demographics of MLAs" />
+          <SectionHeader title={is2026 ? 'Age Demographics of Candidates' : 'Age Demographics of MLAs'} />
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={AGE_DATA[year]}>
+            <BarChart data={is2026 ? liveAge : AGE_DATA[year]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="group" />
               <YAxis />
               <Tooltip content={CUSTOM_TOOLTIP} />
-              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="MLAs" />
+              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
