@@ -1,203 +1,810 @@
+import { useState, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  LineChart, Line, Legend, AreaChart, Area, ComposedChart
+  LineChart, Line, Legend, AreaChart, Area, ComposedChart, ReferenceLine
 } from 'recharts';
 import { SectionHeader } from '../components/UIComponents';
-import { VOTE_SHARE_TREND, SEATS_TREND, PARTY_COLORS, ELECTION_SUMMARY, CRIMINAL_STATS, ASSET_STATS } from '../data/electionData';
+import { PARTY_COLORS, CRIMINAL_STATS, ASSET_STATS } from '../data/electionData';
+import {
+  HISTORICAL_ELECTIONS, HISTORICAL_SEATS, HISTORICAL_VOTE_SHARE,
+  HISTORICAL_TURNOUT, CM_TIMELINE, ANTI_INCUMBENCY, PARTY_EVOLUTION
+} from '../data/historicalElections';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 
-const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
+// ─── Constants ────────────────────────────────────────────────
+
+const ERA_COLORS = {
+  'Congress Era': '#3b82f6',
+  'Dravidian Era': '#f59e0b',
+  'Modern Era': '#22c55e',
+};
+
+const CM_PARTY_COLORS = {
+  INC: PARTY_COLORS.INC,
+  DMK: PARTY_COLORS.DMK,
+  AIADMK: PARTY_COLORS.AIADMK,
+};
+
+// ─── Tooltip ──────────────────────────────────────────────────
+
+const ChartTooltip = ({ active, payload, label }) => {
   if (!active || !payload) return null;
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl">
-      <p className="text-sm font-medium text-white mb-1">{label}</p>
+    <div className="bg-slate-800/95 backdrop-blur border border-slate-600/50 rounded-lg p-3 shadow-2xl">
+      <p className="text-sm font-semibold text-white mb-1.5">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} className="text-xs" style={{ color: p.color || p.stroke }}>
-          {p.name}: {p.value}
-        </p>
+        <div key={i} className="flex items-center gap-2 text-xs py-0.5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color || p.stroke || p.fill }} />
+          <span className="text-slate-300">{p.name}:</span>
+          <span className="font-semibold text-white">{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</span>
+        </div>
       ))}
     </div>
   );
 };
 
-export default function TrendsPage() {
-  const turnoutData = Object.entries(ELECTION_SUMMARY)
-    .filter(([, d]) => d.status !== 'upcoming')
-    .map(([yr, d]) => ({
-      year: Number(yr),
-      turnout: d.turnoutPercent,
-      voters: (d.totalVoters / 1000000).toFixed(1),
-      candidates: d.totalCandidates,
-    }));
+// ─── Era Badge ────────────────────────────────────────────────
 
+function EraBadge({ era }) {
+  return (
+    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+      style={{ backgroundColor: `${ERA_COLORS[era] || '#64748b'}20`, color: ERA_COLORS[era] || '#94a3b8' }}>
+      {era}
+    </span>
+  );
+}
+
+// ─── Section: Era Selector ────────────────────────────────────
+
+function EraSelector({ era, setEra }) {
+  const eras = ['All', 'Congress Era', 'Dravidian Era', 'Modern Era'];
+  return (
+    <div className="flex gap-2">
+      {eras.map(e => (
+        <button key={e} onClick={() => setEra(e)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+            era === e
+              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+              : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+          }`}>
+          {e}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Section: Hero Stats ──────────────────────────────────────
+
+function HeroStats() {
+  const completed = HISTORICAL_ELECTIONS.filter(e => e.status !== 'upcoming');
+  const stats = [
+    { label: 'Elections', value: completed.length, suffix: '', color: '#f59e0b' },
+    { label: 'Years of Democracy', value: 2026 - 1952, suffix: '', color: '#22c55e' },
+    { label: 'Chief Ministers', value: 13, suffix: '', color: '#3b82f6' },
+    { label: 'Highest Turnout', value: '78%', suffix: '(2011)', color: '#ef4444' },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((s, i) => (
+        <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 text-center">
+          <p className="text-3xl font-black tracking-tight" style={{ color: s.color }}>{s.value}</p>
+          <p className="text-xs text-slate-400 mt-1">{s.label}</p>
+          {s.suffix && <p className="text-[10px] text-slate-500">{s.suffix}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Section: Election Timeline ───────────────────────────────
+
+function ElectionTimeline({ elections }) {
+  const [expanded, setExpanded] = useState(null);
+
+  return (
+    <div className="relative">
+      {/* Central line */}
+      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-amber-500 to-green-500" />
+
+      <div className="space-y-1">
+        {elections.map((e, i) => {
+          const isExpanded = expanded === e.year;
+          const isUpcoming = e.status === 'upcoming';
+          const winnerParty = e.cmParty;
+          const winnerColor = CM_PARTY_COLORS[winnerParty] || '#64748b';
+
+          return (
+            <div key={e.year} className="relative pl-16">
+              {/* Timeline dot */}
+              <div className="absolute left-4 top-4 w-5 h-5 rounded-full border-2 flex items-center justify-center z-10"
+                style={{
+                  borderColor: winnerColor,
+                  backgroundColor: isUpcoming ? 'transparent' : winnerColor,
+                }}>
+                {isUpcoming && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+              </div>
+
+              <button
+                onClick={() => setExpanded(isExpanded ? null : e.year)}
+                className={`w-full text-left rounded-xl p-4 transition-all border ${
+                  isExpanded
+                    ? 'bg-slate-800/80 border-amber-500/30'
+                    : 'bg-slate-800/30 border-slate-700/30 hover:bg-slate-800/60 hover:border-slate-600/50'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xl font-black text-white tabular-nums">{e.year}</span>
+                    <EraBadge era={e.era} />
+                    {!isUpcoming && (
+                      <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: winnerColor }}>
+                        <PartySymbolIcon party={winnerParty} size={16} color={winnerColor} />
+                        {winnerParty}
+                      </span>
+                    )}
+                    {isUpcoming && (
+                      <span className="text-sm text-amber-400 font-medium animate-pulse">Upcoming — Apr 23</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {!isUpcoming && (
+                      <>
+                        <span className="text-xs text-slate-400 hidden sm:block">{e.chiefMinister}</span>
+                        <span className="text-xs text-slate-500">{e.turnout}%</span>
+                      </>
+                    )}
+                    <svg className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Milestone */}
+                <p className="text-xs text-slate-400 mt-1 line-clamp-1">{e.milestone}</p>
+              </button>
+
+              {/* Expanded content */}
+              {isExpanded && (
+                <div className="mt-2 bg-slate-800/60 border border-slate-700/30 rounded-xl p-5 space-y-4">
+                  {/* Results bar */}
+                  {!isUpcoming && Object.keys(e.results).length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3">Seats Won</h4>
+                      <div className="flex rounded-lg overflow-hidden h-8">
+                        {Object.entries(e.results)
+                          .filter(([, v]) => v.seats > 0)
+                          .sort((a, b) => b[1].seats - a[1].seats)
+                          .map(([party, v]) => (
+                            <div
+                              key={party}
+                              className="flex items-center justify-center text-[10px] font-bold text-white relative group"
+                              style={{
+                                width: `${(v.seats / (e.tnSeats || e.totalSeats)) * 100}%`,
+                                backgroundColor: PARTY_COLORS[party] || '#64748b',
+                                minWidth: v.seats > 0 ? '20px' : '0',
+                              }}
+                              title={`${party}: ${v.seats} seats`}
+                            >
+                              {v.seats >= 10 && <span>{party} {v.seats}</span>}
+                            </div>
+                          ))}
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                        {Object.entries(e.results)
+                          .filter(([, v]) => v.seats > 0)
+                          .sort((a, b) => b[1].seats - a[1].seats)
+                          .map(([party, v]) => (
+                            <span key={party} className="text-[11px] flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PARTY_COLORS[party] || '#64748b' }} />
+                              <span className="text-slate-300">{party}</span>
+                              <span className="font-semibold text-white">{v.seats}</span>
+                              {v.voteShare > 0 && <span className="text-slate-500">({v.voteShare}%)</span>}
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key events */}
+                  {e.keyEvents?.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Key Events</h4>
+                      <ul className="space-y-1">
+                        {e.keyEvents.map((ev, j) => (
+                          <li key={j} className="text-xs text-slate-400 flex gap-2">
+                            <span className="text-amber-500 mt-0.5">•</span>
+                            {ev}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Stats row */}
+                  {!isUpcoming && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-700/30">
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-white">{e.chiefMinister?.split(' ').pop()}</p>
+                        <p className="text-[10px] text-slate-500">Chief Minister</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-white">{e.turnout}%</p>
+                        <p className="text-[10px] text-slate-500">Turnout</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-white">{(e.registeredVoters / 1_000_000).toFixed(1)}M</p>
+                        <p className="text-[10px] text-slate-500">Registered Voters</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-white">{e.totalCandidates?.toLocaleString()}</p>
+                        <p className="text-[10px] text-slate-500">Candidates</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Section: CM Visual Timeline ──────────────────────────────
+
+function CMVisualTimeline() {
+  const cmGroups = useMemo(() => {
+    const groups = [];
+    let current = null;
+    for (const cm of CM_TIMELINE) {
+      if (!current || current.cm !== cm.cm) {
+        if (current) groups.push(current);
+        current = { ...cm, totalYears: cm.years };
+      } else {
+        current.totalYears += cm.years;
+        current.period = `${current.period.split('–')[0]}–${cm.period.split('–')[1]}`;
+        current.note = cm.note;
+      }
+    }
+    if (current) groups.push(current);
+    return groups;
+  }, []);
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="flex gap-1 min-w-[800px]">
+        {cmGroups.map((cm, i) => {
+          const color = CM_PARTY_COLORS[cm.party] || '#64748b';
+          const width = Math.max(cm.totalYears * 12, 60);
+          return (
+            <div
+              key={i}
+              className="rounded-lg px-2 py-3 text-center border-t-2 flex-shrink-0 group relative"
+              style={{
+                width: `${width}px`,
+                borderColor: color,
+                backgroundColor: `${color}10`,
+              }}
+            >
+              <p className="text-[9px] text-slate-500 truncate">{cm.period}</p>
+              <p className="text-[11px] font-bold text-white mt-0.5 truncate">{cm.cm.split(' ').pop()}</p>
+              <p className="text-[9px] font-medium truncate" style={{ color }}>{cm.party}</p>
+              {/* Hover tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none w-48">
+                <p className="text-xs font-bold text-white">{cm.cm}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{cm.period}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{cm.note}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Section: Anti-Incumbency Visualization ───────────────────
+
+function AntiIncumbencyChart() {
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-4 text-xs text-slate-400 mb-2">
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-500/30 border border-red-500" /> Incumbent Lost</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-500/30 border border-green-500" /> Incumbent Won</span>
+      </div>
+      <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-16 gap-2">
+        {ANTI_INCUMBENCY.map((d) => {
+          const isUnknown = d.result === '?';
+          const lost = d.broke;
+          const color = isUnknown ? '#f59e0b' : lost ? '#ef4444' : '#22c55e';
+          const incColor = CM_PARTY_COLORS[d.incumbent] || '#64748b';
+
+          return (
+            <div key={d.year}
+              className="rounded-lg p-2 text-center border transition-all hover:scale-105"
+              style={{ borderColor: color, backgroundColor: `${color}10` }}
+            >
+              <p className="text-xs font-bold text-white">{d.year}</p>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <PartySymbolIcon party={d.incumbent} size={12} color={incColor} />
+                <span className="text-[10px] font-medium" style={{ color: incColor }}>{d.incumbent}</span>
+              </div>
+              <p className="text-[10px] mt-0.5" style={{ color }}>
+                {isUnknown ? '?' : lost ? '✗ Lost' : '✓ Won'}
+              </p>
+              {d.toParty && (
+                <p className="text-[9px] text-slate-500">→ {d.toParty}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 mt-2">
+        <p className="text-xs text-amber-400 font-medium">The Pattern:</p>
+        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+          Between 1967–2026, the ruling party lost power in <strong className="text-white">10 out of 13</strong> elections.
+          Only MGR (1980, 1984) and Jayalalithaa (2016) broke the anti-incumbency pattern.
+          Will Stalin's DMK be the fourth to defy it in 2026?
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Section: Party Family Tree ───────────────────────────────
+
+function PartyFamilyTree() {
+  return (
+    <div className="relative">
+      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-slate-700/50" />
+      <div className="space-y-3">
+        {PARTY_EVOLUTION.map((p, i) => {
+          const color = PARTY_COLORS[p.party] || '#64748b';
+          return (
+            <div key={i} className="relative pl-10 flex items-center gap-3">
+              <div className="absolute left-1.5 w-3 h-3 rounded-full border-2 bg-slate-900"
+                style={{ borderColor: color }} />
+              <span className="text-xs font-bold text-slate-300 tabular-nums w-10 flex-shrink-0">{p.year}</span>
+              <div className="flex-1 rounded-lg px-3 py-2 border-l-2" style={{ borderColor: color, backgroundColor: `${color}08` }}>
+                <span className="text-xs text-slate-300">{p.event}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────
+
+export default function TrendsPage() {
+  const [era, setEra] = useState('All');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const filteredElections = useMemo(() =>
+    HISTORICAL_ELECTIONS
+      .filter(e => era === 'All' || e.era === era)
+      .sort((a, b) => b.year - a.year),
+    [era]
+  );
+
+  // Criminal and asset trend data (2006–2021 only)
   const criminalTrend = Object.entries(CRIMINAL_STATS).map(([yr, d]) => ({
     year: Number(yr),
-    'Candidates with Cases (%)': d.percentWithCases,
+    'With Cases (%)': d.percentWithCases,
     'Serious Cases (%)': d.percentSerious,
-    'Avg Cases per Candidate': d.avgCases,
   }));
 
   const assetTrend = Object.entries(ASSET_STATS).map(([yr, d]) => ({
     year: Number(yr),
-    'Average Assets (₹ Cr)': d.avgAssets,
-    'Median Assets (₹ Cr)': d.medianAssets,
+    'Average (₹ Cr)': d.avgAssets,
+    'Median (₹ Cr)': d.medianAssets,
     'Richest (₹ Cr)': d.richest,
   }));
 
-  const cmTimeline = [
-    { period: '2006–2011', cm: 'M. Karunanidhi', party: 'DMK', color: PARTY_COLORS.DMK },
-    { period: '2011–2016', cm: 'J. Jayalalithaa', party: 'AIADMK', color: PARTY_COLORS.AIADMK },
-    { period: '2016–2021', cm: 'Jayalalithaa / EPS', party: 'AIADMK', color: PARTY_COLORS.AIADMK },
-    { period: '2021–2026', cm: 'M.K. Stalin', party: 'DMK', color: PARTY_COLORS.DMK },
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'seats', label: 'Seats & Vote Share' },
+    { id: 'turnout', label: 'Turnout' },
+    { id: 'incumbency', label: 'Anti-Incumbency' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'evolution', label: 'Party Evolution' },
+    { id: 'money', label: 'Money & Crime' },
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white">Historical Trends</h1>
-        <p className="text-slate-400 mt-1">20 years of Tamil Nadu electoral trends (2006–2021)</p>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight">
+            74 Years of Tamil Nadu Elections
+          </h1>
+          <p className="text-slate-400 mt-1">
+            Complete electoral history from 1952 to 2026 — {HISTORICAL_ELECTIONS.length} elections, 13 Chief Ministers, 3 political eras
+          </p>
+        </div>
+        <HeroStats />
       </div>
 
-      {/* CM Timeline */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Chief Ministers Timeline" />
-        <div className="flex flex-col sm:flex-row gap-4">
-          {cmTimeline.map((cm, i) => (
-            <div
-              key={i}
-              className="flex-1 rounded-lg p-4 border-l-4"
-              style={{ borderColor: cm.color, backgroundColor: `${cm.color}08` }}
+      {/* Tab Navigation */}
+      <div className="border-b border-slate-700/50 overflow-x-auto pb-px">
+        <div className="flex gap-1 min-w-max">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-amber-400 text-amber-400'
+                  : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
+              }`}
             >
-              <p className="text-xs text-slate-400">{cm.period}</p>
-              <p className="text-lg font-bold text-white mt-1">{cm.cm}</p>
-              <p className="text-sm mt-1 flex items-center gap-1" style={{ color: cm.color }}><PartySymbolIcon party={cm.party} size={16} color={cm.color} /> {cm.party}</p>
-            </div>
+              {tab.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Vote Share Trend */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Vote Share Trend (%)" subtitle="How party vote shares have changed over elections" />
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={VOTE_SHARE_TREND.filter(d => d.DMK !== null)}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis unit="%" />
-            <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Line type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} strokeWidth={3} dot={{ r: 6 }} />
-            <Line type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} strokeWidth={3} dot={{ r: 6 }} />
-            <Line type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} strokeWidth={2} dot={{ r: 5 }} />
-            <Line type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} strokeWidth={2} dot={{ r: 5 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
+      {activeTab === 'overview' && (
+        <div className="space-y-8">
+          {/* CM Timeline Bar */}
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Chief Ministers of Tamil Nadu" subtitle="1952 to present — hover for details" />
+            <CMVisualTimeline />
+          </div>
 
-      {/* Seats Trend */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Seats Won Trend" subtitle="Number of seats won by major parties" />
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={SEATS_TREND.filter(d => d.DMK !== null)}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Bar dataKey="DMK" fill={PARTY_COLORS.DMK} radius={[2, 2, 0, 0]} />
-            <Bar dataKey="AIADMK" fill={PARTY_COLORS.AIADMK} radius={[2, 2, 0, 0]} />
-            <Bar dataKey="INC" fill={PARTY_COLORS.INC} radius={[2, 2, 0, 0]} />
-            <Bar dataKey="BJP" fill={PARTY_COLORS.BJP} radius={[2, 2, 0, 0]} />
-            <Bar dataKey="Others" fill={PARTY_COLORS.Others} radius={[2, 2, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+          {/* Combined Seats Chart (1952-2021) */}
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Seats Won by Major Parties" subtitle="All 16 completed elections (1952–2021)" />
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={HISTORICAL_SEATS} barGap={1}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Dravidian Era →', position: 'top', fill: '#f59e0b', fontSize: 10 }} />
+                <Bar dataKey="INC" fill={PARTY_COLORS.INC} name="Congress" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="DMK" fill={PARTY_COLORS.DMK} name="DMK" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="AIADMK" fill={PARTY_COLORS.AIADMK} name="AIADMK" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="BJP" fill={PARTY_COLORS.BJP} name="BJP" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Others" fill={PARTY_COLORS.Others} name="Others" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-      {/* Voter Turnout */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Voter Turnout & Participation" />
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={turnoutData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis yAxisId="left" unit="%" />
-            <YAxis yAxisId="right" orientation="right" unit="M" />
-            <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Bar yAxisId="right" dataKey="voters" fill="#3b82f630" stroke="#3b82f6" name="Voters (M)" radius={[4, 4, 0, 0]} />
-            <Line yAxisId="left" type="monotone" dataKey="turnout" stroke="#f59e0b" strokeWidth={3} dot={{ r: 6 }} name="Turnout (%)" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Criminal Cases Trend */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader
-          title="Criminalization of Politics Trend"
-          subtitle="Rising percentage of candidates with criminal records"
-        />
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={criminalTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Area type="monotone" dataKey="Candidates with Cases (%)" stroke="#f59e0b" fill="#f59e0b30" strokeWidth={2} />
-            <Area type="monotone" dataKey="Serious Cases (%)" stroke="#ef4444" fill="#ef444430" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Asset Growth Trend */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Wealth of MLAs Trend" subtitle="Average and peak assets of winning candidates" />
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={assetTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis unit="Cr" />
-            <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend />
-            <Bar dataKey="Richest (₹ Cr)" fill="#22c55e30" stroke="#22c55e" name="Richest MLA (₹ Cr)" radius={[4, 4, 0, 0]} />
-            <Line type="monotone" dataKey="Average Assets (₹ Cr)" stroke="#f59e0b" strokeWidth={3} dot={{ r: 6 }} />
-            <Line type="monotone" dataKey="Median Assets (₹ Cr)" stroke="#3b82f6" strokeWidth={2} dot={{ r: 5 }} />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Key Observations */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-        <SectionHeader title="Key Observations" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              title: 'Anti-Incumbency Pattern',
-              desc: 'Tamil Nadu has consistently alternated between DMK and AIADMK alliances since 1967. No ruling party has won consecutive elections.',
-              color: '#f59e0b',
-            },
-            {
-              title: 'Rising Criminalization',
-              desc: 'The percentage of candidates with criminal cases has risen from 25.3% (2006) to 38.6% (2021), a 52% increase in 15 years.',
-              color: '#ef4444',
-            },
-            {
-              title: 'Wealth Explosion',
-              desc: 'Average MLA assets grew from ₹3.2 Cr (2006) to ₹12.21 Cr (2021) — a 4x increase in 15 years, far outpacing inflation.',
-              color: '#22c55e',
-            },
-            {
-              title: 'Third Front Struggles',
-              desc: 'Despite parties like DMDK, NTK, MNM polling significant vote shares, translating to seats remains a challenge in the FPTP system.',
-              color: '#3b82f6',
-            },
-          ].map((obs, i) => (
-            <div key={i} className="rounded-lg p-4 border-l-4" style={{ borderColor: obs.color, backgroundColor: `${obs.color}08` }}>
-              <h4 className="text-sm font-semibold text-white">{obs.title}</h4>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">{obs.desc}</p>
-            </div>
-          ))}
+          {/* Quick Observations */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                title: 'Congress → DMK in 1967',
+                desc: 'The anti-Hindi agitation of 1965 triggered a seismic shift. Congress has never won power in Tamil Nadu since.',
+                color: PARTY_COLORS.DMK,
+                stat: '59 years',
+                statLabel: 'since Congress last ruled',
+              },
+              {
+                title: 'The Pendulum Effect',
+                desc: 'Since 1967, power has alternated between DMK and AIADMK with remarkable regularity — broken only thrice.',
+                color: '#f59e0b',
+                stat: '10/13',
+                statLabel: 'elections saw power change',
+              },
+              {
+                title: 'Cinema to Politics',
+                desc: 'MGR, Jayalalithaa, Vijayakanth, Kamal, and now Vijay — Tamil Nadu has a unique cinema-politics pipeline.',
+                color: '#8b5cf6',
+                stat: '5+',
+                statLabel: 'film stars turned politicians',
+              },
+            ].map((obs, i) => (
+              <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 border-t-2"
+                style={{ borderTopColor: obs.color }}>
+                <p className="text-2xl font-black" style={{ color: obs.color }}>{obs.stat}</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider">{obs.statLabel}</p>
+                <h4 className="text-sm font-semibold text-white mt-3">{obs.title}</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{obs.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* ═══════════════ SEATS & VOTE SHARE TAB ═══════════════ */}
+      {activeTab === 'seats' && (
+        <div className="space-y-8">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Seats Won — Stacked View" subtitle="Composition of legislature after each election" />
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={HISTORICAL_SEATS}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" />
+                <Bar dataKey="INC" stackId="seats" fill={PARTY_COLORS.INC} name="Congress" />
+                <Bar dataKey="DMK" stackId="seats" fill={PARTY_COLORS.DMK} name="DMK" />
+                <Bar dataKey="AIADMK" stackId="seats" fill={PARTY_COLORS.AIADMK} name="AIADMK" />
+                <Bar dataKey="BJP" stackId="seats" fill={PARTY_COLORS.BJP} name="BJP" />
+                <Bar dataKey="Others" stackId="seats" fill={PARTY_COLORS.Others} name="Others" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Vote Share Trend (%)" subtitle="How party vote shares evolved from 1952 to 2021" />
+            <ResponsiveContainer width="100%" height={400}>
+              <AreaChart data={HISTORICAL_VOTE_SHARE}>
+                <defs>
+                  <linearGradient id="gradDMK" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradAIADMK" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradINC" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={PARTY_COLORS.INC} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: '1967', fill: '#f59e0b', fontSize: 10 }} />
+                <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#gradINC)" strokeWidth={2} name="Congress" dot={{ r: 3 }} />
+                <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#gradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 4 }} />
+                <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#gradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 4 }} />
+                <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={2} name="BJP" dot={{ r: 3 }} strokeDasharray="5 3" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* DMK vs AIADMK head-to-head */}
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="DMK vs AIADMK — Head to Head" subtitle="Seats won in elections where both contested (1977–2021)" />
+            <div className="space-y-3">
+              {HISTORICAL_ELECTIONS
+                .filter(e => e.results.DMK?.seats !== undefined && e.results.AIADMK?.seats !== undefined && e.status !== 'upcoming')
+                .filter(e => e.year >= 1977)
+                .sort((a, b) => a.year - b.year)
+                .map(e => {
+                  const dmkSeats = e.results.DMK?.seats || 0;
+                  const aiadmkSeats = e.results.AIADMK?.seats || 0;
+                  const total = e.tnSeats || e.totalSeats;
+                  const dmkPct = (dmkSeats / total) * 100;
+                  const aiadmkPct = (aiadmkSeats / total) * 100;
+                  const winner = dmkSeats > aiadmkSeats ? 'DMK' : 'AIADMK';
+
+                  return (
+                    <div key={e.year} className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-white w-10 text-right tabular-nums">{e.year}</span>
+                      <div className="flex-1 flex h-6 rounded-lg overflow-hidden bg-slate-700/30">
+                        <div className="flex items-center justify-end px-2"
+                          style={{ width: `${dmkPct}%`, backgroundColor: PARTY_COLORS.DMK }}>
+                          {dmkSeats >= 10 && <span className="text-[10px] font-bold text-white">{dmkSeats}</span>}
+                        </div>
+                        <div className="flex-1" />
+                        <div className="flex items-center justify-start px-2"
+                          style={{ width: `${aiadmkPct}%`, backgroundColor: PARTY_COLORS.AIADMK }}>
+                          {aiadmkSeats >= 10 && <span className="text-[10px] font-bold text-white">{aiadmkSeats}</span>}
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold w-14" style={{ color: CM_PARTY_COLORS[winner] }}>
+                        {winner}
+                      </span>
+                    </div>
+                  );
+                })}
+              <div className="flex items-center gap-3 text-xs text-slate-500 pt-2 border-t border-slate-700/30">
+                <span className="w-10" />
+                <div className="flex-1 flex justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3 h-1 rounded" style={{ backgroundColor: PARTY_COLORS.DMK }} /> DMK
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    AIADMK <span className="w-3 h-1 rounded" style={{ backgroundColor: PARTY_COLORS.AIADMK }} />
+                  </span>
+                </div>
+                <span className="w-14" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ TURNOUT TAB ═══════════════ */}
+      {activeTab === 'turnout' && (
+        <div className="space-y-8">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Voter Turnout (1952–2021)" subtitle="Percentage of registered voters who voted" />
+            <ResponsiveContainer width="100%" height={400}>
+              <ComposedChart data={HISTORICAL_TURNOUT}>
+                <defs>
+                  <linearGradient id="gradTurnout" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis yAxisId="left" unit="%" domain={[50, 85]} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis yAxisId="right" orientation="right" unit="M" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar yAxisId="right" dataKey="votersInMillions" fill="#3b82f620" stroke="#3b82f6" name="Registered Voters (M)" radius={[4, 4, 0, 0]} />
+                <Area yAxisId="left" type="monotone" dataKey="turnout" stroke="#f59e0b" fill="url(#gradTurnout)" strokeWidth={3} dot={{ r: 5, fill: '#f59e0b' }} name="Turnout (%)" />
+                <ReferenceLine yAxisId="left" y={70} stroke="#94a3b8" strokeDasharray="3 3" label={{ value: '70% avg', position: 'right', fill: '#94a3b8', fontSize: 10 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Turnout records */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Highest Turnout', value: '78.0%', year: '2011', note: 'Anti-DMK wave over 2G scam', color: '#22c55e' },
+              { label: 'Lowest Turnout', value: '58.0%', year: '1952', note: 'First election — voter awareness low', color: '#ef4444' },
+              { label: 'Voter Growth', value: '2.3x', year: '1952→2021', note: '27.8M → 62.4M registered voters', color: '#3b82f6' },
+            ].map((s, i) => (
+              <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 text-center">
+                <p className="text-3xl font-black" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-xs text-slate-400 mt-1">{s.label} ({s.year})</p>
+                <p className="text-[10px] text-slate-500 mt-1">{s.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ ANTI-INCUMBENCY TAB ═══════════════ */}
+      {activeTab === 'incumbency' && (
+        <div className="space-y-8">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="The Anti-Incumbency Pattern" subtitle="Tamil Nadu's famous pattern of rejecting ruling parties" />
+            <AntiIncumbencyChart />
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ TIMELINE TAB ═══════════════ */}
+      {activeTab === 'timeline' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <SectionHeader title="Election-by-Election" subtitle="Click any election to see detailed results and key events" />
+            <EraSelector era={era} setEra={setEra} />
+          </div>
+          <ElectionTimeline elections={filteredElections} />
+        </div>
+      )}
+
+      {/* ═══════════════ PARTY EVOLUTION TAB ═══════════════ */}
+      {activeTab === 'evolution' && (
+        <div className="space-y-8">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Party Family Tree" subtitle="How Tamil Nadu's political parties were born — from DK to TVK" />
+            <PartyFamilyTree />
+          </div>
+
+          {/* Three eras explanation */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                era: 'Congress Era',
+                period: '1952–1967',
+                color: ERA_COLORS['Congress Era'],
+                desc: 'Indian National Congress ruled Madras State. Rajaji was the first CM, followed by Kamaraj who transformed education. The Dravidian movement grew as opposition.',
+              },
+              {
+                era: 'Dravidian Era',
+                period: '1967–2006',
+                color: ERA_COLORS['Dravidian Era'],
+                desc: 'DMK and AIADMK alternated power. Annadurai, Karunanidhi, MGR, and Jayalalithaa defined this era. Alliance politics became essential.',
+              },
+              {
+                era: 'Modern Era',
+                period: '2006–present',
+                color: ERA_COLORS['Modern Era'],
+                desc: 'The Dravidian duopoly continues but faces challenges from NTK, TVK, and national parties. Generational shift as second-gen leaders take charge.',
+              },
+            ].map((e, i) => (
+              <div key={i} className="bg-slate-800/50 border-t-2 border border-slate-700/50 rounded-xl p-5"
+                style={{ borderTopColor: e.color }}>
+                <p className="text-lg font-black" style={{ color: e.color }}>{e.era}</p>
+                <p className="text-xs text-slate-500">{e.period}</p>
+                <p className="text-xs text-slate-400 mt-3 leading-relaxed">{e.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ MONEY & CRIME TAB ═══════════════ */}
+      {activeTab === 'money' && (
+        <div className="space-y-8">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader
+              title="Criminalization of Politics"
+              subtitle="Percentage of candidates with criminal records (2006–2021)"
+            />
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={criminalTrend}>
+                <defs>
+                  <linearGradient id="gradCrime" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradSerious" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area type="monotone" dataKey="With Cases (%)" stroke="#ef4444" fill="url(#gradCrime)" strokeWidth={2.5} dot={{ r: 5 }} />
+                <Area type="monotone" dataKey="Serious Cases (%)" stroke="#f59e0b" fill="url(#gradSerious)" strokeWidth={2} dot={{ r: 4 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+            <SectionHeader title="Wealth of Candidates" subtitle="Average, median, and peak assets of candidates" />
+            <ResponsiveContainer width="100%" height={350}>
+              <ComposedChart data={assetTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis unit=" Cr" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip content={ChartTooltip} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="Richest (₹ Cr)" fill="#22c55e20" stroke="#22c55e" name="Richest Candidate" radius={[4, 4, 0, 0]} />
+                <Line type="monotone" dataKey="Average (₹ Cr)" stroke="#f59e0b" strokeWidth={3} dot={{ r: 5, fill: '#f59e0b' }} />
+                <Line type="monotone" dataKey="Median (₹ Cr)" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: '#3b82f6' }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Key observations */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                title: 'Rising Criminalization',
+                desc: 'Candidates with criminal cases rose from 25.3% (2006) to 38.6% (2021) — a 52% increase over 15 years.',
+                color: '#ef4444',
+              },
+              {
+                title: 'Wealth Explosion',
+                desc: 'Average candidate assets grew from ₹3.2 Cr (2006) to ₹12.2 Cr (2021) — a 4x increase, far outpacing inflation.',
+                color: '#22c55e',
+              },
+            ].map((obs, i) => (
+              <div key={i} className="rounded-xl p-5 border-l-4 bg-slate-800/50 border border-slate-700/50"
+                style={{ borderLeftColor: obs.color }}>
+                <h4 className="text-sm font-semibold text-white">{obs.title}</h4>
+                <p className="text-xs text-slate-400 mt-2 leading-relaxed">{obs.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer attribution */}
+      <div className="text-center py-4 border-t border-slate-700/30">
+        <p className="text-[10px] text-slate-600">
+          Data: Election Commission of India • Tamil Nadu State Election Commission • myneta.info
+        </p>
       </div>
     </div>
   );
