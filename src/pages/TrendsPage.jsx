@@ -257,6 +257,8 @@ function ElectionTimeline({ elections }) {
 // ─── Section: CM Visual Timeline ──────────────────────────────
 
 function CMVisualTimeline() {
+  const [expandedIdx, setExpandedIdx] = useState(null);
+
   const cmGroups = useMemo(() => {
     const groups = [];
     let current = null;
@@ -271,38 +273,50 @@ function CMVisualTimeline() {
       }
     }
     if (current) groups.push(current);
-    return groups;
+    return groups.reverse(); // Most recent CM first
   }, []);
 
   return (
-    <div className="overflow-x-auto pb-2">
-      <div className="flex gap-1 min-w-[800px]">
-        {cmGroups.map((cm, i) => {
-          const color = CM_PARTY_COLORS[cm.party] || '#64748b';
-          const width = Math.max(cm.totalYears * 12, 60);
-          return (
-            <div
-              key={i}
-              className="rounded-lg px-2 py-3 text-center border-t-2 flex-shrink-0 group relative"
-              style={{
-                width: `${width}px`,
-                borderColor: color,
-                backgroundColor: `${color}10`,
-              }}
-            >
-              <p className="text-[9px] text-slate-500 truncate">{cm.period}</p>
-              <p className="text-[11px] font-bold text-white mt-0.5 truncate">{cm.cm.split(' ').pop()}</p>
-              <p className="text-[9px] font-medium truncate" style={{ color }}>{cm.party}</p>
-              {/* Hover tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none w-48">
-                <p className="text-xs font-bold text-white">{cm.cm}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{cm.period}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{cm.note}</p>
+    <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+      {cmGroups.map((cm, i) => {
+        const color = CM_PARTY_COLORS[cm.party] || '#64748b';
+        const isExpanded = expandedIdx === i;
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setExpandedIdx(isExpanded ? null : i)}
+            className="w-full text-left rounded-lg border transition-all duration-200"
+            style={{
+              borderColor: isExpanded ? color : `${color}40`,
+              backgroundColor: isExpanded ? `${color}15` : `${color}08`,
+            }}
+          >
+            <div className="flex items-center gap-3 px-4 py-3">
+              {/* Color indicator */}
+              <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+              {/* Name & party */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white">{cm.cm}</p>
+                <p className="text-xs mt-0.5" style={{ color }}>{cm.party}</p>
               </div>
+              {/* Period & years */}
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs text-slate-400">{cm.period}</p>
+                <p className="text-[11px] text-slate-500">{cm.totalYears} yr{cm.totalYears !== 1 ? 's' : ''}</p>
+              </div>
+              {/* Expand indicator */}
+              <span className="text-slate-500 text-xs">{isExpanded ? '▲' : '▼'}</span>
             </div>
-          );
-        })}
-      </div>
+            {/* Expanded details */}
+            {isExpanded && (
+              <div className="px-4 pb-3 pt-1 border-t" style={{ borderColor: `${color}30` }}>
+                <p className="text-xs text-slate-300 leading-relaxed">{cm.note}</p>
+              </div>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
