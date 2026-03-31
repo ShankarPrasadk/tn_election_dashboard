@@ -426,24 +426,29 @@ async function fetch2026ProfileDetail(card) {
     return cache[card.profileUrl];
   }
 
-  const html = await fetchTextWithRetry(card.profileUrl, 3);
-  const labels = extractLabelValuePairs(html);
-  const affidavitId = extractInputValue(html, 'candidate_affidavit_idHidden') || null;
-  const pdfToken = affidavitId ? extractInputValue(html, `pdfUrl${affidavitId}`) : null;
-  const cacheKey = generateCandidateId(card.name, card.party, card.constituency, 'eci-2026');
-  const affidavit = await fetchAffidavitSummary(pdfToken, cacheKey);
+  try {
+    const html = await fetchTextWithRetry(card.profileUrl, 3);
+    const labels = extractLabelValuePairs(html);
+    const affidavitId = extractInputValue(html, 'candidate_affidavit_idHidden') || null;
+    const pdfToken = affidavitId ? extractInputValue(html, `pdfUrl${affidavitId}`) : null;
+    const cacheKey = generateCandidateId(card.name, card.party, card.constituency, 'eci-2026');
+    const affidavit = await fetchAffidavitSummary(pdfToken, cacheKey);
 
-  const detail = {
-    labels,
-    affidavitId,
-    pdfToken,
-    affidavit,
-    fetchedAt: new Date().toISOString(),
-  };
+    const detail = {
+      labels,
+      affidavitId,
+      pdfToken,
+      affidavit,
+      fetchedAt: new Date().toISOString(),
+    };
 
-  cache[card.profileUrl] = detail;
-  await writeJson(profileCachePath, cache);
-  return detail;
+    cache[card.profileUrl] = detail;
+    await writeJson(profileCachePath, cache);
+    return detail;
+  } catch (error) {
+    console.warn(`Skipping profile fetch for ${card.name} (${card.constituency}): ${error.cause?.code || error.message}`);
+    return { labels: {}, affidavit: {} };
+  }
 }
 
 async function loadExistingHistoricalEntries() {
@@ -453,6 +458,21 @@ async function loadExistingHistoricalEntries() {
   }
 
   return existing.entries.filter((entry) => entry.year !== 2026);
+}
+
+function nameTokens(value) {
+  return normalizeName(value).split(/\s+/).filter((token) => token.length > 1);
+}
+
+function fuzzyNameMatch(nameA, nameB) {
+  const tokensA = nameTokens(nameA);
+  const tokensB = nameTokens(nameB);
+  if (!tokensA.length || !tokensB.length) {
+    return false;
+  }
+
+  const shared = tokensA.filter((token) => tokensB.some((other) => other.includes(token) || token.includes(other)));
+  return shared.length >= Math.min(tokensA.length, tokensB.length, 2);
 }
 
 function match2026Card(entry, cardsByConstituency) {
@@ -475,7 +495,17 @@ function match2026Card(entry, cardsByConstituency) {
     return exactName;
   }
 
-  return candidates.find((card) => normalizeName(card.name).includes(nameKey) || nameKey.includes(normalizeName(card.name))) || null;
+  const substringMatch = candidates.find((card) => normalizeName(card.name).includes(nameKey) || nameKey.includes(normalizeName(card.name)));
+  if (substringMatch) {
+    return substringMatch;
+  }
+
+  const fuzzyWithParty = candidates.find((card) => fuzzyNameMatch(entry.name, card.name) && partyAliases.has(normalizePartyKey(card.party)));
+  if (fuzzyWithParty) {
+    return fuzzyWithParty;
+  }
+
+  return candidates.find((card) => fuzzyNameMatch(entry.name, card.name)) || null;
 }
 
 function parseCriminalCases(value) {
@@ -495,11 +525,20 @@ async function fetchHistoricalCandidateDetail(detailUrl) {
 
   const html = await fetchTextWithRetry(detailUrl, 3);
 
+  const photoMatch = html.match(/<img[^>]+src="(https?:\/\/[^"]*images_candidate[^"]+)"/i)
+    || html.match(/<img[^>]+src="([^"]*images_candidate[^"]+)"/i);
+  let photo = null;
+  if (photoMatch) {
+    const src = photoMatch[1];
+    photo = src.startsWith('http') ? src : `https://myneta.info${src.startsWith('/') ? '' : '/'}${src}`;
+  }
+
   return {
     ageText: extractDetailField(html, /<b>\s*Age:\s*<\/b>\s*([^<]+)/i),
     voterEnrollment: extractDetailField(html, /<b>\s*Name Enrolled as Voter in:\s*<\/b>\s*([^<]+)/i),
     selfProfession: extractDetailField(html, /<b>\s*Self Profession:\s*<\/b>\s*([^<]+)/i),
     spouseProfession: extractDetailField(html, /<b>\s*Spouse Profession:\s*<\/b>\s*([^<]+)/i),
+    photo,
   };
 }
 
@@ -618,7 +657,7 @@ async function fetchHistoricalYear(config) {
           voterEnrollment: detail?.voterEnrollment || null,
           selfProfession: detail?.selfProfession || null,
           spouseProfession: detail?.spouseProfession || null,
-          photo: generateCandidateAvatarUrl(row.name, row.party),
+          photo: detail?.photo || generateCandidateAvatarUrl(row.name, row.party),
           source: {
             label: 'Myneta summary',
             url,
@@ -684,42 +723,98 @@ async function build2026Entries() {
     return accumulator;
   }, new Map());
 
-  return mapWithConcurrency(baseEntries, 3, async (entry) => {
+  const matchedCards = new Set();
+
+  const enrichedBase = await mapWithConcurrency(baseEntries, 3, async (entry) => {
     const card = match2026Card(entry, cardsByConstituency);
     if (!card) {
       return entry;
     }
 
-    const detail = await fetch2026ProfileDetail(card);
-    const labels = detail.labels || {};
-    const affidavit = detail.affidavit || {};
-    const assetsText = affidavit.assetsText || entry.assetsText;
-    const liabilitiesText = affidavit.liabilitiesText || entry.liabilitiesText;
-    const criminalCasesText = affidavit.criminalCasesText || entry.criminalCasesText;
+    matchedCards.add(card);
+
+    try {
+      const detail = await fetch2026ProfileDetail(card);
+      const labels = detail.labels || {};
+      const affidavit = detail.affidavit || {};
+      const assetsText = affidavit.assetsText || entry.assetsText;
+      const liabilitiesText = affidavit.liabilitiesText || entry.liabilitiesText;
+      const criminalCasesText = affidavit.criminalCasesText || entry.criminalCasesText;
+
+      return {
+        ...entry,
+        status: card.status ? `Affidavit ${card.status}` : entry.status,
+        criminalCases: affidavit.criminalCases ?? entry.criminalCases,
+        criminalCasesText,
+        education: affidavit.education || labels['Educational Qualification'] || entry.education,
+        assetsText,
+        liabilitiesText,
+        assetsCrores: parseIndianCurrencyToCrores(assetsText),
+        liabilitiesCrores: parseIndianCurrencyToCrores(liabilitiesText),
+        ageText: labels.Age || entry.ageText,
+        voterEnrollment: labels['Name Enrolled as Voter in'] || entry.voterEnrollment,
+        selfProfession: affidavit.selfProfession || labels['Self Profession'] || entry.selfProfession,
+        spouseProfession: affidavit.spouseProfession || labels['Spouse Profession'] || entry.spouseProfession,
+        photo: card.photo || entry.photo,
+        source: {
+          label: 'Election Commission of India affidavit portal',
+          url: card.listingUrl,
+          detailUrl: card.profileUrl,
+          affidavitPdfUrl: detail.pdfToken ? `${ECI_BASE_URL}/affidavit-pdf-download/${detail.pdfToken}` : null,
+        },
+      };
+    } catch (error) {
+      console.warn(`Skipping enrichment for ${entry.name}: ${error.cause?.code || error.message}`);
+      return { ...entry, photo: card.photo || entry.photo };
+    }
+  });
+
+  // Add unmatched ECI cards as new entries using listing card data (photos + basic info)
+  // Profile details are only fetched for already-cached profiles to avoid slow ECI fetching
+  const unmatchedCards = cards.filter((card) => !matchedCards.has(card));
+  const profileCache = await loadProfileCache();
+  const unmatchedEntries = await mapWithConcurrency(unmatchedCards, 3, async (card) => {
+    const constituencyInfo = constituencyLookup.get(normalizeText(card.constituency).toLowerCase()) || {};
+    const partyAbbr = Object.entries(PARTY_ALIASES).find(
+      ([, aliases]) => aliases.some((alias) => normalizePartyKey(alias) === normalizePartyKey(card.party))
+    )?.[0] || card.party;
+
+    // Use cached profile if available, otherwise skip slow fetch
+    const cachedDetail = profileCache[card.profileUrl];
+    const labels = cachedDetail?.labels || {};
+    const affidavit = cachedDetail?.affidavit || {};
 
     return {
-      ...entry,
-      status: card.status ? `Affidavit ${card.status}` : entry.status,
-      criminalCases: affidavit.criminalCases ?? entry.criminalCases,
-      criminalCasesText,
-      education: affidavit.education || labels['Educational Qualification'] || entry.education,
-      assetsText,
-      liabilitiesText,
-      assetsCrores: parseIndianCurrencyToCrores(assetsText),
-      liabilitiesCrores: parseIndianCurrencyToCrores(liabilitiesText),
-      ageText: labels.Age || entry.ageText,
-      voterEnrollment: labels['Name Enrolled as Voter in'] || entry.voterEnrollment,
-      selfProfession: affidavit.selfProfession || labels['Self Profession'] || entry.selfProfession,
-      spouseProfession: affidavit.spouseProfession || labels['Spouse Profession'] || entry.spouseProfession,
-      photo: card.photo || entry.photo,
+      id: generateCandidateId(card.name, partyAbbr, card.constituency, 2026),
+      year: 2026,
+      name: card.name,
+      party: partyAbbr,
+      constituency: card.constituency,
+      district: constituencyInfo.district || null,
+      reserved: constituencyInfo.reserved || null,
+      status: card.status ? `Affidavit ${card.status}` : 'ECI Filed Candidate',
+      criminalCases: affidavit.criminalCases ?? null,
+      criminalCasesText: affidavit.criminalCasesText || 'Awaiting final affidavit sync',
+      education: affidavit.education || labels['Educational Qualification'] || 'Awaiting final affidavit sync',
+      assetsText: affidavit.assetsText || 'Awaiting final affidavit sync',
+      liabilitiesText: affidavit.liabilitiesText || 'Awaiting final affidavit sync',
+      assetsCrores: parseIndianCurrencyToCrores(affidavit.assetsText),
+      liabilitiesCrores: parseIndianCurrencyToCrores(affidavit.liabilitiesText),
+      ageText: labels.Age || null,
+      voterEnrollment: labels['Name Enrolled as Voter in'] || null,
+      selfProfession: affidavit.selfProfession || labels['Self Profession'] || null,
+      spouseProfession: affidavit.spouseProfession || labels['Spouse Profession'] || null,
+      photo: card.photo || generateCandidateAvatarUrl(card.name, partyAbbr),
       source: {
         label: 'Election Commission of India affidavit portal',
         url: card.listingUrl,
         detailUrl: card.profileUrl,
-        affidavitPdfUrl: detail.pdfToken ? `${ECI_BASE_URL}/affidavit-pdf-download/${detail.pdfToken}` : null,
       },
     };
   });
+
+  console.log(`2026 entries: ${enrichedBase.length} base + ${unmatchedEntries.length} ECI-only (${matchedCards.size} matched)`);
+  return [...enrichedBase, ...unmatchedEntries];
 }
 
 async function main() {

@@ -135,7 +135,8 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
         <div className="relative p-6 lg:p-10">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
             <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl overflow-hidden ring-4 shadow-2xl flex-shrink-0" style={{ ringColor: `${partyColor}40` }}>
-              <img src={profilePhoto} alt={candidate.name} className="w-full h-full object-cover" />
+              <img src={profilePhoto} alt={candidate.name} className="w-full h-full object-cover"
+                onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=6b7280&color=fff&size=256`; }} />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -349,7 +350,8 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
             <div className="relative flex-shrink-0">
               <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl overflow-hidden ring-4 shadow-2xl" style={{ ringColor: `${partyColor}40` }}>
-                <img src={profilePhoto} alt={candidate.name} className="w-full h-full object-cover" />
+                <img src={profilePhoto} alt={candidate.name} className="w-full h-full object-cover"
+                  onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=6b7280&color=fff&size=256`; }} />
               </div>
               {candidate.tags?.length > 0 && (
                 <div className="absolute -bottom-2 -right-2 px-2 py-1 rounded-full text-xs font-bold bg-amber-500 text-slate-900 shadow-lg">
@@ -582,7 +584,7 @@ export default function CandidateProfilePage() {
   useEffect(() => {
     const activeCandidate = curatedCandidate || directoryCandidate;
 
-    if (!activeCandidate || !curatedCandidate) {
+    if (!activeCandidate) {
       setCandidateEnrichment(null);
       setEnrichmentLoading(false);
       return undefined;
