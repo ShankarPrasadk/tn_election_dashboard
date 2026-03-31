@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 
 import { getCandidateEnrichment } from './candidate-enrichment.mjs';
 import { getCandidateById, listAvailableFilters, loadDataset, reloadDataset, searchCandidates } from './data-store.mjs';
+import { fetchAllNews } from './news-fetcher.mjs';
 import { answerElectionQuestion } from './retrieval.mjs';
 import { askSchema, candidateSearchSchema, toValidationError } from './guardrails.mjs';
 
@@ -68,6 +69,31 @@ app.get('/api/candidates/:id/enrichment', async (request, response, next) => {
 
     response.json(await getCandidateEnrichment(candidate));
   } catch (error) {
+    next(error);
+  }
+});
+
+// ── News endpoint with in-memory cache (10 min TTL) ──
+let newsCache = { data: null, fetchedAt: 0 };
+const NEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+app.get('/api/news', async (_request, response, next) => {
+  try {
+    const now = Date.now();
+    if (newsCache.data && (now - newsCache.fetchedAt) < NEWS_TTL_MS) {
+      response.json({ articles: newsCache.data, cached: true, fetchedAt: new Date(newsCache.fetchedAt).toISOString() });
+      return;
+    }
+
+    const articles = await fetchAllNews();
+    newsCache = { data: articles, fetchedAt: now };
+    response.json({ articles, cached: false, fetchedAt: new Date(now).toISOString() });
+  } catch (error) {
+    // Return stale cache on error if available
+    if (newsCache.data) {
+      response.json({ articles: newsCache.data, cached: true, stale: true, fetchedAt: new Date(newsCache.fetchedAt).toISOString() });
+      return;
+    }
     next(error);
   }
 });

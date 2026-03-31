@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map } from 'lucide-react';
+import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/trends', icon: TrendingUp, label: 'Trends' },
   { to: '/constituency', icon: MapPin, label: 'My Constituency' },
   { to: '/map', icon: Map, label: 'Map' },
+  { to: '/news', icon: Newspaper, label: 'News' },
   { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
 ];
 

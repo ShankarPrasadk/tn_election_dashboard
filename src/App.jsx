@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
+import NewsTicker from './components/NewsTicker';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const CandidatesPage = lazy(() => import('./pages/CandidatesPage'));
@@ -14,6 +15,7 @@ const TrendsPage = lazy(() => import('./pages/TrendsPage'));
 const AskPage = lazy(() => import('./pages/AskPage'));
 const ConstituencyPage = lazy(() => import('./pages/ConstituencyPage'));
 const MapPage = lazy(() => import('./pages/MapPage'));
+const NewsPage = lazy(() => import('./pages/NewsPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,6 +35,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <NewsTicker />
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="flex-1 p-4 lg:p-8 overflow-auto">
@@ -47,6 +50,7 @@ export default function App() {
               <Route path="/trends" element={<TrendsPage />} />
               <Route path="/constituency" element={<ConstituencyPage />} />
               <Route path="/map" element={<MapPage />} />
+              <Route path="/news" element={<NewsPage />} />
               <Route path="/ask" element={<AskPage />} />
             </Routes>
           </Suspense>
