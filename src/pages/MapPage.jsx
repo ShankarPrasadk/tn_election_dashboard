@@ -38,6 +38,47 @@ function normalizeConstituencyName(name) {
   return (name || '').toUpperCase().replace(/\s*\(.*?\)\s*/g, '').trim();
 }
 
+// Normalize spelling variants so GeoJSON names match election data names
+function canonicalize(name) {
+  const n = normalizeConstituencyName(name);
+  const MAP = {
+    'ARAKKONAM': 'ARAKONAM',
+    'ARANTHANGI': 'ARANTANGI',
+    'ARUPPUKKOTTAI': 'ARUPPUKOTTAI',
+    'CHEPAUK-THIRUVALLIKEN': 'CHEPAUK-THIRUVALLIKENI',
+    'COIMBATORE': 'COIMBATORE SOUTH',
+    'DR.RADHAKRISHNAN NAGA': 'DR. RADHAKRISHNAN NAGAR',
+    'EDAPPADI': 'EDAPADI',
+    'GUDIYATTAM': 'GUDIYATHAM',
+    'GUMMIDIPOONDI': 'GUMMIDIPUNDI',
+    'KILVAITHINANKUPPAM(SC': 'KILVAITHINANKUPPAM',
+    'MADURANTAKAM': 'MADURANTHAKAM',
+    'METTUPPALAYAM': 'METTUPALAYAM',
+    'MODAKKURICHI': 'MODAKURICHI',
+    'MUDHUKULATHUR': 'MUDUKULATHUR',
+    'NILAKKOTTAI': 'NILAKOTTAI',
+    'ORATHANADU': 'ORATHANAD',
+    'PALACODU': 'PALACODE',
+    'PALAYAMKOTTAI': 'PALAYAMCOTTAI',
+    'RISHIVANDIYAM': 'RISHIVANDIAM',
+    'SENTHAMANGALAM': 'SENDAMANGALAM',
+    'SHOLINGUR': 'SHOLINGHUR',
+    'SIRKAZHI': 'SIRKALI',
+    'THIRUTHURAIPOONDI': 'THIRUTHURAIPUNDI',
+    'THIRUVERUMBUR': 'THIRUVERAMBUR',
+    'THIRUVIDAIMARUDUR': 'THIRUVIDAMARUDUR',
+    'THIYAGARAYANAGAR': 'THEAYAGARAYA NAGAR',
+    'TIRUCHENGODU': 'TIRUCHENGODE',
+    'TIRUCHIRAPPALLI': 'TIRUCHIRAPALLI',
+    'TIRUVOTTIYUR': 'THIRUVOTTIYUR',
+    'UDUMALAIPETTAI': 'UDUMALPET',
+    'ULUNDURPETTAI': 'ULUNDURPET',
+    'VANIYAMBADI': 'VANIAYAMBADI',
+    'VILUPPURAM': 'VILLUPURAM',
+  };
+  return MAP[n] || n;
+}
+
 export default function MapPage() {
   const navigate = useNavigate();
   const [year, setYear] = useState(2021);
@@ -99,7 +140,7 @@ export default function MapPage() {
 
   // Match GeoJSON feature → election data
   function getFeatureResult(feature) {
-    const name = normalizeConstituencyName(feature.properties?.AC_NAME);
+    const name = canonicalize(feature.properties?.AC_NAME);
     return resultLookup.get(name) || null;
   }
 
