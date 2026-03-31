@@ -217,14 +217,16 @@ Rules:
     );
 
     if (!geminiRes.ok) {
-      const err = await geminiRes.json().catch(() => ({}));
-      const detail = err?.error?.message || JSON.stringify(err);
-      console.error('Gemini API error:', geminiRes.status, detail);
-      if (geminiRes.status === 429) {
-        response.status(429).json({ message: 'AI is busy right now. Please try again in a moment.' });
-        return;
-      }
-      response.status(502).json({ message: `AI service error: ${detail}` });
+      const errBody = await geminiRes.text().catch(() => '');
+      console.error('Gemini API error:', geminiRes.status, errBody);
+      let detail = '';
+      try {
+        const errJson = JSON.parse(errBody);
+        detail = errJson?.error?.message || errBody;
+      } catch { detail = errBody; }
+      response.status(geminiRes.status === 429 ? 429 : 502).json({
+        message: `Gemini error (${geminiRes.status}): ${detail}`.slice(0, 500),
+      });
       return;
     }
 
