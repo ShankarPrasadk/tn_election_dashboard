@@ -33,8 +33,26 @@ function ageGroup(age) {
 }
 
 export function computeLiveStats(entries) {
-  const candidates = entries.filter(e => e.year === 2026);
-  if (candidates.length === 0) return null;
+  const raw2026 = entries.filter(e => e.year === 2026);
+  if (raw2026.length === 0) return null;
+
+  // Deduplicate: when ECI-sourced entries exist for a party+constituency,
+  // drop stale BASE (party-announced) entries whose names may have changed.
+  const grouped = {};
+  for (const c of raw2026) {
+    const key = `${(c.party || '').toLowerCase().trim()}|${(c.constituency || '').toLowerCase().trim()}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(c);
+  }
+  const candidates = [];
+  for (const entries of Object.values(grouped)) {
+    const eciEntries = entries.filter(e => e.source && e.source.url);
+    if (eciEntries.length > 0) {
+      candidates.push(...eciEntries);
+    } else {
+      candidates.push(...entries);
+    }
+  }
 
   // --- Criminal stats ---
   // Only count candidates where affidavit was actually processed (criminalCases is a number, not null)
