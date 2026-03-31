@@ -1,29 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, AlertCircle, User, Bot, Key, X, Settings } from 'lucide-react';
-
-const SYSTEM_PROMPT = `You are the TN Election Dashboard AI Assistant — an expert on Tamil Nadu state assembly elections from 1952 to 2026.
-
-You have deep knowledge of:
-- All Tamil Nadu assembly elections (1952, 1957, 1962, 1967, 1971, 1977, 1980, 1984, 1989, 1991, 1996, 2001, 2006, 2011, 2016, 2021, 2026)
-- Political parties: DMK, AIADMK, INC, BJP, TVK (Vijay's party), NTK (Seeman), PMK, VCK, CPI, CPI(M), DMDK, AMMK, MDMK, IUML, etc.
-- Key leaders: M.K. Stalin, Edappadi K. Palaniswami (EPS), Vijay (TVK), Seeman (NTK), K. Annamalai (BJP TN), Udhayanidhi Stalin, and historical leaders like M.G. Ramachandran (MGR), J. Jayalalithaa, M. Karunanidhi, C.N. Annadurai, K. Kamaraj, C. Rajagopalachari
-- Chief Ministers of Tamil Nadu from 1952 to present
-- Alliance patterns (SPA/DMK alliance, NDA/AIADMK alliance), seat-sharing
-- Anti-incumbency patterns in TN (power changed in 10 of 13 elections since 1967)
-- Candidate criminal records, assets, education from election affidavits (via ECI, myneta.info, ADR)
-- Constituency-level data, vote share trends, turnout statistics
-- 2026 election: polling date April 23, 2026; 234 constituencies; ~5.67 crore voters
-- Current alliances: SPA (DMK-led), NDA (AIADMK-led), TVK (independent), NTK (independent)
-
-Rules:
-1. Answer questions about Tamil Nadu elections accurately and concisely
-2. If you don't know something specific, say so — don't make up data
-3. For candidate-specific criminal/asset data, mention that data comes from self-sworn affidavits filed with ECI
-4. Be politically neutral — don't endorse any party or candidate
-5. Use markdown formatting for better readability (bold, lists, headers)
-6. Keep answers focused and relevant to what was asked
-7. You can discuss election predictions, analysis, and political history
-8. For non-election questions, politely redirect to election topics`;
+import { Send, Loader2, AlertCircle, User, Bot, Trash2 } from 'lucide-react';
 
 const SUGGESTED_QUESTIONS = [
   'Who will likely win the 2026 TN election and why?',
@@ -36,10 +12,7 @@ const SUGGESTED_QUESTIONS = [
   'What was the 2G scam impact on 2011 election?',
 ];
 
-const API_KEY_STORAGE = 'tn_election_openai_key';
-
 function formatMessage(text) {
-  // Simple markdown-like formatting
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -58,7 +31,6 @@ function Message({ message }) {
           <Bot size={16} className="text-amber-400" />
         </div>
       )}
-
       <div className={`max-w-[85%] ${message.role === 'user' ? 'order-first' : ''}`}>
         <div className={`rounded-2xl px-4 py-3 ${
           message.role === 'user'
@@ -75,7 +47,6 @@ function Message({ message }) {
           )}
         </div>
       </div>
-
       {message.role === 'user' && (
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mt-1">
           <User size={16} className="text-slate-300" />
@@ -90,9 +61,6 @@ export default function AskPage() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState('');
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || '');
-  const [showKeyInput, setShowKeyInput] = useState(false);
-  const [keyInput, setKeyInput] = useState('');
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -100,35 +68,10 @@ export default function AskPage() {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (!apiKey) setShowKeyInput(true);
-  }, [apiKey]);
-
-  const saveApiKey = () => {
-    const key = keyInput.trim();
-    if (!key.startsWith('sk-')) {
-      setError('Invalid API key. It should start with "sk-"');
-      return;
-    }
-    localStorage.setItem(API_KEY_STORAGE, key);
-    setApiKey(key);
-    setShowKeyInput(false);
-    setError('');
-    inputRef.current?.focus();
-  };
-
-  const removeApiKey = () => {
-    localStorage.removeItem(API_KEY_STORAGE);
-    setApiKey('');
-    setKeyInput('');
-    setShowKeyInput(true);
-    setMessages([]);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const q = question.trim();
-    if (!q || !apiKey) return;
+    if (!q) return;
 
     setError('');
     const userMsg = { role: 'user', content: q };
@@ -138,41 +81,21 @@ export default function AskPage() {
     setLoading(true);
 
     try {
-      // Build conversation history (keep last 10 messages for context)
-      const conversationHistory = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...newMessages.slice(-10).map(m => ({ role: m.role, content: m.content })),
-      ];
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('/api/ask', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: conversationHistory,
-          max_tokens: 1024,
-          temperature: 0.7,
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        if (response.status === 401) {
-          throw new Error('Invalid API key. Please check your OpenAI API key and try again.');
-        }
-        if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-        }
-        throw new Error(err.error?.message || `OpenAI API error (${response.status})`);
+        throw new Error(err.message || `Error ${response.status}`);
       }
 
       const data = await response.json();
-      const assistantContent = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -198,57 +121,17 @@ export default function AskPage() {
             AI-powered assistant for Tamil Nadu election data, history, and analysis (1952–2026)
           </p>
         </div>
-        <button
-          onClick={() => apiKey ? removeApiKey() : setShowKeyInput(true)}
-          className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors"
-          title={apiKey ? 'Change API key' : 'Set API key'}
-        >
-          <Settings size={14} />
-          {apiKey ? 'API Key Set' : 'Set Key'}
-        </button>
+        {messages.length > 0 && (
+          <button
+            onClick={() => { setMessages([]); setError(''); }}
+            className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors"
+            title="New conversation"
+          >
+            <Trash2 size={14} />
+            New Chat
+          </button>
+        )}
       </div>
-
-      {/* API Key Input */}
-      {showKeyInput && (
-        <div className="mb-4 bg-slate-800/80 border border-amber-500/30 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Key size={16} className="text-amber-400" />
-            <h3 className="text-sm font-semibold text-white">Enter your OpenAI API Key</h3>
-          </div>
-          <p className="text-xs text-slate-400 mb-3">
-            Your API key is stored only in your browser (localStorage) and sent directly to OpenAI — we never see or store it on our servers.
-            Get a key from{' '}
-            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
-              platform.openai.com/api-keys
-            </a>
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              placeholder="sk-..."
-              className="flex-1 bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm placeholder-slate-600 focus:border-amber-500/50 focus:outline-none"
-              onKeyDown={(e) => e.key === 'Enter' && saveApiKey()}
-            />
-            <button
-              onClick={saveApiKey}
-              disabled={!keyInput.trim()}
-              className="bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-black font-medium rounded-lg px-4 py-2 text-sm transition-colors"
-            >
-              Save
-            </button>
-            {apiKey && (
-              <button
-                onClick={() => setShowKeyInput(false)}
-                className="text-slate-400 hover:text-white p-2"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0">
@@ -259,15 +142,14 @@ export default function AskPage() {
             </div>
             <h2 className="text-lg font-semibold text-white mb-2">TN Election AI Assistant</h2>
             <p className="text-sm text-slate-400 mb-6 max-w-md">
-              Ask anything about Tamil Nadu elections — history, candidates, parties, alliances, predictions, criminal records, and more. Powered by OpenAI.
+              Ask anything about Tamil Nadu elections — history, candidates, parties, alliances, predictions, criminal records, and more.
             </p>
-            <div className="space-y-2 w-full max-w-md">
-              <p className="text-xs text-slate-500 uppercase tracking-wider">Try asking</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
               {SUGGESTED_QUESTIONS.map((q) => (
                 <button
                   key={q}
                   onClick={() => handleSuggestion(q)}
-                  className="w-full text-left text-sm text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-amber-500/30 rounded-lg px-4 py-2.5 transition-all"
+                  className="text-left text-sm text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-amber-500/30 rounded-lg px-4 py-2.5 transition-all"
                 >
                   {q}
                 </button>
@@ -307,21 +189,21 @@ export default function AskPage() {
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder={apiKey ? 'Ask anything about TN elections...' : 'Set your OpenAI API key first...'}
+            placeholder="Ask anything about TN elections..."
             className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2.5 text-sm placeholder-slate-500 focus:border-amber-500/50 focus:outline-none"
-            disabled={loading || !apiKey}
+            disabled={loading}
             maxLength={1000}
           />
           <button
             type="submit"
-            disabled={loading || !question.trim() || !apiKey}
+            disabled={loading || !question.trim()}
             className="bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-medium rounded-lg px-4 py-2.5 transition-colors flex items-center gap-2"
           >
             <Send size={16} />
           </button>
         </form>
         <p className="text-[10px] text-slate-600 mt-2 text-center">
-          Powered by OpenAI GPT-4o-mini. Your API key stays in your browser only. AI responses may not be 100% accurate — verify critical data from official ECI sources.
+          Powered by AI. Responses may not be 100% accurate — verify critical data from official ECI sources.
         </p>
       </div>
     </div>

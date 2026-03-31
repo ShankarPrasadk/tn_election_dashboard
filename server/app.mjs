@@ -142,8 +142,83 @@ app.get('/api/news', async (_request, response, next) => {
 
 app.post('/api/ask', async (request, response, next) => {
   try {
-    const payload = askSchema.parse(request.body);
-    response.json(await answerElectionQuestion(payload));
+    const { messages } = request.body;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      response.status(400).json({ message: 'messages array is required' });
+      return;
+    }
+    // Limit conversation length
+    if (messages.length > 20) {
+      response.status(400).json({ message: 'Too many messages. Please start a new conversation.' });
+      return;
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      response.status(503).json({ message: 'AI service is not configured. Please contact the administrator.' });
+      return;
+    }
+
+    const systemPrompt = `You are the TN Election Dashboard AI Assistant — an expert on Tamil Nadu state assembly elections from 1952 to 2026.
+
+You have deep knowledge of:
+- All Tamil Nadu assembly elections (1952, 1957, 1962, 1967, 1971, 1977, 1980, 1984, 1989, 1991, 1996, 2001, 2006, 2011, 2016, 2021, 2026)
+- Political parties: DMK, AIADMK, INC, BJP, TVK (Vijay's party), NTK (Seeman), PMK, VCK, CPI, CPI(M), DMDK, AMMK, MDMK, IUML, etc.
+- Key leaders: M.K. Stalin, Edappadi K. Palaniswami (EPS), Vijay (TVK), Seeman (NTK), K. Annamalai (BJP TN), Udhayanidhi Stalin, and historical leaders like M.G. Ramachandran (MGR), J. Jayalalithaa, M. Karunanidhi, C.N. Annadurai, K. Kamaraj, C. Rajagopalachari
+- Chief Ministers of Tamil Nadu from 1952 to present
+- Alliance patterns (SPA/DMK alliance, NDA/AIADMK alliance), seat-sharing
+- Anti-incumbency patterns in TN (power changed in 10 of 13 elections since 1967)
+- Candidate criminal records, assets, education from election affidavits (via ECI, myneta.info, ADR)
+- Constituency-level data, vote share trends, turnout statistics
+- 2026 election: polling date April 23, 2026; 234 constituencies; ~5.67 crore voters
+- Current alliances: SPA (DMK-led), NDA (AIADMK-led), TVK (independent), NTK (independent)
+
+Rules:
+1. Answer questions about Tamil Nadu elections accurately and concisely
+2. If you don't know something specific, say so — don't make up data
+3. For candidate-specific criminal/asset data, mention that data comes from self-sworn affidavits filed with ECI
+4. Be politically neutral — don't endorse any party or candidate
+5. Keep answers focused and relevant to what was asked
+6. You can discuss election predictions, analysis, and political history
+7. For non-election questions, politely redirect to election topics`;
+
+    const openaiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.slice(-10).map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: String(m.content || '').slice(0, 2000),
+      })),
+    ];
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: openaiMessages,
+        max_tokens: 1024,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!openaiRes.ok) {
+      const err = await openaiRes.json().catch(() => ({}));
+      console.error('OpenAI API error:', openaiRes.status, err);
+      if (openaiRes.status === 429) {
+        response.status(429).json({ message: 'AI is busy right now. Please try again in a moment.' });
+        return;
+      }
+      response.status(502).json({ message: 'AI service temporarily unavailable. Please try again.' });
+      return;
+    }
+
+    const data = await openaiRes.json();
+    const content = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+    response.json({ content });
   } catch (error) {
     next(error);
   }
