@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, GeoJSON, TileLayer } from 'react-leaflet';
-import { Search, ChevronDown, Trophy, Vote, Users } from 'lucide-react';
+import { MapContainer, GeoJSON, TileLayer, useMap } from 'react-leaflet';
+import { Search, ChevronDown, Trophy, Vote, Users, X } from 'lucide-react';
 import { PARTY_COLORS } from '../data/electionData';
 import { supabase } from '../lib/supabase';
 import 'leaflet/dist/leaflet.css';
@@ -35,7 +35,14 @@ function getPartyColor(party) {
 }
 
 function normalizeConstituencyName(name) {
-  return (name || '').toUpperCase().replace(/\s*\(.*?\)\s*/g, '').trim();
+  let n = (name || '').toUpperCase().trim();
+  // Strip reservation markers (SC), (ST) — including malformed ones like "(SC"
+  n = n.replace(/\s*\(?\b(SC|ST)\b\)?\s*/g, ' ').trim();
+  // Expand parenthesized directional labels: "Coimbatore(North)" → "COIMBATORE NORTH"
+  n = n.replace(/\(([^)]+)\)/g, ' $1');
+  // Collapse multiple spaces
+  n = n.replace(/\s+/g, ' ').trim();
+  return n;
 }
 
 // Normalize spelling variants so GeoJSON names match election data names
@@ -46,12 +53,11 @@ function canonicalize(name) {
     'ARANTHANGI': 'ARANTANGI',
     'ARUPPUKKOTTAI': 'ARUPPUKOTTAI',
     'CHEPAUK-THIRUVALLIKEN': 'CHEPAUK-THIRUVALLIKENI',
-    'COIMBATORE': 'COIMBATORE SOUTH',
     'DR.RADHAKRISHNAN NAGA': 'DR. RADHAKRISHNAN NAGAR',
     'EDAPPADI': 'EDAPADI',
     'GUDIYATTAM': 'GUDIYATHAM',
     'GUMMIDIPOONDI': 'GUMMIDIPUNDI',
-    'KILVAITHINANKUPPAM(SC': 'KILVAITHINANKUPPAM',
+    'KILVAITHINANKUPPAM': 'KILVAITHINANKUPPAM',
     'MADURANTAKAM': 'MADURANTHAKAM',
     'METTUPPALAYAM': 'METTUPALAYAM',
     'MODAKKURICHI': 'MODAKURICHI',
@@ -79,6 +85,14 @@ function canonicalize(name) {
   return MAP[n] || n;
 }
 
+function FlyToBounds({ bounds }) {
+  const map = useMap();
+  useEffect(() => {
+    if (bounds) map.flyToBounds(bounds, { padding: [30, 30], maxZoom: 10, duration: 0.5 });
+  }, [bounds, map]);
+  return null;
+}
+
 export default function MapPage() {
   const navigate = useNavigate();
   const [year, setYear] = useState(2021);
@@ -86,7 +100,7 @@ export default function MapPage() {
   const [electionData, setElectionData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState('');
-  const [hoveredId, setHoveredId] = useState(null);
+  const [selectedBounds, setSelectedBounds] = useState(null);
   const geoJsonRef = useRef(null);
 
   // Load data
@@ -138,8 +152,19 @@ export default function MapPage() {
     return map;
   }, [electionData]);
 
+  // GeoJSON AC_NO → election name for features with duplicate polygon names
+  const AC_NO_MAP = {
+    140: 'TIRUCHIRAPALLI WEST',
+    141: 'TIRUCHIRAPALLI EAST',
+  };
+
   // Match GeoJSON feature → election data
   function getFeatureResult(feature) {
+    const acNo = feature.properties?.AC_NO;
+    // First try AC_NO-based mapping for known duplicates
+    if (AC_NO_MAP[acNo]) {
+      return resultLookup.get(AC_NO_MAP[acNo]) || null;
+    }
     const name = canonicalize(feature.properties?.AC_NAME);
     return resultLookup.get(name) || null;
   }
@@ -154,22 +179,33 @@ export default function MapPage() {
     const result = getFeatureResult(feature);
     const winner = getWinner(result);
     const color = winner ? getPartyColor(winner.party) : '#374151';
-    const isHovered = hoveredId === feature.properties?.AC_NO;
     const isSelected = selected?.properties?.AC_NO === feature.properties?.AC_NO;
 
     return {
       fillColor: color,
-      fillOpacity: isSelected ? 0.9 : isHovered ? 0.75 : 0.6,
-      color: isSelected ? '#fff' : isHovered ? '#e2e8f0' : '#1e293b',
-      weight: isSelected ? 3 : isHovered ? 2 : 1,
+      fillOpacity: isSelected ? 0.9 : 0.6,
+      color: isSelected ? '#fff' : '#1e293b',
+      weight: isSelected ? 3 : 1,
     };
   }
 
   // Event handlers
   function onEachFeature(feature, layer) {
+    // Add hover tooltip with constituency name
+    const name = feature.properties?.AC_NAME || '';
+    const result = getFeatureResult(feature);
+    const winner = getWinner(result);
+    const tip = winner ? `${name} — ${winner.party}` : name;
+    layer.bindTooltip(tip, { sticky: true, className: 'map-tooltip', direction: 'top', offset: [0, -10] });
+
     layer.on({
-      mouseover: () => setHoveredId(feature.properties?.AC_NO),
-      mouseout: () => setHoveredId(null),
+      mouseover: () => {
+        layer.setStyle({ fillOpacity: 0.75, weight: 2, color: '#e2e8f0' });
+        layer.bringToFront();
+      },
+      mouseout: () => {
+        if (geoJsonRef.current) geoJsonRef.current.resetStyle(layer);
+      },
       click: () => {
         setSelected(feature);
         setSearch('');
@@ -190,12 +226,52 @@ export default function MapPage() {
       .slice(0, 8);
   }, [geojson, search]);
 
+  // When a search result is clicked, find the layer and fly to it
+  const handleSelectFromSearch = useCallback((feature) => {
+    setSelected(feature);
+    setSearch('');
+    // Find bounds from GeoJSON feature geometry
+    if (feature.geometry) {
+      try {
+        const L = window.L || (geoJsonRef.current && geoJsonRef.current._map && window.L);
+        if (L) {
+          const layer = L.geoJSON(feature);
+          setSelectedBounds(layer.getBounds());
+        }
+      } catch { /* ignore */ }
+    }
+  }, []);
+
   // Selected constituency details
   const selectedResult = selected ? getFeatureResult(selected) : null;
   const selectedWinner = selectedResult ? getWinner(selectedResult) : null;
 
+  // Party wins summary (for legend)
+  const partyWins = useMemo(() => {
+    if (!electionData) return [];
+    const wins = {};
+    Object.values(electionData.constituencies).forEach(c => {
+      const w = c.candidates?.find(x => x.winner);
+      if (w) wins[w.party] = (wins[w.party] || 0) + 1;
+    });
+    return Object.entries(wins).sort((a, b) => b[1] - a[1]);
+  }, [electionData]);
+
   return (
     <div className="max-w-[1400px] mx-auto space-y-4">
+      <style>{`
+        .map-tooltip {
+          background: #1e293b;
+          color: #e2e8f0;
+          border: 1px solid #334155;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          font-weight: 500;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .map-tooltip::before { border-top-color: #334155; }
+      `}</style>
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Constituency Map</h1>
@@ -233,7 +309,7 @@ export default function MapPage() {
                   return (
                     <button
                       key={f.properties.AC_NO}
-                      onClick={() => { setSelected(f); setSearch(''); }}
+                      onClick={() => handleSelectFromSearch(f)}
                       className="w-full text-left px-3 py-2 hover:bg-slate-700 text-sm flex items-center gap-2"
                     >
                       {winner && (
@@ -267,11 +343,12 @@ export default function MapPage() {
               />
               <GeoJSON
                 ref={geoJsonRef}
-                key={`${year}-${hoveredId}-${selected?.properties?.AC_NO}`}
+                key={year}
                 data={geojson}
                 style={style}
                 onEachFeature={onEachFeature}
               />
+              <FlyToBounds bounds={selectedBounds} />
             </MapContainer>
           )}
         </div>
@@ -281,7 +358,12 @@ export default function MapPage() {
           {selected && selectedResult ? (
             <>
               <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-4">
-                <h2 className="text-lg font-bold text-white">{selected.properties.AC_NAME}</h2>
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-lg font-bold text-white">{selected.properties.AC_NAME}</h2>
+                  <button onClick={() => setSelected(null)} className="text-slate-500 hover:text-white p-1 rounded hover:bg-slate-700">
+                    <X size={16} />
+                  </button>
+                </div>
                 <p className="text-slate-400 text-sm">{selected.properties.DIST_NAME} District • {selectedResult.type === 'SC' ? 'SC Reserved' : selectedResult.type === 'ST' ? 'ST Reserved' : 'General'}</p>
 
                 {selectedWinner && (
@@ -351,45 +433,37 @@ export default function MapPage() {
                 <Search size={20} className="text-slate-500" />
               </div>
               <p className="text-slate-400 text-sm">Click on a constituency or search to view election results</p>
-
-              {/* Legend */}
-              <div className="mt-6 text-left">
-                <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
-                <div className="grid grid-cols-2 gap-1">
-                  {['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND'].map(p => (
-                    <div key={p} className="flex items-center gap-2 text-xs">
-                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(p) }} />
-                      <span className="text-slate-400">{p}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Summary stats */}
-              {electionData && (
-                <div className="mt-4 text-left">
-                  <p className="text-xs text-slate-500 uppercase font-medium mb-2">{year} Results</p>
-                  {(() => {
-                    const partyWins = {};
-                    Object.values(electionData.constituencies).forEach(c => {
-                      const w = c.candidates?.find(x => x.winner);
-                      if (w) partyWins[w.party] = (partyWins[w.party] || 0) + 1;
-                    });
-                    return Object.entries(partyWins)
-                      .sort((a, b) => b[1] - a[1])
-                      .slice(0, 8)
-                      .map(([party, seats]) => (
-                        <div key={party} className="flex items-center gap-2 py-1">
-                          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(party) }} />
-                          <span className="text-slate-300 text-xs flex-1">{party}</span>
-                          <span className="text-white text-xs font-semibold">{seats}</span>
-                        </div>
-                      ));
-                  })()}
-                </div>
-              )}
             </div>
           )}
+
+          {/* Always-visible legend & results summary */}
+          <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-4">
+            <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
+            <div className="grid grid-cols-2 gap-1">
+              {['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND'].map(p => (
+                <div key={p} className="flex items-center gap-2 text-xs">
+                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(p) }} />
+                  <span className="text-slate-400">{p}</span>
+                </div>
+              ))}
+            </div>
+
+            {partyWins.length > 0 && (
+              <>
+                <p className="text-xs text-slate-500 uppercase font-medium mt-4 mb-2">{year} Seats Won</p>
+                {partyWins.slice(0, 10).map(([party, seats]) => (
+                  <div key={party} className="flex items-center gap-2 py-0.5">
+                    <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: getPartyColor(party) }} />
+                    <span className="text-slate-300 text-xs flex-1">{party}</span>
+                    <div className="flex-1 bg-slate-800 rounded-full h-1.5 mx-1">
+                      <div className="h-1.5 rounded-full" style={{ width: `${(seats / 234) * 100}%`, backgroundColor: getPartyColor(party) }} />
+                    </div>
+                    <span className="text-white text-xs font-semibold w-6 text-right">{seats}</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

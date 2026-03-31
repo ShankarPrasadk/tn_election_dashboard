@@ -52,9 +52,9 @@ export default function Sidebar() {
               to={to}
               onClick={() => setOpen(false)}
               className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all
+                flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all relative
                 ${isActive
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 border-l-2 border-l-amber-400'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'}
               `}
             >
