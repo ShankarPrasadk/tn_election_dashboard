@@ -800,11 +800,25 @@ export default function TrendsPage() {
         </div>
       )}
 
-      {/* Footer attribution */}
-      <div className="text-center py-4 border-t border-slate-700/30">
-        <p className="text-[10px] text-slate-600">
-          Data: Election Commission of India • Tamil Nadu State Election Commission • myneta.info
-        </p>
+      {/* Footer attribution & Legal Disclaimer */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 space-y-4">
+        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Data Sources & Disclaimer</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-slate-400 leading-relaxed">
+          <div>
+            <p className="font-semibold text-slate-300 mb-1">Official Government Sources</p>
+            <ul className="space-y-1">
+              <li>\u2022 <strong>Seat results, vote share, turnout:</strong> <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">Election Commission of India (eci.gov.in)</a> — Statistical Reports</li>
+              <li>\u2022 <strong>Registered voters, polling dates:</strong> <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">Tamil Nadu State Election Commission (tnsec.tn.gov.in)</a></li>
+              <li>\u2022 <strong>Criminal records, assets, education:</strong> <a href="https://myneta.info" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">myneta.info</a> (ADR) — from candidate self-sworn affidavits filed with ECI</li>
+              <li>\u2022 <strong>Affidavit archive:</strong> <a href="https://affidavitarchive.nic.in" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">affidavitarchive.nic.in</a> (Government of India)</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-slate-300 mb-1">Legal Disclaimer</p>
+            <p>All data presented is sourced from publicly available government records and candidate self-sworn affidavits filed with the Election Commission of India. Criminal records, asset declarations, and education data are as declared by candidates in their statutory affidavits — the platform does not independently verify these claims.</p>
+            <p className="mt-2">Pre-1967 election statistics are approximate. In case of any discrepancy, data published by ECI/TNSEC should be treated as authoritative. This is an informational platform and does not endorse any political party or candidate.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

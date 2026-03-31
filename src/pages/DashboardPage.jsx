@@ -309,6 +309,18 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
-    </div>
+      {/* Data Source Disclaimer */}
+      <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-4">
+        <p className="text-[10px] text-slate-500 leading-relaxed">
+          <strong className="text-slate-400">Data Sources:</strong> Election results & voter data from{' '}
+          <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">Election Commission of India</a> &{' '}
+          <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">TNSEC</a>.
+          Criminal records & asset data from candidate self-sworn affidavits via{' '}
+          <a href="https://myneta.info" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">myneta.info</a>{' '}
+          (<a href="https://adrindia.org" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ADR</a>).
+          Affidavit source: <a href="https://affidavitarchive.nic.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">affidavitarchive.nic.in</a>.
+          This platform does not independently verify candidate declarations. For authoritative data, refer to ECI/TNSEC publications.
+        </p>
+      </div>    </div>
   );
 }

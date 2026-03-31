@@ -1,19 +1,25 @@
 /**
  * Tamil Nadu Assembly Election History: 1952–2026
  * ================================================
- * Comprehensive data covering all 17 elections since India's first general election.
+ * Comprehensive data covering all 17 elections since India\u2019s first general election.
  *
- * Sources:
- *   - Election Commission of India (eci.gov.in) Statistical Reports
+ * OFFICIAL GOVERNMENT SOURCES:
+ *   - Election Commission of India (eci.gov.in) \u2014 Statistical Reports on General Elections
+ *     Seats won, vote share %, turnout %, registered voters, polling dates
  *   - Tamil Nadu State Election Commission (tnsec.tn.gov.in)
- *   - Legislative Assembly records
- *   - "Elections in Tamil Nadu" - Wikipedia (cross-verified with ECI)
+ *     Constituency details, registered voter counts, polling schedules
+ *   - Government of India Affidavit Archive (affidavitarchive.nic.in)
+ *     Candidate self-sworn affidavits (criminal records, assets, education)
+ *   - myneta.info / Association for Democratic Reforms (ADR)
+ *     Analysis of candidate affidavits \u2014 criminal, financial, education data
  *
- * Notes:
- *   - 1952–1962: Madras State (renamed Tamil Nadu in 1969)
+ * IMPORTANT NOTES:
+ *   - 1952\u20131962: Madras State (renamed Tamil Nadu in 1969)
  *   - Constituencies: varied from 190 (1957) to 234 (1967 onwards)
- *   - Vote share figures are approximate for pre-1967 elections
- *   - 2026 data is for candidates contesting (results pending)
+ *   - Pre-1967 statistics are approximate (sourced from ECI historical volumes)
+ *   - Criminal/asset data available only from 2004 onwards (when affidavit disclosure became mandatory)
+ *   - 2026 data is for candidates contesting (results pending \u2014 polling on April 23, 2026)
+ *   - All candidate criminal/asset data is self-declared in sworn affidavits; this platform does not independently verify
  */
 
 // ─── FULL HISTORICAL ELECTION DATA ────────────────────────────
