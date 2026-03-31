@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "policies": [
+    {
+      "type": "tdm-reservation",
+      "status": "disallowed",
+      "scope": "/**",
+      "description": "All content on this site is reserved and may not be used for text and data mining, AI training, or machine learning purposes without explicit written permission."
+    }
+  ]
+}

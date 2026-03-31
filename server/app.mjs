@@ -13,6 +13,48 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// ── Bot/AI crawler blocking middleware ──
+const BLOCKED_BOTS = /GPTBot|ChatGPT|CCBot|Google-Extended|anthropic|ClaudeBot|Bytespider|Scrapy|PetalBot|Diffbot|Omgilibot|img2dataset|Amazonbot|meta-externalagent|AI2Bot|PerplexityBot|YouBot|Timpibot|cohere-ai/i;
+
+app.use((req, res, next) => {
+  const ua = req.headers['user-agent'] || '';
+  if (BLOCKED_BOTS.test(ua)) {
+    res.status(403).json({ message: 'Access denied' });
+    return;
+  }
+  next();
+});
+
+// ── Simple in-memory rate limiter (per IP, 60 requests/min) ──
+const rateLimitMap = new Map();
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60 * 1000;
+
+app.use('/api', (req, res, next) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || (now - entry.windowStart) > RATE_WINDOW_MS) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+  } else {
+    entry.count++;
+    if (entry.count > RATE_LIMIT) {
+      res.status(429).json({ message: 'Too many requests. Please try again later.' });
+      return;
+    }
+  }
+  next();
+});
+
+// Clean up rate limit map every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap) {
+    if ((now - entry.windowStart) > RATE_WINDOW_MS) rateLimitMap.delete(ip);
+  }
+}, 5 * 60 * 1000);
+
 app.get('/api/health', async (_request, response, next) => {
   try {
     const dataset = await loadDataset();
@@ -107,8 +149,14 @@ app.post('/api/ask', async (request, response, next) => {
   }
 });
 
-app.post('/api/admin/reload', async (_request, response, next) => {
+app.post('/api/admin/reload', async (request, response, next) => {
   try {
+    // Require admin secret for reload
+    const secret = request.headers['x-admin-secret'] || request.query.secret;
+    if (!secret || secret !== process.env.ADMIN_SECRET) {
+      response.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
     const dataset = await reloadDataset();
     response.json({ ok: true, total: dataset.entries.length, generatedAt: dataset.generatedAt });
   } catch (error) {
@@ -122,6 +170,7 @@ app.use((error, _request, response, _next) => {
     return;
   }
 
+  // Log full error server-side only; never expose stack traces to client
   console.error(error);
   response.status(500).json({
     message: 'Internal server error',
