@@ -1,26 +1,63 @@
-import { CANDIDATE_PROFILES, findCandidateProfile } from './candidateProfiles';
+import { loadCuratedProfiles, findCandidateProfile } from './candidateProfiles';
 import { generateCandidateAvatarUrl, generateCandidateId, getGenericCandidateBio, normalizeName } from './candidateUtils';
+import { supabase } from '../lib/supabase';
 
 let directoryPromise;
+let cachedProfiles = null;
 
-function findCuratedMatch(entry) {
-  const direct = findCandidateProfile(entry.id);
-  if (direct) {
-    return direct;
+async function getCuratedProfiles() {
+  if (!cachedProfiles) {
+    cachedProfiles = await loadCuratedProfiles();
   }
+  return cachedProfiles;
+}
+
+function findCuratedMatch(entry, profiles) {
+  const direct = profiles.find((p) => p.id === entry.id);
+  if (direct) return direct;
 
   const entryName = normalizeName(entry.name);
   const entryConstituency = normalizeName(entry.constituency);
 
-  return CANDIDATE_PROFILES.find((profile) => {
+  return profiles.find((profile) => {
     const sameName = normalizeName(profile.name) === entryName || normalizeName(profile.fullName) === entryName;
     const sameConstituency = !entryConstituency || normalizeName(profile.constituency) === entryConstituency;
     return sameName && sameConstituency;
   }) || null;
 }
 
-export function enrichCandidateEntry(entry) {
-  const curatedProfile = findCuratedMatch(entry);
+// Convert Supabase snake_case row to app camelCase
+function rowToCandidate(row) {
+  return {
+    id: row.id,
+    year: row.year,
+    name: row.name,
+    party: row.party,
+    constituency: row.constituency,
+    district: row.district,
+    reserved: row.reserved,
+    status: row.status,
+    criminalCases: row.criminal_cases,
+    criminalCasesText: row.criminal_cases_text,
+    education: row.education,
+    assetsText: row.assets_text,
+    liabilitiesText: row.liabilities_text,
+    assetsCrores: row.assets_crores != null ? Number(row.assets_crores) : null,
+    liabilitiesCrores: row.liabilities_crores != null ? Number(row.liabilities_crores) : null,
+    ageText: row.age_text,
+    voterEnrollment: row.voter_enrollment,
+    selfProfession: row.self_profession,
+    spouseProfession: row.spouse_profession,
+    photo: row.photo,
+    source: row.source,
+    votes: row.votes,
+    voteShare: row.vote_share != null ? Number(row.vote_share) : null,
+    margin: row.margin,
+  };
+}
+
+export function enrichCandidateEntry(entry, profiles) {
+  const curatedProfile = findCuratedMatch(entry, profiles);
   return {
     ...entry,
     curatedProfileId: curatedProfile?.id || null,
@@ -34,17 +71,24 @@ export function enrichCandidateEntry(entry) {
 
 export async function loadCandidateDirectory() {
   if (!directoryPromise) {
-    directoryPromise = fetch('/data/tn-candidate-directory.json')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load candidate directory: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => ({
-        ...data,
-        entries: data.entries.map(enrichCandidateEntry),
-      }));
+    directoryPromise = (async () => {
+      // Load candidates from Supabase
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('year', { ascending: false });
+
+      if (error) throw new Error(`Failed to load candidates: ${error.message}`);
+
+      const profiles = await getCuratedProfiles();
+      const entries = data.map(rowToCandidate).map((e) => enrichCandidateEntry(e, profiles));
+
+      return {
+        generated: new Date().toISOString(),
+        totalEntries: entries.length,
+        entries,
+      };
+    })();
   }
 
   return directoryPromise;

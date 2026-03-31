@@ -1,12 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createClient } from '@supabase/supabase-js';
 
 import { generateCandidateId, normalizeName, normalizeText } from '../src/data/candidateUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const datasetPath = path.resolve(__dirname, '../public/data/tn-candidate-directory.json');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://fywnanexremftzavylkz.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 let cachedDatasetPromise;
 
@@ -40,15 +44,62 @@ function enrichEntry(entry) {
   };
 }
 
+function rowToCandidate(row) {
+  return {
+    id: row.id,
+    year: row.year,
+    name: row.name,
+    party: row.party,
+    constituency: row.constituency,
+    district: row.district,
+    reserved: row.reserved,
+    status: row.status,
+    criminalCases: row.criminal_cases,
+    criminalCasesText: row.criminal_cases_text,
+    education: row.education,
+    assetsText: row.assets_text,
+    liabilitiesText: row.liabilities_text,
+    assetsCrores: row.assets_crores != null ? Number(row.assets_crores) : null,
+    liabilitiesCrores: row.liabilities_crores != null ? Number(row.liabilities_crores) : null,
+    ageText: row.age_text,
+    voterEnrollment: row.voter_enrollment,
+    selfProfession: row.self_profession,
+    spouseProfession: row.spouse_profession,
+    photo: row.photo,
+    source: row.source,
+    votes: row.votes,
+    voteShare: row.vote_share != null ? Number(row.vote_share) : null,
+    margin: row.margin,
+  };
+}
+
+async function loadFromSupabase() {
+  if (!SUPABASE_ANON_KEY) return null;
+  try {
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb.from('candidates').select('*').order('year', { ascending: false });
+    if (error || !data?.length) return null;
+    return {
+      generated: new Date().toISOString(),
+      totalEntries: data.length,
+      entries: data.map(rowToCandidate),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function loadDataset() {
   if (!cachedDatasetPromise) {
-    cachedDatasetPromise = fs.readFile(datasetPath, 'utf8').then((raw) => {
-      const payload = JSON.parse(raw);
+    cachedDatasetPromise = (async () => {
+      // Try Supabase first, fall back to static JSON file
+      const sbData = await loadFromSupabase();
+      const payload = sbData || JSON.parse(await fs.readFile(datasetPath, 'utf8'));
       return {
         ...payload,
         entries: payload.entries.map(enrichEntry),
       };
-    });
+    })();
   }
 
   return cachedDatasetPromise;

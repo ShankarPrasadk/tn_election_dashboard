@@ -26,3 +26,7 @@ dist-ssr
 # Cache
 .cache/
 .vercel
+
+# Environment
+.env
+.env.local

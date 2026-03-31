@@ -828,6 +828,59 @@ export const CANDIDATE_PROFILES = [
   },
 ];
 
+// ── Supabase-backed loaders ─────────────────────────────────
+import { supabase } from '../lib/supabase';
+
+let profilesPromise = null;
+
+function rowToProfile(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    fullName: row.full_name,
+    party: row.party,
+    constituency: row.constituency,
+    district: row.district,
+    role: row.role,
+    designation: row.designation,
+    dob: row.dob,
+    age: row.age,
+    gender: row.gender,
+    education: row.education,
+    religion: row.religion,
+    photo: row.photo,
+    bio: row.bio,
+    career: row.career || [],
+    achievements: row.achievements || [],
+    controversies: row.controversies || [],
+    family: row.family || {},
+    assets: row.assets || {},
+    criminalCases: row.criminal_cases || 0,
+    socialMedia: row.social_media || {},
+    electoralHistory: row.electoral_history || [],
+    tags: row.tags || [],
+  };
+}
+
+/** Load curated profiles from Supabase (with static fallback) */
+export async function loadCuratedProfiles() {
+  if (!profilesPromise) {
+    profilesPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('curated_profiles')
+          .select('*');
+        if (error || !data?.length) throw new Error(error?.message || 'empty');
+        return data.map(rowToProfile);
+      } catch {
+        // fallback to static data if Supabase unavailable
+        return CANDIDATE_PROFILES;
+      }
+    })();
+  }
+  return profilesPromise;
+}
+
 // Helper to find profile by name or ID
 export function findCandidateProfile(nameOrId) {
   return CANDIDATE_PROFILES.find(

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, GeoJSON, TileLayer } from 'react-leaflet';
 import { Search, ChevronDown, Trophy, Vote, Users } from 'lucide-react';
 import { PARTY_COLORS } from '../data/electionData';
+import { supabase } from '../lib/supabase';
 import 'leaflet/dist/leaflet.css';
 
 const YEAR_OPTIONS = [2021, 2016];
@@ -53,10 +54,36 @@ export default function MapPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`/data/elections-${year}.json`)
-      .then(r => r.ok ? r.json() : null)
-      .then(setElectionData)
-      .catch(() => setElectionData(null));
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('election_results')
+          .select('*')
+          .eq('year', year);
+        if (error || !data?.length) throw new Error(error?.message || 'empty');
+        // Reshape to match legacy format: { constituencies: { [name]: {...} } }
+        const constituencies = {};
+        data.forEach((row) => {
+          constituencies[row.constituency] = {
+            name: row.constituency,
+            district: row.district,
+            type: row.type,
+            total_votes: row.total_votes,
+            electors: row.electors,
+            turnout_percent: Number(row.turnout_percent),
+            num_candidates: row.num_candidates,
+            candidates: row.candidates,
+          };
+        });
+        setElectionData({ constituencies });
+      } catch {
+        // Fallback to static JSON
+        fetch(`/data/elections-${year}.json`)
+          .then(r => r.ok ? r.json() : null)
+          .then(setElectionData)
+          .catch(() => setElectionData(null));
+      }
+    })();
     setSelected(null);
   }, [year]);
 
