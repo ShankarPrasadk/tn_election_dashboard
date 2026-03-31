@@ -145,7 +145,11 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-700/50 text-slate-300 border border-slate-600/50">
                   {candidate.year} election
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                  candidate.status === 'Won' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                  candidate.status === 'Lost' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                  'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                }`}>
                   {candidate.status}
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${hasPublicProfile ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-slate-700/50 text-slate-300 border-slate-600/50'}`}>
@@ -215,8 +219,20 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-slate-400">Status</span>
-              <span className="text-slate-200">{candidate.status}</span>
+              <span className={`text-right font-medium ${candidate.status === 'Won' ? 'text-emerald-400' : candidate.status === 'Lost' ? 'text-red-400' : 'text-slate-200'}`}>{candidate.status}</span>
             </div>
+            {candidate.votes && (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-400">Votes received</span>
+                <span className="text-slate-200 text-right">{candidate.votes.toLocaleString()}{candidate.voteShare ? ` (${candidate.voteShare}%)` : ''}</span>
+              </div>
+            )}
+            {candidate.margin && candidate.status === 'Won' && (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-400">Victory margin</span>
+                <span className="text-emerald-300 text-right">{candidate.margin.toLocaleString()} votes</span>
+              </div>
+            )}
           </div>
         </div>
 

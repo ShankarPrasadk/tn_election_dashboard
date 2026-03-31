@@ -442,6 +442,7 @@ export default function CandidatesPage() {
                     <th className="text-left p-3 font-medium">Candidate</th>
                     <th className="text-left p-3 font-medium">Constituency</th>
                     <th className="text-left p-3 font-medium">Party</th>
+                    <th className="text-left p-3 font-medium">Result</th>
                     <th className="text-left p-3 font-medium">Cases</th>
                     <th className="text-left p-3 font-medium">Education</th>
                     <th className="text-left p-3 font-medium">Assets</th>
@@ -461,6 +462,21 @@ export default function CandidatesPage() {
                         {entry.district && <span className="text-slate-500"> • {entry.district}</span>}
                       </td>
                       <td className="p-3"><PartyBadge party={entry.party} /></td>
+                      <td className="p-3">
+                        {entry.status === 'Won' ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">Won</span>
+                            {entry.votes && <p className="text-slate-500 text-xs mt-0.5">{entry.votes.toLocaleString()} votes</p>}
+                          </div>
+                        ) : entry.status === 'Lost' ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Lost</span>
+                            {entry.votes && <p className="text-slate-500 text-xs mt-0.5">{entry.votes.toLocaleString()} votes</p>}
+                          </div>
+                        ) : (
+                          <span className="text-slate-500">-</span>
+                        )}
+                      </td>
                       <td className="p-3 text-slate-300">{entry.criminalCasesText || '-'}</td>
                       <td className="p-3 text-slate-300">{entry.education || '-'}</td>
                       <td className="p-3 text-emerald-400">{entry.assetsText || '-'}</td>

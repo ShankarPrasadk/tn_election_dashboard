@@ -9,6 +9,7 @@ import DevelopmentPage from './pages/DevelopmentPage';
 import TrendsPage from './pages/TrendsPage';
 import AskPage from './pages/AskPage';
 import ConstituencyPage from './pages/ConstituencyPage';
+import MapPage from './pages/MapPage';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/development" element={<DevelopmentPage />} />
             <Route path="/trends" element={<TrendsPage />} />
             <Route path="/constituency" element={<ConstituencyPage />} />
+            <Route path="/map" element={<MapPage />} />
             <Route path="/ask" element={<AskPage />} />
           </Routes>
         </main>

@@ -47,7 +47,12 @@ export function generateCandidateAvatarUrl(name, party) {
 }
 
 export function parseIndianCurrencyToCrores(value) {
-  const digits = String(value || '').replace(/[^\d.]/g, '');
+  const text = String(value || '');
+
+  // Extract only the rupee amount before the "~" summary suffix
+  // e.g. "Rs 26,18,977 ~ 26 Lacs+" → extract "26,18,977"
+  const beforeTilde = text.split('~')[0];
+  const digits = beforeTilde.replace(/[^\d.]/g, '');
   if (!digits) {
     return null;
   }

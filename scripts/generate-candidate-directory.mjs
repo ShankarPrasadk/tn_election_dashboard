@@ -45,7 +45,7 @@ const PARTY_ALIASES = {
   PMK: ['pmk', 'pattali makkal katchi'],
   TVK: ['tvk', 'tamilaga vettri kazhagam'],
   VCK: ['vck', 'viduthalai chiruthaigal katchi'],
-  Independent: ['independent'],
+  IND: ['ind', 'independent'],
 };
 
 const YEAR_SOURCES = [
@@ -165,6 +165,14 @@ function normalizeConstituencyKey(value) {
   return normalizeText(value).toUpperCase().replace(/\s+/g, ' ');
 }
 
+function toTitleCase(value) {
+  return normalizeText(value).replace(/\w\S*/g, (word) => {
+    // Keep short connectors lowercase, uppercase rest
+    if (['of', 'and', 'the', 'in'].includes(word.toLowerCase())) return word.toLowerCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).replace(/\(\w/g, (match) => match.toUpperCase());
+}
+
 function normalizePartyKey(value) {
   return normalizeName(value).replace(/\s+/g, ' ').trim();
 }
@@ -172,6 +180,17 @@ function normalizePartyKey(value) {
 function getPartyAliasSet(party) {
   const aliases = PARTY_ALIASES[party] || [];
   return new Set([normalizePartyKey(party), ...aliases.map((value) => normalizePartyKey(value))].filter(Boolean));
+}
+
+function normalizePartyName(rawParty) {
+  const key = normalizePartyKey(rawParty);
+  for (const [canonical, aliases] of Object.entries(PARTY_ALIASES)) {
+    const aliasKeys = aliases.map((value) => normalizePartyKey(value));
+    if (normalizePartyKey(canonical) === key || aliasKeys.includes(key)) {
+      return canonical;
+    }
+  }
+  return normalizeText(rawParty);
 }
 
 function extractInputValue(html, id) {
@@ -817,6 +836,56 @@ async function build2026Entries() {
   return [...enrichedBase, ...unmatchedEntries];
 }
 
+async function loadElectionResults() {
+  // Load authoritative election results from therdhal data (2016, 2021)
+  const resultsByYear = new Map();
+
+  for (const year of [2016, 2021]) {
+    const filePath = path.resolve(__dirname, `../.cache/therdhal/elections-${year}.json`);
+    try {
+      const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
+
+      // Build lookup: constituency name → { winner, candidates[] }
+      const byConstituency = new Map();
+      for (const [, constituency] of Object.entries(data.constituencies)) {
+        const key = normalizeConstituencyKey(constituency.name);
+        byConstituency.set(key, {
+          name: constituency.name,
+          district: constituency.district,
+          type: constituency.type,
+          totalVotes: constituency.total_votes,
+          electors: typeof constituency.electors === 'object' ? constituency.electors[year] : constituency.electors,
+          turnout: constituency.turnout_percent,
+          candidates: constituency.candidates || [],
+        });
+      }
+
+      resultsByYear.set(year, byConstituency);
+      console.log(`Election results ${year}: ${byConstituency.size} constituencies loaded`);
+    } catch (error) {
+      console.warn(`Could not load election results for ${year}:`, error.message);
+    }
+  }
+
+  return resultsByYear;
+}
+
+function matchElectionResult(entry, resultsByYear) {
+  const yearResults = resultsByYear.get(entry.year);
+  if (!yearResults) return null;
+
+  const key = normalizeConstituencyKey(entry.constituency);
+  const constituency = yearResults.get(key);
+  if (!constituency) return null;
+
+  // Find this candidate in the results
+  const match = constituency.candidates.find((c) =>
+    fuzzyNameMatch(entry.name, c.name)
+  );
+
+  return { constituency, candidate: match || null };
+}
+
 async function main() {
   await ensureCacheDirectories();
 
@@ -830,8 +899,72 @@ async function main() {
     }
   }
 
-  const entries = [...historicalResults, ...await build2026Entries()]
-    .sort((left, right) => right.year - left.year || left.name.localeCompare(right.name));
+  // Load therdhal election results for accurate winner/votes data
+  const resultsByYear = await loadElectionResults();
+
+  const rawEntries = [...historicalResults, ...await build2026Entries()];
+
+  // Post-processing: fix assets, normalize parties/constituencies, enrich with election results
+  const processed = rawEntries.map((entry) => {
+    const normalizedParty = normalizePartyName(entry.party);
+    const normalizedConstituency = toTitleCase(entry.constituency);
+
+    // Re-compute assetsCrores/liabilitiesCrores from text (fixes the conversion bug)
+    const assetsCrores = parseIndianCurrencyToCrores(entry.assetsText);
+    const liabilitiesCrores = parseIndianCurrencyToCrores(entry.liabilitiesText);
+
+    // Enrich with election results for historical entries (always re-evaluate using therdhal data)
+    let status = 'Historical Candidate';
+    let votes = null;
+    let voteShare = null;
+    let margin = null;
+
+    if (entry.year === 2026) {
+      status = entry.status;
+    } else {
+      const result = matchElectionResult(entry, resultsByYear);
+      if (result?.candidate) {
+        status = result.candidate.winner ? 'Won' : 'Lost';
+        votes = result.candidate.votes;
+        voteShare = result.candidate.vote_share;
+        margin = result.candidate.margin || null;
+      } else if (result?.constituency) {
+        // Constituency found but candidate not matched — mark as Lost
+        status = 'Lost';
+      }
+    }
+
+    return {
+      ...entry,
+      party: normalizedParty,
+      constituency: normalizedConstituency,
+      id: generateCandidateId(entry.name, normalizedParty, normalizedConstituency, entry.year),
+      assetsCrores,
+      liabilitiesCrores,
+      status,
+      votes,
+      voteShare,
+      margin,
+    };
+  });
+
+  // Deduplicate entries by (name, party, constituency, year)
+  const seen = new Set();
+  const entries = processed.filter((entry) => {
+    const key = `${normalizeName(entry.name)}|${normalizePartyKey(entry.party)}|${normalizeConstituencyKey(entry.constituency)}|${entry.year}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).sort((left, right) => right.year - left.year || left.name.localeCompare(right.name));
+
+  const deduped = processed.length - entries.length;
+  if (deduped > 0) console.log(`Removed ${deduped} duplicate entries`);
+
+  // Stats
+  const wonCount = entries.filter((e) => e.status === 'Won').length;
+  const lostCount = entries.filter((e) => e.status === 'Lost').length;
+  const withVotes = entries.filter((e) => e.votes).length;
+  console.log(`Status: ${wonCount} Won, ${lostCount} Lost, ${withVotes} with vote data`);
 
   const payload = {
     generatedAt: new Date().toISOString(),
