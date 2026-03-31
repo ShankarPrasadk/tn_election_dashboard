@@ -12,41 +12,25 @@ export default defineConfig({
     },
   },
   build: {
-    // Advanced code obfuscation via Terser
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,       // Remove console.log from production
-        drop_debugger: true,      // Remove debugger statements
-        passes: 2,                // Multiple compression passes
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        drop_console: true,
+        drop_debugger: true,
+        passes: 2,
       },
-      mangle: {
-        toplevel: true,           // Mangle top-level names
-        properties: {
-          regex: /^_/,            // Mangle properties starting with _
-        },
-      },
+      mangle: true,
       format: {
-        comments: false,          // Strip all comments
-        ascii_only: true,         // ASCII-only output
+        comments: false,
       },
     },
-    // Chunk splitting to make code harder to reassemble
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['recharts'],
-          maps: ['leaflet', 'react-leaflet'],
-        },
-        // Hash-based filenames to prevent predictable paths
         chunkFileNames: 'assets/[hash].js',
         entryFileNames: 'assets/[hash].js',
         assetFileNames: 'assets/[hash].[ext]',
       },
     },
-    // Disable source maps in production
     sourcemap: false,
   },
 })
