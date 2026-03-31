@@ -1,115 +1,83 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, AlertCircle, User, Bot, ChevronDown, ChevronUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { PartyBadge } from '../components/UIComponents';
-import { PARTY_COLORS } from '../data/electionData';
+import { Send, Loader2, AlertCircle, User, Bot, Key, X, Settings } from 'lucide-react';
+
+const SYSTEM_PROMPT = `You are the TN Election Dashboard AI Assistant — an expert on Tamil Nadu state assembly elections from 1952 to 2026.
+
+You have deep knowledge of:
+- All Tamil Nadu assembly elections (1952, 1957, 1962, 1967, 1971, 1977, 1980, 1984, 1989, 1991, 1996, 2001, 2006, 2011, 2016, 2021, 2026)
+- Political parties: DMK, AIADMK, INC, BJP, TVK (Vijay's party), NTK (Seeman), PMK, VCK, CPI, CPI(M), DMDK, AMMK, MDMK, IUML, etc.
+- Key leaders: M.K. Stalin, Edappadi K. Palaniswami (EPS), Vijay (TVK), Seeman (NTK), K. Annamalai (BJP TN), Udhayanidhi Stalin, and historical leaders like M.G. Ramachandran (MGR), J. Jayalalithaa, M. Karunanidhi, C.N. Annadurai, K. Kamaraj, C. Rajagopalachari
+- Chief Ministers of Tamil Nadu from 1952 to present
+- Alliance patterns (SPA/DMK alliance, NDA/AIADMK alliance), seat-sharing
+- Anti-incumbency patterns in TN (power changed in 10 of 13 elections since 1967)
+- Candidate criminal records, assets, education from election affidavits (via ECI, myneta.info, ADR)
+- Constituency-level data, vote share trends, turnout statistics
+- 2026 election: polling date April 23, 2026; 234 constituencies; ~5.67 crore voters
+- Current alliances: SPA (DMK-led), NDA (AIADMK-led), TVK (independent), NTK (independent)
+
+Rules:
+1. Answer questions about Tamil Nadu elections accurately and concisely
+2. If you don't know something specific, say so — don't make up data
+3. For candidate-specific criminal/asset data, mention that data comes from self-sworn affidavits filed with ECI
+4. Be politically neutral — don't endorse any party or candidate
+5. Use markdown formatting for better readability (bold, lists, headers)
+6. Keep answers focused and relevant to what was asked
+7. You can discuss election predictions, analysis, and political history
+8. For non-election questions, politely redirect to election topics`;
 
 const SUGGESTED_QUESTIONS = [
-  'Who are the DMK candidates in 2026 election?',
-  'Show AIADMK candidates with criminal cases in 2021',
-  'Which candidates have the highest assets in 2026?',
-  'Compare DMK and AIADMK candidate profiles in 2021',
-  'Show BJP candidates in Tamil Nadu 2026 assembly election',
-  'Who is the richest candidate in 2021?',
-  'List NTK candidates in Chennai',
-  'Show candidates from Kolathur constituency',
+  'Who will likely win the 2026 TN election and why?',
+  'What is the anti-incumbency pattern in Tamil Nadu?',
+  'Compare DMK and AIADMK performance from 2006 to 2021',
+  'Tell me about Vijay\'s TVK party and its prospects in 2026',
+  'Who were the Chief Ministers of Tamil Nadu?',
+  'What is the criminal record situation among TN candidates?',
+  'Explain the alliance dynamics in Tamil Nadu politics',
+  'What was the 2G scam impact on 2011 election?',
 ];
 
-function Citation({ citation }) {
-  return (
-    <Link
-      to={`/candidate/${citation.candidateId}`}
-      className="inline-flex items-center gap-1 text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded px-2 py-0.5 hover:bg-amber-500/20 transition-colors"
-    >
-      {citation.label}
-    </Link>
-  );
-}
+const API_KEY_STORAGE = 'tn_election_openai_key';
 
-function MatchedCandidate({ candidate }) {
-  const color = PARTY_COLORS[candidate.party] || '#64748b';
-
-  return (
-    <Link
-      to={`/candidate/${candidate.id}`}
-      className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-amber-500/30 transition-colors"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-white truncate">{candidate.name}</p>
-        <p className="text-xs text-slate-400">
-          {candidate.constituency} &middot; {candidate.year}
-        </p>
-      </div>
-      <PartyBadge party={candidate.party} colors={PARTY_COLORS} />
-    </Link>
-  );
+function formatMessage(text) {
+  // Simple markdown-like formatting
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-white mt-3 mb-1">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-white mt-3 mb-1">$1</h2>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$1. $2</li>')
+    .replace(/\n/g, '<br/>');
 }
 
 function Message({ message }) {
-  const [expanded, setExpanded] = useState(false);
-  const hasCandidates = message.matchedCandidates?.length > 0;
-
   return (
     <div className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
       {message.role === 'assistant' && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center mt-1">
           <Bot size={16} className="text-amber-400" />
         </div>
       )}
 
-      <div className={`max-w-[80%] ${message.role === 'user' ? 'order-first' : ''}`}>
+      <div className={`max-w-[85%] ${message.role === 'user' ? 'order-first' : ''}`}>
         <div className={`rounded-2xl px-4 py-3 ${
           message.role === 'user'
             ? 'bg-amber-500/20 text-white border border-amber-500/20'
-            : message.status === 'blocked'
-              ? 'bg-red-500/10 text-red-300 border border-red-500/20'
-              : 'bg-slate-800 text-slate-200 border border-slate-700/50'
+            : 'bg-slate-800 text-slate-200 border border-slate-700/50'
         }`}>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.answer || message.text}</p>
-
-          {message.citations?.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-slate-700/50">
-              <p className="text-xs text-slate-500 mb-1.5">Sources</p>
-              <div className="flex flex-wrap gap-1.5">
-                {message.citations.map((c, i) => <Citation key={i} citation={c} />)}
-              </div>
-            </div>
+          {message.role === 'user' ? (
+            <p className="text-sm leading-relaxed">{message.content}</p>
+          ) : (
+            <div
+              className="text-sm leading-relaxed prose-invert"
+              dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
+            />
           )}
         </div>
-
-        {hasCandidates && (
-          <div className="mt-2">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
-            >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {message.matchedCandidates.length} matched candidate{message.matchedCandidates.length > 1 ? 's' : ''}
-            </button>
-            {expanded && (
-              <div className="mt-2 space-y-1.5">
-                {message.matchedCandidates.map((c) => <MatchedCandidate key={c.id} candidate={c} />)}
-              </div>
-            )}
-          </div>
-        )}
-
-        {message.mode && (
-          <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex items-center gap-1 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 rounded px-1.5 py-0.5">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              Source Verified
-            </span>
-            <span className="text-[10px] text-slate-600">
-              {message.mode === 'deterministic-rag-preview' ? 'Deterministic RAG' : message.mode}
-              {message.retrieval?.total != null && ` \u00b7 ${message.retrieval.total} records matched`}
-            </span>
-          </div>
-        )}
       </div>
 
       {message.role === 'user' && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mt-1">
           <User size={16} className="text-slate-300" />
         </div>
       )}
@@ -119,46 +87,92 @@ function Message({ message }) {
 
 export default function AskPage() {
   const [question, setQuestion] = useState('');
-  const [year, setYear] = useState('');
-  const [party, setParty] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || '');
+  const [showKeyInput, setShowKeyInput] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (!apiKey) setShowKeyInput(true);
+  }, [apiKey]);
+
+  const saveApiKey = () => {
+    const key = keyInput.trim();
+    if (!key.startsWith('sk-')) {
+      setError('Invalid API key. It should start with "sk-"');
+      return;
+    }
+    localStorage.setItem(API_KEY_STORAGE, key);
+    setApiKey(key);
+    setShowKeyInput(false);
+    setError('');
+    inputRef.current?.focus();
+  };
+
+  const removeApiKey = () => {
+    localStorage.removeItem(API_KEY_STORAGE);
+    setApiKey('');
+    setKeyInput('');
+    setShowKeyInput(true);
+    setMessages([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const q = question.trim();
-    if (!q || q.length < 8) return;
+    if (!q || !apiKey) return;
 
     setError('');
-    setMessages((prev) => [...prev, { role: 'user', text: q }]);
+    const userMsg = { role: 'user', content: q };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setQuestion('');
     setLoading(true);
 
     try {
-      const body = { question: q, maxCandidates: 5 };
-      if (year) body.year = Number(year);
-      if (party) body.party = party;
+      // Build conversation history (keep last 10 messages for context)
+      const conversationHistory = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...newMessages.slice(-10).map(m => ({ role: m.role, content: m.content })),
+      ];
 
-      const response = await fetch('/api/ask', {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: conversationHistory,
+          max_tokens: 1024,
+          temperature: 0.7,
+        }),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.message || `Server error ${response.status}`);
+        if (response.status === 401) {
+          throw new Error('Invalid API key. Please check your OpenAI API key and try again.');
+        }
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        }
+        throw new Error(err.error?.message || `OpenAI API error (${response.status})`);
       }
 
       const data = await response.json();
-      setMessages((prev) => [...prev, { role: 'assistant', ...data }]);
+      const assistantContent = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -168,20 +182,73 @@ export default function AskPage() {
 
   const handleSuggestion = (q) => {
     setQuestion(q);
+    inputRef.current?.focus();
   };
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-2rem)]">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Bot className="text-amber-400" size={28} />
-          Ask About Elections
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Query candidate affidavit data across 2006–2026 Tamil Nadu assembly elections. Answers are grounded in official disclosures.
-        </p>
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Bot className="text-amber-400" size={28} />
+            Ask About TN Elections
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            AI-powered assistant for Tamil Nadu election data, history, and analysis (1952–2026)
+          </p>
+        </div>
+        <button
+          onClick={() => apiKey ? removeApiKey() : setShowKeyInput(true)}
+          className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors"
+          title={apiKey ? 'Change API key' : 'Set API key'}
+        >
+          <Settings size={14} />
+          {apiKey ? 'API Key Set' : 'Set Key'}
+        </button>
       </div>
+
+      {/* API Key Input */}
+      {showKeyInput && (
+        <div className="mb-4 bg-slate-800/80 border border-amber-500/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Key size={16} className="text-amber-400" />
+            <h3 className="text-sm font-semibold text-white">Enter your OpenAI API Key</h3>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Your API key is stored only in your browser (localStorage) and sent directly to OpenAI — we never see or store it on our servers.
+            Get a key from{' '}
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
+              platform.openai.com/api-keys
+            </a>
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="sk-..."
+              className="flex-1 bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm placeholder-slate-600 focus:border-amber-500/50 focus:outline-none"
+              onKeyDown={(e) => e.key === 'Enter' && saveApiKey()}
+            />
+            <button
+              onClick={saveApiKey}
+              disabled={!keyInput.trim()}
+              className="bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-black font-medium rounded-lg px-4 py-2 text-sm transition-colors"
+            >
+              Save
+            </button>
+            {apiKey && (
+              <button
+                onClick={() => setShowKeyInput(false)}
+                className="text-slate-400 hover:text-white p-2"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0">
@@ -190,10 +257,9 @@ export default function AskPage() {
             <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
               <Bot size={32} className="text-amber-400" />
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">Election Data Assistant</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">TN Election AI Assistant</h2>
             <p className="text-sm text-slate-400 mb-6 max-w-md">
-              Ask questions about candidates, their criminal records, assets, education, and party affiliations.
-              All answers are sourced from official election affidavits.
+              Ask anything about Tamil Nadu elections — history, candidates, parties, alliances, predictions, criminal records, and more. Powered by OpenAI.
             </p>
             <div className="space-y-2 w-full max-w-md">
               <p className="text-xs text-slate-500 uppercase tracking-wider">Try asking</p>
@@ -218,7 +284,7 @@ export default function AskPage() {
               <Loader2 size={16} className="text-amber-400 animate-spin" />
             </div>
             <div className="bg-slate-800 border border-slate-700/50 rounded-2xl px-4 py-3">
-              <p className="text-sm text-slate-400">Searching election records...</p>
+              <p className="text-sm text-slate-400">Thinking...</p>
             </div>
           </div>
         )}
@@ -235,68 +301,27 @@ export default function AskPage() {
 
       {/* Input area */}
       <div className="border-t border-slate-700/50 pt-4">
-        {showFilters && (
-          <div className="flex gap-3 mb-3">
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-sm text-slate-300 rounded-lg px-3 py-2 focus:border-amber-500/50 focus:outline-none"
-            >
-              <option value="">All Years</option>
-              {[2026, 2021, 2016, 2011, 2006].map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            <select
-              value={party}
-              onChange={(e) => setParty(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-sm text-slate-300 rounded-lg px-3 py-2 focus:border-amber-500/50 focus:outline-none"
-            >
-              <option value="">All Parties</option>
-              {['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'TVK', 'AMMK'].map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
-              showFilters
-                ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-            }`}
-            title="Toggle filters"
-          >
-            Filters
-          </button>
           <input
+            ref={inputRef}
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask about candidates, parties, constituencies..."
+            placeholder={apiKey ? 'Ask anything about TN elections...' : 'Set your OpenAI API key first...'}
             className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2.5 text-sm placeholder-slate-500 focus:border-amber-500/50 focus:outline-none"
-            disabled={loading}
-            minLength={8}
-            maxLength={500}
+            disabled={loading || !apiKey}
+            maxLength={1000}
           />
           <button
             type="submit"
-            disabled={loading || question.trim().length < 8}
+            disabled={loading || !question.trim() || !apiKey}
             className="bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-medium rounded-lg px-4 py-2.5 transition-colors flex items-center gap-2"
           >
             <Send size={16} />
           </button>
         </form>
         <p className="text-[10px] text-slate-600 mt-2 text-center">
-          Powered by deterministic RAG over official election affidavit data. No LLM hallucinations &mdash; every answer is grounded in source records.
-          <span className="inline-flex items-center gap-1 ml-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded px-1.5 py-0.5">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-            Source Verified
-          </span>
+          Powered by OpenAI GPT-4o-mini. Your API key stays in your browser only. AI responses may not be 100% accurate — verify critical data from official ECI sources.
         </p>
       </div>
     </div>

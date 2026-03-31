@@ -5,13 +5,13 @@ import { useState } from 'react';
 const NAV_ITEMS = [
   { to: '/', icon: BarChart3, label: 'Dashboard' },
   { to: '/trends', icon: TrendingUp, label: 'Trends (1952–2026)' },
-  { to: '/news', icon: Newspaper, label: 'Live News' },
   { to: '/candidates', icon: Users, label: 'Candidates' },
-  { to: '/comparison', icon: Scale, label: 'Compare' },
-  { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
+  { to: '/news', icon: Newspaper, label: 'Live News' },
   { to: '/development', icon: Building2, label: 'Development' },
+  { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
   { to: '/constituency', icon: MapPin, label: 'My Constituency' },
   { to: '/map', icon: Map, label: 'Map' },
+  { to: '/comparison', icon: Scale, label: 'Compare' },
   { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
 ];
 
