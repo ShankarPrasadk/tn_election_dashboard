@@ -140,6 +140,18 @@ app.get('/api/news', async (_request, response, next) => {
   }
 });
 
+// Temporary: list available Gemini models for debugging
+app.get('/api/gemini-models', async (_request, response) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return response.json({ error: 'no key' });
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+  const data = await res.json();
+  const models = (data.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => ({ name: m.name, displayName: m.displayName }));
+  response.json({ models, raw_status: res.status });
+});
+
 app.post('/api/ask', async (request, response, next) => {
   try {
     const { messages } = request.body;
