@@ -88,8 +88,6 @@ export default function DashboardPage() {
   const assets = is2026 ? liveStats?.assets : ASSET_STATS[year];
   const liveEducation = is2026 ? liveStats?.education : null;
   const liveAge = is2026 ? liveStats?.age : null;
-  const totalCandidates2026 = liveStats?.totalCandidates || 0;
-  const announcedCandidates2026 = is2026 ? totalCandidates2026 : CANDIDATES_2026.reduce((count, seat) => count + Object.values(seat.candidates).filter((name) => name && name !== 'TBD').length, 0);
 
   const partyData = Object.entries(summary.results)
     .map(([party, data]) => ({ party, seats: data.seats, voteShare: data.voteShare }))
@@ -163,22 +161,22 @@ export default function DashboardPage() {
           color="amber"
         />
         <StatCard
-          title={is2026 ? 'Criminal Records' : 'Criminal Records'}
-          value={criminal ? `${criminal.percentWithCases}%` : 'Loading…'}
-          subtitle={criminal ? `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates` : 'Fetching affidavit data…'}
+          title="Criminal Records"
+          value={criminal ? (criminal.isPartial ? `${criminal.withCriminalCases} declared` : `${criminal.percentWithCases}%`) : 'Loading…'}
+          subtitle={criminal ? (criminal.isPartial ? `${criminal.affidavitsSynced} of ${criminal.totalCandidatesAnalyzed} affidavits synced` : `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates`) : 'Fetching affidavit data…'}
           icon={AlertTriangle}
           color="red"
         />
         <StatCard
           title={is2026 ? 'Avg Assets' : 'Avg Assets (Winners)'}
-          value={assets ? `₹${assets.avgAssets} Cr` : is2026 ? 'Loading…' : 'TBD'}
-          subtitle={is2026 ? (assets ? `Richest: ₹${assets.richest} Cr • ${assets.medianAssets} Cr median` : 'Fetching affidavit data…') : (assets ? `Richest: ₹${assets.richest} Cr` : '')}
+          value={is2026 ? (assets ? `₹${assets.avgAssets} Cr` : (liveStats ? 'Awaiting sync' : 'Loading…')) : (assets ? `₹${assets.avgAssets} Cr` : 'TBD')}
+          subtitle={is2026 ? (assets ? `Richest: ₹${assets.richest} Cr • Median: ₹${assets.medianAssets} Cr` : (liveStats ? `${liveStats.totalCandidates} candidates, affidavit asset data pending` : 'Fetching affidavit data…')) : (assets ? `Richest: ₹${assets.richest} Cr` : '')}
           icon={Banknote}
           color="green"
         />
         <StatCard
-          title={is2026 ? 'Total Candidates' : 'Total Candidates'}
-          value={is2026 ? announcedCandidates2026.toLocaleString() : summary.totalCandidates ? summary.totalCandidates.toLocaleString() : '4500+'}
+          title="Total Candidates"
+          value={is2026 ? (liveStats ? liveStats.totalCandidates.toLocaleString() : 'Loading…') : (summary.totalCandidates ? summary.totalCandidates.toLocaleString() : '4500+')}
           subtitle={is2026 ? `From ECI affidavit portal • ${VOTER_STATS_2026.totalVoters ? (VOTER_STATS_2026.totalVoters / 10000000).toFixed(2) + ' Cr voters' : ''}` : `${summary.turnoutPercent}% voter turnout`}
           icon={Vote}
           color="blue"

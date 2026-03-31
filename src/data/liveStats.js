@@ -5,7 +5,7 @@
  */
 
 function classifyEducation(edu) {
-  if (!edu) return null;
+  if (!edu || /awaiting|pending|sync|not available/i.test(edu)) return null;
   const e = edu.toLowerCase();
   if (/doctorate|ph\.?d|post.?doctoral/i.test(e)) return 'Doctorate';
   if (/post.?graduate|m\.?a|m\.?sc|m\.?b\.?a|m\.?tech|m\.?phil|m\.?e\b|masters/i.test(e)) return 'Post Graduate';
@@ -37,14 +37,18 @@ export function computeLiveStats(entries) {
   if (candidates.length === 0) return null;
 
   // --- Criminal stats ---
-  const withData = candidates.filter(e => e.criminalCases != null);
-  const withCases = withData.filter(e => e.criminalCases > 0);
-  const totalAnalyzed = withData.length || candidates.length;
+  // Only count candidates where affidavit was actually processed (criminalCases is a number, not null)
+  const withAffidavitData = candidates.filter(e => e.criminalCases != null);
+  const withCases = withAffidavitData.filter(e => e.criminalCases > 0);
+  const affidavitsSynced = withAffidavitData.length;
+
+  // If very few affidavits synced, stats would be misleading — use total candidates as denominator
+  const useFullBase = affidavitsSynced >= 50;
+  const totalAnalyzed = useFullBase ? affidavitsSynced : candidates.length;
   const percentWithCases = totalAnalyzed > 0
     ? parseFloat(((withCases.length / totalAnalyzed) * 100).toFixed(1))
     : 0;
 
-  // Serious cases — estimate as cases >= 2 (IPC serious sections not available from affidavit text)
   const withSerious = withCases.filter(e => e.criminalCases >= 2);
   const percentSerious = totalAnalyzed > 0
     ? parseFloat(((withSerious.length / totalAnalyzed) * 100).toFixed(1))
@@ -55,16 +59,16 @@ export function computeLiveStats(entries) {
     ? parseFloat((totalCasesSum / withCases.length).toFixed(1))
     : 0;
 
-  // Top parties by criminal case %
+  // Top parties — only among candidates with actual affidavit data
   const partyMap = {};
-  for (const c of candidates) {
+  for (const c of (useFullBase ? withAffidavitData : candidates)) {
     const p = c.party || 'IND';
     if (!partyMap[p]) partyMap[p] = { total: 0, withCases: 0 };
     partyMap[p].total++;
     if (c.criminalCases > 0) partyMap[p].withCases++;
   }
   const topParties = Object.entries(partyMap)
-    .filter(([, v]) => v.total >= 3) // only parties with >= 3 candidates
+    .filter(([, v]) => v.total >= 3)
     .map(([party, v]) => ({
       party,
       percent: parseFloat(((v.withCases / v.total) * 100).toFixed(1)),
@@ -75,15 +79,17 @@ export function computeLiveStats(entries) {
 
   const criminal = {
     totalCandidatesAnalyzed: totalAnalyzed,
+    affidavitsSynced,
     withCriminalCases: withCases.length,
     percentWithCases,
     withSeriousCases: withSerious.length,
     percentSerious,
     avgCases,
     topParties,
+    isPartial: !useFullBase,
   };
 
-  // --- Top criminals list (for CriminalPage) ---
+  // --- Top criminals list ---
   const topCriminals = [...withCases]
     .sort((a, b) => b.criminalCases - a.criminalCases)
     .slice(0, 20)

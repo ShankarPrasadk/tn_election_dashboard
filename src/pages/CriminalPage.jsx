@@ -85,19 +85,28 @@ export default function CriminalPage() {
         <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021, 2026]} />
       </div>
 
+      {/* Partial data notice */}
+      {data.isPartial && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+          <p className="text-sm text-amber-300">
+            <strong>⚠️ Partial Data:</strong> Only {data.affidavitsSynced} of {data.totalCandidatesAnalyzed} affidavits have been processed so far. Stats below reflect the data available — percentages will update as more affidavits are synced from ECI.
+          </p>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="With Criminal Cases"
-          value={`${data.percentWithCases}%`}
-          subtitle={`${data.withCriminalCases} candidates`}
+          value={data.isPartial ? `${data.withCriminalCases}` : `${data.percentWithCases}%`}
+          subtitle={data.isPartial ? `of ${data.affidavitsSynced} affidavits synced` : `${data.withCriminalCases} candidates`}
           icon={AlertTriangle}
           color="red"
         />
         <StatCard
           title="Serious Cases"
-          value={`${data.percentSerious}%`}
-          subtitle={`${data.withSeriousCases} candidates`}
+          value={data.isPartial ? `${data.withSeriousCases}` : `${data.percentSerious}%`}
+          subtitle={data.isPartial ? 'candidates with 2+ cases' : `${data.withSeriousCases} candidates`}
           icon={ShieldAlert}
           color="amber"
         />

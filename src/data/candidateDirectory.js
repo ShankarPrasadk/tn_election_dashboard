@@ -72,16 +72,27 @@ export function enrichCandidateEntry(entry, profiles) {
 export async function loadCandidateDirectory() {
   if (!directoryPromise) {
     directoryPromise = (async () => {
-      // Load candidates from Supabase
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('year', { ascending: false });
+      // Load ALL candidates from Supabase (paginate past default 1000-row limit)
+      const PAGE_SIZE = 1000;
+      let allRows = [];
+      let from = 0;
+      let done = false;
 
-      if (error) throw new Error(`Failed to load candidates: ${error.message}`);
+      while (!done) {
+        const { data, error } = await supabase
+          .from('candidates')
+          .select('*')
+          .order('year', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw new Error(`Failed to load candidates: ${error.message}`);
+        allRows = allRows.concat(data);
+        if (data.length < PAGE_SIZE) done = true;
+        else from += PAGE_SIZE;
+      }
 
       const profiles = await getCuratedProfiles();
-      const entries = data.map(rowToCandidate).map((e) => enrichCandidateEntry(e, profiles));
+      const entries = allRows.map(rowToCandidate).map((e) => enrichCandidateEntry(e, profiles));
 
       return {
         generated: new Date().toISOString(),
