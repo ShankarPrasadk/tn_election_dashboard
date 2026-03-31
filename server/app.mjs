@@ -200,32 +200,43 @@ Rules:
       geminiContents.shift();
     }
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: geminiContents,
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+    // Try models in order of preference
+    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
+    let geminiRes;
+    let lastErr = '';
 
-    if (!geminiRes.ok) {
+    for (const model of models) {
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: geminiContents,
+            generationConfig: {
+              maxOutputTokens: 1024,
+              temperature: 0.7,
+            },
+          }),
+        }
+      );
+
+      if (geminiRes.ok) break; // Success — use this model
+
       const errBody = await geminiRes.text().catch(() => '');
-      console.error('Gemini API error:', geminiRes.status, errBody);
-      let detail = '';
       try {
         const errJson = JSON.parse(errBody);
-        detail = errJson?.error?.message || errBody;
-      } catch { detail = errBody; }
+        lastErr = errJson?.error?.message || errBody;
+      } catch { lastErr = errBody; }
+      console.error(`Gemini ${model} error (${geminiRes.status}):`, lastErr.slice(0, 200));
+      // Continue to next model on 404 or 429 (quota)
+      if (geminiRes.status !== 404 && geminiRes.status !== 429) break;
+    }
+
+    if (!geminiRes.ok) {
       response.status(geminiRes.status === 429 ? 429 : 502).json({
-        message: `Gemini error (${geminiRes.status}): ${detail}`.slice(0, 500),
+        message: `Gemini error (${geminiRes.status}): ${lastErr}`.slice(0, 500),
       });
       return;
     }
