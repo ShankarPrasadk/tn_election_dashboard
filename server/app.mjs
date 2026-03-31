@@ -213,7 +213,7 @@ Rules:
     }
 
     // Try models in order of preference
-    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-001'];
     let geminiRes;
     let lastErr = '';
 
