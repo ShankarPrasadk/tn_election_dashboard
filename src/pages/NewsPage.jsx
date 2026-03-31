@@ -80,8 +80,18 @@ export default function NewsPage() {
       setArticles(data.articles || []);
       setLastFetched(data.fetchedAt);
       setError(null);
-      lastFetchTime.current = Date.now();
-      setNextRefreshIn(REFRESH_INTERVAL_MS / 1000);
+
+      // Use server's fetchedAt to calculate true remaining time
+      if (data.fetchedAt) {
+        const serverFetchedAt = new Date(data.fetchedAt).getTime();
+        const elapsed = Date.now() - serverFetchedAt;
+        const remaining = Math.max(0, REFRESH_INTERVAL_MS - elapsed);
+        lastFetchTime.current = serverFetchedAt;
+        setNextRefreshIn(Math.floor(remaining / 1000));
+      } else {
+        lastFetchTime.current = Date.now();
+        setNextRefreshIn(REFRESH_INTERVAL_MS / 1000);
+      }
     } catch (err) {
       console.error('Failed to fetch news:', err);
       setError('Failed to load news. Will retry automatically.');
