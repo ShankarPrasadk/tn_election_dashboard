@@ -242,15 +242,26 @@ function extractEciCards(html, listingUrl) {
 
 /**
  * Extract all Indian currency amounts from a text fragment.
- * Matches patterns like: 37,38,00,000/-, 80000000, 10,000/-, etc.
+ * Only captures amounts prefixed by Rs/ரூ or with Indian comma formatting,
+ * filtering out phone numbers, PAN numbers, and OCR garbage.
  */
 function extractAllAmountsFromText(text) {
   const amounts = [];
-  for (const m of text.matchAll(/([\d,]+(?:\/[\-–])?)/g)) {
+  // Match Rs/ரூ prefixed amounts: Rs.32,05,705/- or ரூ. 3,30,53,486/-
+  for (const m of text.matchAll(/(?:Rs\.?|ரூ\.?)\s*([\d,]+(?:\/[\-–])?)/gi)) {
+    const digits = m[1].replace(/[,\/\-–\s]/g, '');
+    if (digits.length >= 3) {
+      const val = parseInt(digits, 10);
+      if (val > 0 && val < 1e12) amounts.push(val); // cap at ₹1 lakh Cr
+    }
+  }
+  // Also match Indian comma-formatted amounts without prefix (e.g. 3,30,53,486/-)
+  // Indian format: X,XX,XXX or X,XX,XX,XXX (groups of 2 after first group)
+  for (const m of text.matchAll(/(?<!\d)([\d]{1,3}(?:,\d{2}){1,4}(?:,\d{3})?(?:\/[\-–])?)/g)) {
     const digits = m[1].replace(/[,\/\-–]/g, '');
     if (digits.length >= 5) {
       const val = parseInt(digits, 10);
-      if (val > 0) amounts.push(val);
+      if (val > 0 && val < 1e12 && !amounts.includes(val)) amounts.push(val);
     }
   }
   return amounts;
@@ -312,6 +323,7 @@ function extractAffidavitSummary(ocrText) {
   let totalAssets = null;
   const src = partB || normalized;
 
+  // === MOVABLE ASSETS ===
   // English: "Movable Assets ... Total Value ) <amounts>"
   // Tamil: "அசையும் சொத்து <amounts>" (amounts come right after header or after மொத்த மதிப்பு)
   let movable = 0;
@@ -331,37 +343,37 @@ function extractAffidavitSummary(ocrText) {
     }
   }
 
-  // Immovable self-acquired
-  let saAmount = 0;
-  const saEn = src.match(
-    /Self[\-\s]*acquired\s*assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|Inherited|பூர்வீக|Liabilit|கடன்)/i
+  // === IMMOVABLE ASSETS ===
+  // Use the header total row "B | Immovable Assets/அசையாச் சொத்து" which
+  // already includes self-acquired + inherited totals across all family members.
+  // Avoids double-counting from purchase price + market value sub-rows.
+  let immovable = 0;
+  // English: "Immovable Assets ... Total Value ) <amounts>"
+  const immovableEn = src.match(
+    /Immovable\s*Assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|Self|Purchase|சுயமாக|தாமாக|கொள்முதல்)/i
   );
-  if (saEn) {
-    saAmount = sumAmounts(extractAllAmountsFromText(saEn[1]));
+  if (immovableEn) {
+    immovable = sumAmounts(extractAllAmountsFromText(immovableEn[1]));
   }
-  if (!saAmount) {
-    const saTam = src.match(
-      /(?:சுயமாக|தாமாக)[\s\S]{0,60}(?:சொத்து|மதிப்பு|வாங்கிய)([\s\S]{0,300}?)(?=பூர்வீக|பரம்பரை|Inherited|கடன்\s*பொ|Liabilit)/i
+  if (!immovable) {
+    // Tamil: "அசையாச் சொத்து" header row — grab amounts from just the header line,
+    // NOT the sub-rows (purchase price, development cost, market value)
+    const immovableTam = src.match(
+      /அசையாச்[\s\S]{0,15}சொத்து([\s\S]{0,200}?)(?=\n\s*(?:I\.|i\.|1\.|சுயமாக|தாமாக|கொள்முதல்|Purchase|Self))/i
     );
-    if (saTam) saAmount = sumAmounts(extractAllAmountsFromText(saTam[1]));
+    if (immovableTam) {
+      immovable = sumAmounts(extractAllAmountsFromText(immovableTam[1]));
+    }
+    // Fallback: if header row extraction failed, try current market value row only
+    if (!immovable) {
+      const marketVal = src.match(
+        /(?:current\s*market\s*value|நடப்பு\s*சந்தை[\s\S]{0,20}(?:மதிப்பு|விலை))([\s\S]{0,200}?)(?=\n\s*\n|பூர்வீக|பரம்பரை|Inherited|கடன்\s*பொ|Liabilit)/i
+      );
+      if (marketVal) {
+        immovable = sumAmounts(extractAllAmountsFromText(marketVal[1]));
+      }
+    }
   }
-
-  // Immovable inherited
-  let inhAmount = 0;
-  const inhEn = src.match(
-    /Inherited\s*assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|9\.\s*Liabilit|கடன்\s*பொறுப்பு|Highest|உயரளவு)/i
-  );
-  if (inhEn) {
-    inhAmount = sumAmounts(extractAllAmountsFromText(inhEn[1]));
-  }
-  if (!inhAmount) {
-    const inhTam = src.match(
-      /(?:பூர்வீக|பரம்பரை)[\s\S]{0,30}(?:சொத்து|மதிப்பு)([\s\S]{0,500}?)(?=கடன்\s*பொ|Liabilit|Highest|உயரளவு|10\.\s*|பணை|ML\s|\n\s*\n\s*\n)/i
-    );
-    if (inhTam) inhAmount = sumAmounts(extractAllAmountsFromText(inhTam[1]));
-  }
-
-  const immovable = saAmount + inhAmount;
   if (movable + immovable > 0) {
     totalAssets = movable + immovable;
   }
