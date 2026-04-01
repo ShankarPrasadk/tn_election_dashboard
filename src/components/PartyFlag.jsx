@@ -14,17 +14,16 @@ function DMKFlag({ size }) {
   );
 }
 
-/* ── AIADMK Flag: Red, Black vertical stripes with Two Leaves center ── */
+/* ── AIADMK Flag: Red top, Black bottom, Two Leaves in green ── */
 function AIADMKFlag({ size }) {
   return (
     <svg viewBox="0 0 36 24" width={size * 1.5} height={size} className="rounded-sm shadow-sm">
-      <rect x="0" y="0" width="12" height="24" fill="#e11d48" />
-      <rect x="12" y="0" width="12" height="24" fill="#000000" />
-      <rect x="24" y="0" width="12" height="24" fill="#16a34a" />
-      {/* Two Leaves symbol */}
-      <path d="M18 7 Q14 4 14.5 2 Q17 4 18 7Z" fill="#fff" opacity="0.9" />
-      <path d="M18 7 Q22 4 21.5 2 Q19 4 18 7Z" fill="#fff" opacity="0.9" />
-      <line x1="18" y1="7" x2="18" y2="10" stroke="#fff" strokeWidth="0.6" opacity="0.7" />
+      <rect x="0" y="0" width="36" height="12" fill="#e11d48" />
+      <rect x="0" y="12" width="36" height="12" fill="#000000" />
+      {/* Two Leaves emblem in green */}
+      <path d="M18 8 Q13 4 13.5 1.5 Q16.5 4 18 8Z" fill="#16a34a" />
+      <path d="M18 8 Q23 4 22.5 1.5 Q19.5 4 18 8Z" fill="#16a34a" />
+      <line x1="18" y1="8" x2="18" y2="11.5" stroke="#16a34a" strokeWidth="0.7" />
     </svg>
   );
 }
@@ -78,24 +77,38 @@ function VCKFlag({ size }) {
   );
 }
 
-/* ── NTK Flag: Red with black border stripe ── */
+/* ── NTK Flag: Red with leaping tiger ── */
 function NTKFlag({ size }) {
   return (
     <svg viewBox="0 0 36 24" width={size * 1.5} height={size} className="rounded-sm shadow-sm">
       <rect x="0" y="0" width="36" height="24" fill="#dc2626" />
-      <rect x="0" y="0" width="36" height="3" fill="#000000" />
-      <rect x="0" y="21" width="36" height="3" fill="#000000" />
+      {/* Leaping tiger silhouette */}
+      <g transform="translate(9,4) scale(0.75)" fill="#000" opacity="0.85">
+        {/* body */}
+        <ellipse cx="12" cy="12" rx="8" ry="4.5" />
+        {/* head */}
+        <circle cx="20" cy="9" r="3.5" />
+        {/* front legs */}
+        <path d="M18 15 L22 20 L23 19 L19.5 14.5Z" />
+        <path d="M16 15.5 L19 21 L20 20 L17.5 15Z" />
+        {/* rear legs */}
+        <path d="M7 14 L4 20 L5.5 20.5 L8 15Z" />
+        <path d="M9 15 L7 21 L8.5 21 L10 15.5Z" />
+        {/* tail */}
+        <path d="M4 10 Q1 6 3 4 Q4 5 4.5 8" fill="#000" />
+        {/* ear */}
+        <path d="M20 6 L22 4 L21 7Z" />
+      </g>
     </svg>
   );
 }
 
-/* ── TVK Flag: Blue-White-Yellow ── */
+/* ── TVK Flag: Dark Red and Yellow (official party colours) ── */
 function TVKFlag({ size }) {
   return (
     <svg viewBox="0 0 36 24" width={size * 1.5} height={size} className="rounded-sm shadow-sm">
-      <rect x="0" y="0" width="12" height="24" fill="#0284c7" />
-      <rect x="12" y="0" width="12" height="24" fill="#ffffff" />
-      <rect x="24" y="0" width="12" height="24" fill="#eab308" />
+      <rect x="0" y="0" width="36" height="12" fill="#991b1b" />
+      <rect x="0" y="12" width="36" height="12" fill="#eab308" />
     </svg>
   );
 }

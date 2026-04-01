@@ -96,18 +96,45 @@ function Mango({ color, size }) {
   );
 }
 
-/* ── Plough (NTK - Naam Tamilar Katchi) ── */
-function Plough({ color, size }) {
+/* ── Farmer (NTK - Naam Tamilar Katchi, ECI symbol since May 2025) ── */
+function Farmer({ color, size }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
-      {/* plough blade */}
-      <path d="M4 18 Q4 14 8 12 L14 8" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
-      {/* handle */}
-      <line x1="14" y1="8" x2="20" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      {/* blade bottom */}
-      <path d="M4 18 L8 18 Q9 18 8 16" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
-      {/* yoke */}
-      <line x1="10" y1="10" x2="10" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      {/* head */}
+      <circle cx="12" cy="4.5" r="2.5" fill={color} />
+      {/* hat brim */}
+      <path d="M8 4.5 Q12 2 16 4.5" stroke={color} strokeWidth="1.2" fill="none" />
+      {/* body */}
+      <path d="M12 7 L12 15" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      {/* arms holding tool */}
+      <path d="M8 10 L12 12 L16 10" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      {/* legs */}
+      <line x1="12" y1="15" x2="9" y2="22" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="12" y1="15" x2="15" y2="22" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      {/* plough/tool */}
+      <path d="M7 10 L5 14" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M17 10 L19 14" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ── Whistle (TVK - Tamilaga Vettri Kazhagam, ECI symbol) ── */
+function Whistle({ color, size }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
+      {/* whistle body */}
+      <path d="M3 10 L14 10 Q18 10 19 13 L19 14 Q18 17 14 17 L10 17 L8 14 L3 14Z" fill={color} />
+      {/* mouthpiece */}
+      <rect x="1" y="10.5" width="4" height="3" rx="1" fill={color} />
+      {/* sound hole */}
+      <circle cx="16" cy="13.5" r="1.5" fill="rgba(0,0,0,0.25)" />
+      {/* ring */}
+      <circle cx="19.5" cy="13.5" r="2" stroke={color} strokeWidth="1.5" fill="none" />
+      {/* lanyard */}
+      <path d="M21 12 Q23 8 21 6 Q19 5 18 7" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" />
+      {/* sound waves */}
+      <path d="M16 7 Q17 6 16 5" stroke={color} strokeWidth="0.8" fill="none" strokeLinecap="round" />
+      <path d="M18 6 Q19 5 18 4" stroke={color} strokeWidth="0.8" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
@@ -317,8 +344,8 @@ const SYMBOL_COMPONENTS = {
   INC: Hand,
   PMK: Mango,
   'PMK(R)': Mango,
-  NTK: Plough,
-  TVK: BatteryTorch,
+  NTK: Farmer,
+  TVK: Whistle,
   MNM: BatteryTorch,
   VCK: Pot,
   CPI: CornSickle,
