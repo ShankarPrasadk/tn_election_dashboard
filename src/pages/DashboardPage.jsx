@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
-  Legend, CartesianGrid, AreaChart, Area
+  Legend, CartesianGrid, AreaChart, Area, LabelList, ReferenceLine,
+  RadialBarChart, RadialBar
 } from 'recharts';
-import { Users, AlertTriangle, Banknote, GraduationCap, Vote, TrendingUp, Clock, ArrowRight } from 'lucide-react';
+import { Users, AlertTriangle, Banknote, GraduationCap, Vote, TrendingUp, Clock, ArrowRight, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
 import AdBanner from '../components/AdBanner';
@@ -281,187 +282,311 @@ export default function DashboardPage() {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Party Seats */}
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] to-transparent pointer-events-none" />
-          <SectionHeader title={is2026 ? 'Constituencies Announced By Party' : 'Seats Won by Party'} />
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={partyData} layout="vertical" margin={{ left: 10 }}>
-              <defs>
-                {partyData.map(entry => (
-                  <linearGradient key={`grad-${entry.party}`} id={`barGrad-${entry.party}`} x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} stopOpacity={0.7} />
-                    <stop offset="100%" stopColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} stopOpacity={1} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
-              <YAxis type="category" dataKey="party" width={70} tick={{ fontSize: 11, fill: '#e2e8f0' }} axisLine={false} tickLine={false} />
-              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
-              <Bar dataKey="seats" radius={[0, 6, 6, 0]} animationDuration={1200}>
-                {partyData.map((entry) => (
-                  <Cell key={entry.party} fill={`url(#barGrad-${entry.party})`} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Party Seats — modern horizontal bars with inline values */}
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+          <div className="flex items-center gap-2 mb-5">
+            <BarChart3 className="w-5 h-5 text-amber-400" />
+            <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Constituencies Announced' : 'Seats Won'}</h2>
+          </div>
+          <div className="space-y-2.5">
+            {partyData.slice(0, 10).map((entry, i) => {
+              const maxSeats = partyData[0]?.seats || 1;
+              const pct = (entry.seats / maxSeats) * 100;
+              const color = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+              return (
+                <div key={entry.party} className="group">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-slate-300 tracking-wide">{entry.party}</span>
+                    <span className="text-xs font-bold tabular-nums" style={{ color }}>{entry.seats}</span>
+                  </div>
+                  <div className="relative h-7 bg-slate-800/80 rounded-lg overflow-hidden border border-slate-700/30">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-lg transition-all duration-700 ease-out"
+                      style={{
+                        width: `${Math.max(pct, 2)}%`,
+                        background: `linear-gradient(90deg, ${color}20, ${color}90)`,
+                        boxShadow: `inset 0 1px 0 ${color}30, 0 0 12px ${color}15`,
+                      }}
+                    />
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-lg opacity-50"
+                      style={{
+                        width: `${Math.max(pct, 2)}%`,
+                        background: `linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%)`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {partyData.length > 10 && (
+            <p className="text-[10px] text-slate-600 mt-3">+ {partyData.length - 10} more parties</p>
+          )}
         </div>
 
-        {/* Seat Distribution Pie */}
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-tl from-purple-500/[0.03] to-transparent pointer-events-none" />
-          <SectionHeader title={is2026 ? 'Contest Coverage Snapshot' : 'Seat Distribution'} />
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <defs>
-                {pieData.map(entry => (
-                  <filter key={`glow-${entry.party}`} id={`pieGlow-${entry.party}`}>
-                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} floodOpacity="0.4" />
-                  </filter>
-                ))}
-              </defs>
-              <Pie
-                data={pieData}
-                dataKey="seats"
-                nameKey="party"
-                cx="50%"
-                cy="50%"
-                innerRadius={45}
-                outerRadius={105}
-                paddingAngle={2}
-                label={({ party, seats }) => `${party} (${seats})`}
-                labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
-                animationDuration={1200}
-                strokeWidth={0}
-              >
-                {pieData.map((entry) => (
-                  <Cell
-                    key={entry.party}
-                    fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others}
-                    style={{ filter: `drop-shadow(0 0 4px ${(PARTY_COLORS[entry.party] || PARTY_COLORS.Others)}40)` }}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={CUSTOM_TOOLTIP} />
-            </PieChart>
-          </ResponsiveContainer>
+        {/* Seat Distribution — modern donut with center text */}
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+          <div className="flex items-center gap-2 mb-5">
+            <Vote className="w-5 h-5 text-purple-400" />
+            <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Contest Coverage' : 'Seat Distribution'}</h2>
+          </div>
+          <div className="relative">
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <defs>
+                  {pieData.map(entry => {
+                    const c = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+                    return (
+                      <linearGradient key={`pg-${entry.party}`} id={`pieGrad-${entry.party}`} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={c} stopOpacity={0.85} />
+                        <stop offset="100%" stopColor={c} stopOpacity={1} />
+                      </linearGradient>
+                    );
+                  })}
+                </defs>
+                <Pie
+                  data={pieData}
+                  dataKey="seats"
+                  nameKey="party"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={65}
+                  outerRadius={110}
+                  paddingAngle={3}
+                  cornerRadius={4}
+                  animationDuration={1400}
+                  animationBegin={200}
+                  stroke="none"
+                >
+                  {pieData.map(entry => (
+                    <Cell
+                      key={entry.party}
+                      fill={`url(#pieGrad-${entry.party})`}
+                      style={{ filter: `drop-shadow(0 0 6px ${(PARTY_COLORS[entry.party] || PARTY_COLORS.Others)}50)` }}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={CUSTOM_TOOLTIP} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center label */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginTop: '-10px' }}>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{summary.totalConstituencies}</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest">Seats</p>
+              </div>
+            </div>
+          </div>
+          {/* Legend grid */}
+          <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 mt-2">
+            {pieData.slice(0, 9).map(entry => {
+              const c = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+              return (
+                <div key={entry.party} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: c, boxShadow: `0 0 4px ${c}60` }} />
+                  <span className="text-[10px] text-slate-400 truncate">{entry.party}</span>
+                  <span className="text-[10px] font-semibold text-slate-300 ml-auto tabular-nums">{entry.seats}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Ad Banner */}
       <AdBanner variant="in-feed" />
 
-      {/* Charts Row 2 */}
+      {/* Charts Row 2 — Education & Age */}
       {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Education */}
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent pointer-events-none" />
-          <SectionHeader title={is2026 ? 'Education of Candidates' : 'Education of Elected MLAs'} />
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={is2026 ? liveEducation : EDUCATION_DATA[year]} margin={{ bottom: 5 }}>
-              <defs>
-                <linearGradient id="eduBarGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
-              <XAxis dataKey="level" tick={{ fontSize: 9, fill: '#94a3b8' }} angle={-35} textAnchor="end" height={60} axisLine={{ stroke: '#475569' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
-              <Bar dataKey="count" fill="url(#eduBarGrad)" radius={[6, 6, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} animationDuration={1200}>
-                {(is2026 ? liveEducation : EDUCATION_DATA[year])?.map((_, i) => (
-                  <Cell key={i} style={{ filter: 'drop-shadow(0 -2px 4px rgba(245,158,11,0.2))' }} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Education — horizontal bars with inline progress */}
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+          <div className="flex items-center gap-2 mb-5">
+            <GraduationCap className="w-5 h-5 text-amber-400" />
+            <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Education of Candidates' : 'Education of MLAs'}</h2>
+          </div>
+          {(() => {
+            const eduData = is2026 ? liveEducation : EDUCATION_DATA[year];
+            const maxCount = eduData ? Math.max(...eduData.map(d => d.count)) : 1;
+            const total = eduData ? eduData.reduce((s, d) => s + d.count, 0) : 1;
+            const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#8b5cf6', '#ec4899'];
+            return (
+              <div className="space-y-3">
+                {eduData?.map((d, i) => {
+                  const pct = (d.count / maxCount) * 100;
+                  const sharePct = ((d.count / total) * 100).toFixed(1);
+                  const color = colors[i % colors.length];
+                  return (
+                    <div key={d.level}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-400">{d.level}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-500">{sharePct}%</span>
+                          <span className="text-xs font-bold tabular-nums" style={{ color }}>{d.count}</span>
+                        </div>
+                      </div>
+                      <div className="relative h-5 bg-slate-800/80 rounded-full overflow-hidden border border-slate-700/30">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.max(pct, 3)}%`,
+                            background: `linear-gradient(90deg, ${color}25, ${color}85)`,
+                            boxShadow: `0 0 10px ${color}20`,
+                          }}
+                        />
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full opacity-40"
+                          style={{
+                            width: `${Math.max(pct, 3)}%`,
+                            background: `linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 50%)`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
-        {/* Age Demographics */}
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-tl from-blue-500/[0.02] to-transparent pointer-events-none" />
-          <SectionHeader title={is2026 ? 'Age Demographics of Candidates' : 'Age Demographics of MLAs'} />
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={is2026 ? liveAge : AGE_DATA[year]}>
-              <defs>
-                <linearGradient id="ageBarGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#2563eb" stopOpacity={0.6} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
-              <XAxis dataKey="group" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
-              <Bar dataKey="count" fill="url(#ageBarGrad)" radius={[6, 6, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} animationDuration={1200}>
-                {(is2026 ? liveAge : AGE_DATA[year])?.map((_, i) => (
-                  <Cell key={i} style={{ filter: 'drop-shadow(0 -2px 4px rgba(59,130,246,0.2))' }} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Age Demographics — modern vertical bars with labels */}
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+          <div className="flex items-center gap-2 mb-5">
+            <Users className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Age of Candidates' : 'Age of MLAs'}</h2>
+          </div>
+          {(() => {
+            const ageData = is2026 ? liveAge : AGE_DATA[year];
+            const maxCount = ageData ? Math.max(...ageData.map(d => d.count)) : 1;
+            return (
+              <div className="flex items-end gap-3 h-[240px] pt-6">
+                {ageData?.map((d, i) => {
+                  const heightPct = (d.count / maxCount) * 100;
+                  const blueShades = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'];
+                  const color = blueShades[i % blueShades.length];
+                  return (
+                    <div key={d.group} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                      <span className="text-xs font-bold tabular-nums" style={{ color }}>{d.count}</span>
+                      <div className="w-full relative rounded-t-lg overflow-hidden" style={{ height: `${Math.max(heightPct, 5)}%` }}>
+                        <div
+                          className="absolute inset-0 rounded-t-lg"
+                          style={{
+                            background: `linear-gradient(180deg, ${color} 0%, ${color}50 100%)`,
+                            boxShadow: `0 -4px 16px ${color}25, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                          }}
+                        />
+                        <div className="absolute inset-0 rounded-t-lg opacity-30" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 40%)' }} />
+                      </div>
+                      <span className="text-[10px] text-slate-500 whitespace-nowrap">{d.group}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </div>
       )}
 
-      {/* Historical Trends Quick Glance — full 1952–2021 */}
-      <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/[0.02] via-transparent to-green-500/[0.02] pointer-events-none" />
-        <div className="flex items-center justify-between mb-4">
-          <SectionHeader title="Vote Share Trend (1952–2021)" subtitle="74 years of electoral history" />
-          <Link to="/trends" className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg transition-all hover:bg-amber-500/20">
-            <TrendingUp className="w-3 h-3" /> Full Trends <ArrowRight className="w-3 h-3" />
+      {/* Historical Trends — modern area chart */}
+      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-rose-400" />
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-tight">Vote Share Trend</h2>
+              <p className="text-[11px] text-slate-500">1952–2021 • 74 years of electoral history</p>
+            </div>
+          </div>
+          <Link to="/trends" className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg transition-all hover:bg-amber-500/15 hover:border-amber-500/30">
+            <TrendingUp className="w-3.5 h-3.5" /> Full Trends <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
-        <ResponsiveContainer width="100%" height={320}>
-          <AreaChart data={HISTORICAL_VOTE_SHARE}>
+        <ResponsiveContainer width="100%" height={340}>
+          <AreaChart data={HISTORICAL_VOTE_SHARE} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
             <defs>
               <linearGradient id="dashGradDMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.35} />
-                <stop offset="95%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
+                <stop offset="0%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.4} />
+                <stop offset="50%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.08} />
+                <stop offset="100%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="dashGradAIADMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.35} />
-                <stop offset="95%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
+                <stop offset="0%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.4} />
+                <stop offset="50%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.08} />
+                <stop offset="100%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="dashGradINC" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.INC} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
+                <stop offset="0%" stopColor={PARTY_COLORS.INC} stopOpacity={0.25} />
+                <stop offset="50%" stopColor={PARTY_COLORS.INC} stopOpacity={0.05} />
+                <stop offset="100%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
               </linearGradient>
-              <filter id="glowDMK"><feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={PARTY_COLORS.DMK} floodOpacity="0.5" /></filter>
-              <filter id="glowAIADMK"><feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={PARTY_COLORS.AIADMK} floodOpacity="0.5" /></filter>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
-            <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
-            <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" strokeOpacity={0.8} />
+            <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={{ stroke: '#334155' }} tickLine={false} />
+            <YAxis unit="%" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
             <Tooltip content={CUSTOM_TOOLTIP} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 5, strokeWidth: 2 }} />
-            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6, strokeWidth: 2, filter: 'url(#glowDMK)' }} />
-            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6, strokeWidth: 2, filter: 'url(#glowAIADMK)' }} />
-            <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={1.5} name="BJP" dot={{ r: 2 }} strokeDasharray="5 3" />
+            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" />
+            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={false} activeDot={{ r: 5, strokeWidth: 2, fill: '#1e293b' }} />
+            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
+            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
+            <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={1.5} name="BJP" dot={false} activeDot={{ r: 4, strokeWidth: 2, fill: '#1e293b' }} strokeDasharray="6 3" />
           </AreaChart>
         </ResponsiveContainer>
-        <p className="text-[10px] text-slate-500 text-center mt-2">Congress dominant 1952–1962 → DMK wins 1967 → AIADMK emerges 1977 → Two-party Dravidian era begins</p>
+        <div className="flex items-center justify-center gap-6 mt-2">
+          <span className="text-[10px] text-slate-600">Congress era 1952–62</span>
+          <span className="text-[10px] text-slate-600">→</span>
+          <span className="text-[10px] text-slate-600">DMK rises 1967</span>
+          <span className="text-[10px] text-slate-600">→</span>
+          <span className="text-[10px] text-slate-600">AIADMK emerges 1977</span>
+          <span className="text-[10px] text-slate-600">→</span>
+          <span className="text-[10px] text-slate-600">Dravidian duopoly</span>
+        </div>
       </div>
 
-      {/* Alliance Results */}
-      <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent pointer-events-none" />
-        <SectionHeader title={is2026 ? `Alliance Seat-Sharing Snapshot – ${year}` : `Alliance Results – ${year}`} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.entries(summary.allianceResults).map(([alliance, data]) => (
-            <div key={alliance} className="bg-gradient-to-br from-slate-900/70 to-slate-800/50 rounded-xl p-5 border border-slate-700/30 hover:border-amber-500/20 transition-all duration-300">
-              <h3 className="text-lg font-semibold text-white mb-2">{alliance}</h3>
-              <p className="text-3xl font-bold text-amber-400 mb-3">{data.seats} <span className="text-base font-normal text-slate-500">seats</span></p>
-              <div className="flex flex-wrap gap-2">
-                {data.parties.map(p => <PartyBadge key={p} party={p} />)}
+      {/* Alliance Results — modern cards */}
+      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+        <div className="flex items-center gap-2 mb-5">
+          <Users className="w-5 h-5 text-amber-400" />
+          <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? `Alliance Seat-Sharing – ${year}` : `Alliance Results – ${year}`}</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {Object.entries(summary.allianceResults).map(([alliance, data], idx) => {
+            const accentColors = ['#e11d48', '#16a34a', '#f59e0b', '#3b82f6'];
+            const accent = accentColors[idx % accentColors.length];
+            return (
+              <div key={alliance} className="relative bg-slate-900/60 rounded-xl p-5 border border-slate-700/20 overflow-hidden group hover:border-slate-600/40 transition-all duration-300">
+                <div className="absolute top-0 left-0 w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${accent}40, transparent)` }} />
+                <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-5" style={{ background: accent, filter: 'blur(30px)' }} />
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{alliance}</p>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-4xl font-bold tabular-nums" style={{ color: accent }}>{data.seats}</span>
+                  <span className="text-sm text-slate-500">seats</span>
+                </div>
+                {/* Seat bar */}
+                <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full"
+                    style={{
+                      width: `${(data.seats / 234) * 100}%`,
+                      background: `linear-gradient(90deg, ${accent}60, ${accent})`,
+                      boxShadow: `0 0 8px ${accent}30`,
+                    }}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.parties.map(p => <PartyBadge key={p} party={p} />)}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {/* Data Source Disclaimer */}
