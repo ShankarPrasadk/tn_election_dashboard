@@ -1,3 +1,5 @@
+import { KEY_CANDIDATES } from './electionData';
+
 /**
  * Compute live election stats from candidate directory entries (Supabase data).
  * Used to dynamically show criminal records, assets, education, and age stats
@@ -85,6 +87,22 @@ export function computeLiveStats(entries) {
     partyMap[p].total++;
     if (c.criminalCases > 0) partyMap[p].withCases++;
   }
+
+  // Supplement with documented criminal records of sitting MLAs/leaders
+  // (from ADR/myneta.info) whose 2026 affidavits may not yet be synced
+  const countedNames = new Set(
+    (useFullBase ? withAffidavitData : candidates)
+      .map(c => (c.name || '').toLowerCase().trim())
+  );
+  for (const kc of KEY_CANDIDATES) {
+    if (kc.criminalCases?.total > 0 && !countedNames.has(kc.name.toLowerCase().trim())) {
+      const p = kc.party || 'IND';
+      if (!partyMap[p]) partyMap[p] = { total: 0, withCases: 0 };
+      partyMap[p].total++;
+      partyMap[p].withCases++;
+    }
+  }
+
   const topParties = Object.entries(partyMap)
     .filter(([, v]) => v.total >= 3)
     .map(([party, v]) => ({
@@ -108,9 +126,10 @@ export function computeLiveStats(entries) {
   };
 
   // --- Top criminals list ---
-  const topCriminals = [...withCases]
+  // Start with directory entries that have criminal case data
+  const liveCriminals = [...withCases]
     .sort((a, b) => b.criminalCases - a.criminalCases)
-    .slice(0, 20)
+    .slice(0, 40)
     .map(c => ({
       id: c.id,
       name: c.name,
@@ -118,6 +137,23 @@ export function computeLiveStats(entries) {
       constituency: c.constituency,
       criminalCases: { total: c.criminalCases, serious: Math.max(0, c.criminalCases - 1) },
     }));
+
+  // Merge documented criminal records of sitting MLAs/leaders (from ADR/myneta.info)
+  // whose ECI affidavits may not yet be synced for 2026
+  const existingNames = new Set(liveCriminals.map(c => (c.name || '').toLowerCase().trim()));
+  for (const kc of KEY_CANDIDATES) {
+    if (kc.criminalCases?.total > 0 && !existingNames.has(kc.name.toLowerCase().trim())) {
+      liveCriminals.push({
+        id: kc.id,
+        name: kc.name,
+        party: kc.party,
+        constituency: kc.constituency,
+        criminalCases: kc.criminalCases,
+      });
+    }
+  }
+  liveCriminals.sort((a, b) => b.criminalCases.total - a.criminalCases.total);
+  const topCriminals = liveCriminals.slice(0, 20);
 
   // --- Asset stats ---
   const withAssets = candidates.filter(e => e.assetsCrores != null && e.assetsCrores > 0);
