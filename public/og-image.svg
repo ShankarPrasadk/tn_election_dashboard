@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Accent bar top -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+  
+  <!-- Left decorative element -->
+  <circle cx="100" cy="315" r="250" fill="#f59e0b" opacity="0.03"/>
+  <circle cx="1100" cy="200" r="300" fill="#f59e0b" opacity="0.02"/>
+  
+  <!-- Ballot box emoji area -->
+  <text x="100" y="200" font-size="80" fill="#f59e0b" opacity="0.8">🗳️</text>
+  
+  <!-- Title -->
+  <text x="100" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="800" fill="#f8fafc">
+    <tspan fill="#f59e0b">TN</tspan> Election Dashboard
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="100" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#94a3b8">
+    Tamil Nadu Elections 1952–2026
+  </text>
+  
+  <!-- Key features -->
+  <text x="100" y="430" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#64748b">
+    📊 1,200+ Candidates · 🔍 Criminal Records · 💰 Assets · 📈 70 Years of Trends
+  </text>
+  
+  <!-- Stats boxes -->
+  <rect x="100" y="470" width="200" height="80" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="200" y="505" font-family="system-ui, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">Candidates</text>
+  <text x="200" y="535" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#f59e0b" text-anchor="middle">9,400+</text>
+  
+  <rect x="320" y="470" width="200" height="80" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="420" y="505" font-family="system-ui, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">Constituencies</text>
+  <text x="420" y="535" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#f59e0b" text-anchor="middle">234</text>
+  
+  <rect x="540" y="470" width="200" height="80" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="640" y="505" font-family="system-ui, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">Elections Covered</text>
+  <text x="640" y="535" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#f59e0b" text-anchor="middle">1952–2026</text>
+  
+  <!-- URL -->
+  <text x="100" y="600" font-family="system-ui, sans-serif" font-size="16" fill="#475569">
+    tn-election-dashboard.vercel.app
+  </text>
+  
+  <!-- Source badge -->
+  <text x="1100" y="600" font-family="system-ui, sans-serif" font-size="14" fill="#475569" text-anchor="end">
+    Data: ECI · TNSEC · ADR
+  </text>
+</svg>
