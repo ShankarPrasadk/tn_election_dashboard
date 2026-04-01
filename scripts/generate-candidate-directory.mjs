@@ -545,6 +545,30 @@ async function loadProfileCache() {
   return profileCachePromise;
 }
 
+// Build a name-based index from the profile cache for fallback lookups
+// when profile URLs change (e.g. after listing refresh)
+let profileByNameIndex = null;
+async function getProfileByName(name, constituency) {
+  if (!profileByNameIndex) {
+    const cache = await loadProfileCache();
+    profileByNameIndex = new Map();
+    for (const [, detail] of Object.entries(cache)) {
+      const labelName = detail?.labels?.Name;
+      if (labelName) {
+        const key = normalizeName(labelName);
+        // Store by name; if multiple entries, prefer ones with affidavit data
+        const existing = profileByNameIndex.get(key);
+        if (!existing || (detail.affidavit?.criminalCases != null && existing.affidavit?.criminalCases == null)) {
+          profileByNameIndex.set(key, detail);
+        }
+      }
+    }
+    console.log(`Built profile name index: ${profileByNameIndex.size} unique names`);
+  }
+
+  return profileByNameIndex.get(normalizeName(name)) || null;
+}
+
 async function fetch2026ListingCards() {
   if (!process.env.REFRESH_ECI_2026) {
     const cached = await readJsonIfExists(listingCachePath, null);
@@ -579,6 +603,14 @@ async function fetch2026ProfileDetail(card) {
   const cache = await loadProfileCache();
   if (!process.env.REFRESH_ECI_2026 && cache[card.profileUrl]) {
     return cache[card.profileUrl];
+  }
+
+  // Fallback: try name-based lookup when URL doesn't match (URLs change after listing refresh)
+  if (!process.env.REFRESH_ECI_2026) {
+    const byName = await getProfileByName(card.name, card.constituency);
+    if (byName?.affidavit?.criminalCases != null) {
+      return byName;
+    }
   }
 
   try {
@@ -936,8 +968,14 @@ async function build2026Entries() {
       ([, aliases]) => aliases.some((alias) => normalizePartyKey(alias) === normalizePartyKey(card.party))
     )?.[0] || card.party;
 
-    // Use cached profile if available, otherwise skip slow fetch
-    const cachedDetail = profileCache[card.profileUrl];
+    // Use cached profile if available, otherwise try name-based fallback
+    let cachedDetail = profileCache[card.profileUrl];
+    if (!cachedDetail?.affidavit?.criminalCases) {
+      const byName = await getProfileByName(card.name, card.constituency);
+      if (byName?.affidavit?.criminalCases != null) {
+        cachedDetail = byName;
+      }
+    }
     const labels = cachedDetail?.labels || {};
     const affidavit = cachedDetail?.affidavit || {};
 
