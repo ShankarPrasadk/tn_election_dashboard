@@ -3,26 +3,36 @@ import PartySymbolIcon from './PartySymbolIcon';
 
 export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'amber' }) {
   const colorMap = {
-    amber: 'from-amber-500/10 to-amber-600/5 border-amber-500/20 text-amber-400',
-    red: 'from-red-500/10 to-red-600/5 border-red-500/20 text-red-400',
-    green: 'from-green-500/10 to-green-600/5 border-green-500/20 text-green-400',
-    blue: 'from-blue-500/10 to-blue-600/5 border-blue-500/20 text-blue-400',
-    purple: 'from-purple-500/10 to-purple-600/5 border-purple-500/20 text-purple-400',
+    amber: 'from-amber-500/10 via-amber-600/5 to-amber-700/[0.02] border-amber-500/20 text-amber-400',
+    red: 'from-red-500/10 via-red-600/5 to-red-700/[0.02] border-red-500/20 text-red-400',
+    green: 'from-green-500/10 via-green-600/5 to-green-700/[0.02] border-green-500/20 text-green-400',
+    blue: 'from-blue-500/10 via-blue-600/5 to-blue-700/[0.02] border-blue-500/20 text-blue-400',
+    purple: 'from-purple-500/10 via-purple-600/5 to-purple-700/[0.02] border-purple-500/20 text-purple-400',
+  };
+  const glowMap = {
+    amber: 'shadow-amber-500/5',
+    red: 'shadow-red-500/5',
+    green: 'shadow-green-500/5',
+    blue: 'shadow-blue-500/5',
+    purple: 'shadow-purple-500/5',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorMap[color]} border rounded-xl p-5`}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</span>
-        {Icon && <Icon size={18} className="text-slate-500" />}
+    <div className={`relative bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-5 backdrop-blur-sm shadow-lg ${glowMap[color]} overflow-hidden transition-all duration-300 hover:scale-[1.01]`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</span>
+          {Icon && <Icon size={18} className="text-slate-500" />}
+        </div>
+        <p className="text-2xl font-bold text-white">{value}</p>
+        {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
+        {trend !== undefined && (
+          <p className={`text-xs mt-2 ${trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from previous
+          </p>
+        )}
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
-      {trend !== undefined && (
-        <p className={`text-xs mt-2 ${trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from previous
-        </p>
-      )}
     </div>
   );
 }
@@ -66,7 +76,7 @@ export function SectionHeader({ title, subtitle, action }) {
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
         {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
       </div>
       {action}

@@ -61,12 +61,14 @@ function CountdownTimer() {
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl">
-      <p className="text-sm font-medium text-white mb-1">{label}</p>
+    <div className="backdrop-blur-xl bg-slate-900/90 border border-slate-600/50 rounded-xl p-4 shadow-2xl shadow-black/50">
+      <p className="text-sm font-semibold text-white mb-2 border-b border-slate-700/50 pb-1.5">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} className="text-xs" style={{ color: p.color }}>
-          {p.name}: {p.value}
-        </p>
+        <div key={i} className="flex items-center gap-2 py-0.5">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color, boxShadow: `0 0 6px ${p.color}60` }} />
+          <span className="text-xs text-slate-400">{p.name}:</span>
+          <span className="text-xs font-medium text-white">{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</span>
+        </div>
       ))}
     </div>
   );
@@ -88,6 +90,13 @@ export default function DashboardPage() {
   const assets = is2026 ? liveStats?.assets : ASSET_STATS[year];
   const liveEducation = is2026 ? liveStats?.education : null;
   const liveAge = is2026 ? liveStats?.age : null;
+
+  // Compute trend vs previous election for criminal records
+  const prevYearMap = { 2011: 2006, 2016: 2011, 2021: 2016 };
+  const prevCriminal = prevYearMap[year] ? CRIMINAL_STATS[prevYearMap[year]] : null;
+  const criminalTrend = (!is2026 && criminal && prevCriminal)
+    ? parseFloat(((criminal.percentWinnersWithCases || criminal.percentWithCases) - (prevCriminal.percentWinnersWithCases || prevCriminal.percentWithCases)).toFixed(1))
+    : undefined;
 
   const partyData = Object.entries(summary.results)
     .map(([party, data]) => ({ party, seats: data.seats, voteShare: data.voteShare }))
@@ -161,11 +170,22 @@ export default function DashboardPage() {
           color="amber"
         />
         <StatCard
-          title="Criminal Records"
-          value={criminal ? (criminal.isPartial ? `${criminal.withCriminalCases} declared` : `${criminal.percentWithCases}%`) : 'Loading…'}
-          subtitle={criminal ? (criminal.isPartial ? `${criminal.affidavitsSynced} of ${criminal.totalCandidatesAnalyzed} affidavits synced` : `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates`) : 'Fetching affidavit data…'}
+          title={is2026 ? 'Criminal Records' : 'Winners with Cases'}
+          value={criminal
+            ? (is2026
+              ? (criminal.isPartial ? `${criminal.withCriminalCases} declared` : `${criminal.percentWithCases}%`)
+              : `${criminal.percentWinnersWithCases || criminal.percentWithCases}%`)
+            : 'Loading…'}
+          subtitle={criminal
+            ? (is2026
+              ? (criminal.isPartial
+                ? `${criminal.affidavitsSynced} of ${criminal.totalCandidatesAnalyzed} affidavits synced`
+                : `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates`)
+              : `${criminal.winnersWithCases || criminal.withCriminalCases} of ${criminal.winnersAnalyzed || criminal.totalCandidatesAnalyzed} elected MLAs`)
+            : 'Fetching affidavit data…'}
           icon={AlertTriangle}
           color="red"
+          trend={criminalTrend}
         />
         <StatCard
           title={is2026 ? 'Avg Assets' : 'Avg Assets (Winners)'}
@@ -185,7 +205,8 @@ export default function DashboardPage() {
 
       {/* Pre-Poll Surveys (2026 only) */}
       {is2026 && (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.03] to-transparent pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-lg font-semibold text-white">Pre-Poll Surveys</h2>
@@ -261,17 +282,26 @@ export default function DashboardPage() {
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Party Seats */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] to-transparent pointer-events-none" />
           <SectionHeader title={is2026 ? 'Constituencies Announced By Party' : 'Seats Won by Party'} />
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={partyData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="party" width={70} tick={{ fontSize: 11 }} />
-              <Tooltip content={CUSTOM_TOOLTIP} />
-              <Bar dataKey="seats" radius={[0, 4, 4, 0]}>
+            <BarChart data={partyData} layout="vertical" margin={{ left: 10 }}>
+              <defs>
+                {partyData.map(entry => (
+                  <linearGradient key={`grad-${entry.party}`} id={`barGrad-${entry.party}`} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} stopOpacity={0.7} />
+                    <stop offset="100%" stopColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} stopOpacity={1} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
+              <YAxis type="category" dataKey="party" width={70} tick={{ fontSize: 11, fill: '#e2e8f0' }} axisLine={false} tickLine={false} />
+              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
+              <Bar dataKey="seats" radius={[0, 6, 6, 0]} animationDuration={1200}>
                 {partyData.map((entry) => (
-                  <Cell key={entry.party} fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} />
+                  <Cell key={entry.party} fill={`url(#barGrad-${entry.party})`} />
                 ))}
               </Bar>
             </BarChart>
@@ -279,25 +309,41 @@ export default function DashboardPage() {
         </div>
 
         {/* Seat Distribution Pie */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-tl from-purple-500/[0.03] to-transparent pointer-events-none" />
           <SectionHeader title={is2026 ? 'Contest Coverage Snapshot' : 'Seat Distribution'} />
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
+              <defs>
+                {pieData.map(entry => (
+                  <filter key={`glow-${entry.party}`} id={`pieGlow-${entry.party}`}>
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} floodOpacity="0.4" />
+                  </filter>
+                ))}
+              </defs>
               <Pie
                 data={pieData}
                 dataKey="seats"
                 nameKey="party"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
+                innerRadius={45}
+                outerRadius={105}
+                paddingAngle={2}
                 label={({ party, seats }) => `${party} (${seats})`}
-                labelLine={true}
+                labelLine={{ stroke: '#64748b', strokeWidth: 1 }}
+                animationDuration={1200}
+                strokeWidth={0}
               >
                 {pieData.map((entry) => (
-                  <Cell key={entry.party} fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} />
+                  <Cell
+                    key={entry.party}
+                    fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others}
+                    style={{ filter: `drop-shadow(0 0 4px ${(PARTY_COLORS[entry.party] || PARTY_COLORS.Others)}40)` }}
+                  />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip content={CUSTOM_TOOLTIP} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -310,29 +356,51 @@ export default function DashboardPage() {
       {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Education */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent pointer-events-none" />
           <SectionHeader title={is2026 ? 'Education of Candidates' : 'Education of Elected MLAs'} />
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={is2026 ? liveEducation : EDUCATION_DATA[year]}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="level" tick={{ fontSize: 9 }} angle={-35} textAnchor="end" height={60} />
-              <YAxis />
-              <Tooltip content={CUSTOM_TOOLTIP} />
-              <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} />
+            <BarChart data={is2026 ? liveEducation : EDUCATION_DATA[year]} margin={{ bottom: 5 }}>
+              <defs>
+                <linearGradient id="eduBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
+              <XAxis dataKey="level" tick={{ fontSize: 9, fill: '#94a3b8' }} angle={-35} textAnchor="end" height={60} axisLine={{ stroke: '#475569' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
+              <Bar dataKey="count" fill="url(#eduBarGrad)" radius={[6, 6, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} animationDuration={1200}>
+                {(is2026 ? liveEducation : EDUCATION_DATA[year])?.map((_, i) => (
+                  <Cell key={i} style={{ filter: 'drop-shadow(0 -2px 4px rgba(245,158,11,0.2))' }} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Age Demographics */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-tl from-blue-500/[0.02] to-transparent pointer-events-none" />
           <SectionHeader title={is2026 ? 'Age Demographics of Candidates' : 'Age Demographics of MLAs'} />
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={is2026 ? liveAge : AGE_DATA[year]}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="group" />
-              <YAxis />
-              <Tooltip content={CUSTOM_TOOLTIP} />
-              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} />
+              <defs>
+                <linearGradient id="ageBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
+              <XAxis dataKey="group" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <Tooltip content={CUSTOM_TOOLTIP} cursor={{ fill: 'rgba(148,163,184,0.06)' }} />
+              <Bar dataKey="count" fill="url(#ageBarGrad)" radius={[6, 6, 0, 0]} name={is2026 ? 'Candidates' : 'MLAs'} animationDuration={1200}>
+                {(is2026 ? liveAge : AGE_DATA[year])?.map((_, i) => (
+                  <Cell key={i} style={{ filter: 'drop-shadow(0 -2px 4px rgba(59,130,246,0.2))' }} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -340,37 +408,40 @@ export default function DashboardPage() {
       )}
 
       {/* Historical Trends Quick Glance — full 1952–2021 */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/[0.02] via-transparent to-green-500/[0.02] pointer-events-none" />
         <div className="flex items-center justify-between mb-4">
           <SectionHeader title="Vote Share Trend (1952–2021)" subtitle="74 years of electoral history" />
-          <Link to="/trends" className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <Link to="/trends" className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg transition-all hover:bg-amber-500/20">
             <TrendingUp className="w-3 h-3" /> Full Trends <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={HISTORICAL_VOTE_SHARE}>
             <defs>
               <linearGradient id="dashGradDMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.3} />
+                <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.35} />
                 <stop offset="95%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="dashGradAIADMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.3} />
+                <stop offset="5%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.35} />
                 <stop offset="95%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="dashGradINC" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PARTY_COLORS.INC} stopOpacity={0.3} />
+                <stop offset="5%" stopColor={PARTY_COLORS.INC} stopOpacity={0.25} />
                 <stop offset="95%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
               </linearGradient>
+              <filter id="glowDMK"><feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={PARTY_COLORS.DMK} floodOpacity="0.5" /></filter>
+              <filter id="glowAIADMK"><feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={PARTY_COLORS.AIADMK} floodOpacity="0.5" /></filter>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-            <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
+            <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#475569' }} />
+            <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <Tooltip content={CUSTOM_TOOLTIP} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={{ r: 3 }} />
-            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 3 }} />
-            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 3 }} />
+            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 5, strokeWidth: 2 }} />
+            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6, strokeWidth: 2, filter: 'url(#glowDMK)' }} />
+            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6, strokeWidth: 2, filter: 'url(#glowAIADMK)' }} />
             <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={1.5} name="BJP" dot={{ r: 2 }} strokeDasharray="5 3" />
           </AreaChart>
         </ResponsiveContainer>
@@ -378,13 +449,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Alliance Results */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent pointer-events-none" />
         <SectionHeader title={is2026 ? `Alliance Seat-Sharing Snapshot – ${year}` : `Alliance Results – ${year}`} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(summary.allianceResults).map(([alliance, data]) => (
-            <div key={alliance} className="bg-slate-900/50 rounded-lg p-5 border border-slate-700/30">
+            <div key={alliance} className="bg-gradient-to-br from-slate-900/70 to-slate-800/50 rounded-xl p-5 border border-slate-700/30 hover:border-amber-500/20 transition-all duration-300">
               <h3 className="text-lg font-semibold text-white mb-2">{alliance}</h3>
-              <p className="text-3xl font-bold text-amber-400 mb-3">{data.seats} seats</p>
+              <p className="text-3xl font-bold text-amber-400 mb-3">{data.seats} <span className="text-base font-normal text-slate-500">seats</span></p>
               <div className="flex flex-wrap gap-2">
                 {data.parties.map(p => <PartyBadge key={p} party={p} />)}
               </div>
