@@ -23,13 +23,13 @@ const cacheDir = path.resolve(__dirname, '../.cache/eci-2026');
 const listingCachePath = path.join(cacheDir, 'listing.json');
 const profileCachePath = path.join(cacheDir, 'profiles.json');
 const affidavitCacheDir = path.join(cacheDir, 'affidavits');
-const tempDoclingDir = path.join(os.tmpdir(), 'tn-election-dashboard-docling');
+const tempOcrDir = path.join(os.tmpdir(), 'tn-election-dashboard-ocr');
 const execFileAsync = promisify(execFile);
 
 const ECI_BASE_URL = 'https://affidavit.eci.gov.in';
 const ECI_LISTING_URL = `${ECI_BASE_URL}/candidate-affidavit`;
 const ECI_STATE_NAME = 'Tamil Nadu';
-const DOCILING_TIMEOUT_MS = 180000;
+const OCR_TIMEOUT_MS = 120000;
 const PARTY_ALIASES = {
   AIADMK: ['aiadmk', 'all india anna dravida munnetra kazhagam'],
   AMMK: ['ammk', 'amma makkal munnetra kazagam'],
@@ -68,7 +68,7 @@ async function sleep(milliseconds) {
 async function ensureCacheDirectories() {
   await fs.mkdir(cacheDir, { recursive: true });
   await fs.mkdir(affidavitCacheDir, { recursive: true });
-  await fs.mkdir(tempDoclingDir, { recursive: true });
+  await fs.mkdir(tempOcrDir, { recursive: true });
 }
 
 async function readJsonIfExists(filePath, fallbackValue) {
@@ -238,137 +238,257 @@ function extractEciCards(html, listingUrl) {
   return cards;
 }
 
-function extractCurrencyAfterLabel(text, labelPatterns) {
-  for (const pattern of labelPatterns) {
-    const match = text.match(pattern);
-    if (match?.[1]) {
-      const value = normalizeText(match[1])
-        .replace(/^[:\-–]+\s*/, '')
-        .replace(/^[|]+\s*/, '')
-        .replace(/\s*[|].*$/, '');
+// ──── Tesseract OCR + bilingual (English/Tamil) affidavit extraction ────
 
-      const digits = value.replace(/[^\d]/g, '');
-      if ((/\b(?:rs|inr)\b/i.test(value) || digits.length >= 5) && !/^\d+\.?\s/i.test(value)) {
-        return value;
+/**
+ * Extract all Indian currency amounts from a text fragment.
+ * Matches patterns like: 37,38,00,000/-, 80000000, 10,000/-, etc.
+ */
+function extractAllAmountsFromText(text) {
+  const amounts = [];
+  for (const m of text.matchAll(/([\d,]+(?:\/[\-–])?)/g)) {
+    const digits = m[1].replace(/[,\/\-–]/g, '');
+    if (digits.length >= 5) {
+      const val = parseInt(digits, 10);
+      if (val > 0) amounts.push(val);
+    }
+  }
+  return amounts;
+}
+
+function sumAmounts(values) {
+  return values.reduce((total, v) => total + v, 0);
+}
+
+/**
+ * Main extraction: parses Tesseract OCR text from a Form 26 ECI affidavit.
+ * Works for both English and Tamil affidavits by targeting Part B summary
+ * section and using bilingual keyword patterns.
+ */
+function extractAffidavitSummary(ocrText) {
+  // Preserve newlines — do NOT use normalizeText() which collapses them
+  const normalized = String(ocrText || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/₹/g, 'Rs. ')
+    .replace(/\t/g, ' ');
+
+  // Locate Part B (summary abstract) — present in both English and Tamil
+  const partBIdx = normalized.search(
+    /PART[\s-]*B|ABSTRACT\s*OF\s*THE\s*DETAILS|ப\s*-?\s*B|பகுதி[^\n]{0,20}இல்|சுருக்கம்/i
+  );
+  const partB = partBIdx >= 0 ? normalized.substring(partBIdx) : '';
+
+  // ── Criminal cases ──
+  let criminalCases = null;
+  if (partB) {
+    // English: "5 Total number of pending criminal 14"
+    const enMatch = partB.match(/total\s*number\s*of\s*pending\s*criminal[^0-9]{0,30}(\d{1,3})/i)
+      || partB.match(/pending\s*criminal[^0-9]{0,20}(\d{1,3})/i);
+    if (enMatch) {
+      criminalCases = parseInt(enMatch[1], 10);
+    }
+    // Tamil: "குற்றவியல்‌ ... ஏதுமில்லை" (nil) or number
+    if (criminalCases == null) {
+      const tamCrim = partB.match(/குற்றவியல்[\s\S]{0,120}?(ஏதுமில்லை|ஈதுமில்லை|இல்லை|\d{1,3})/);
+      if (tamCrim) {
+        criminalCases = /மில்லை|இல்லை/.test(tamCrim[1]) ? 0 : parseInt(tamCrim[1], 10);
       }
     }
   }
+  // Fallback to Part A patterns
+  if (criminalCases == null) {
+    if (/there\s*is\s*no.*?(?:pending\s*)?criminal\s*case/i.test(normalized) &&
+        !/following\s*criminal\s*cases\s*are\s*pending/i.test(normalized)) {
+      criminalCases = 0;
+    } else if (/யாதொரு\s*குற்றவியல்[\s\S]{0,60}(ஏதுமில்லை|ஈதுமில்லை|இல்லை)/.test(normalized) &&
+               !/நிலுவையிலுள்ள\s*குற்றவியல்[\s\S]{0,40}வழக்குகள்[\s\S]{0,100}\d/.test(normalized)) {
+      criminalCases = 0;
+    }
+  }
+  // Sanity cap: reject unreasonable values from OCR noise
+  if (criminalCases != null && criminalCases > 50) criminalCases = null;
 
-  return null;
-}
+  // ── Assets (movable + immovable for all family members) ──
+  let totalAssets = null;
+  const src = partB || normalized;
 
-function extractTextAfterLabel(text, labelPatterns) {
-  for (const pattern of labelPatterns) {
-    const match = text.match(pattern);
-    if (match?.[1]) {
-      const value = normalizeText(match[1]).replace(/\s*[|].*$/, '');
-      if (value) {
-        return value;
-      }
+  // English: "Movable Assets ... Total Value ) <amounts>"
+  // Tamil: "அசையும் சொத்து <amounts>" (amounts come right after header or after மொத்த மதிப்பு)
+  let movable = 0;
+  const movableEn = src.match(
+    /Movable\s*Assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|B\.\s*|Immovable|ATTESTED)/i
+  );
+  if (movableEn) {
+    movable = sumAmounts(extractAllAmountsFromText(movableEn[1]));
+  }
+  if (!movable) {
+    // Tamil: grab amounts between "அசையும் ... சொத்து" and "அசையாச்" (immovable)
+    const movableTam = src.match(
+      /அசையும்[\s\S]{0,10}சொத்து([\s\S]{0,400}?)(?=அசையாச்|B\.\s*|Immovable)/i
+    );
+    if (movableTam) {
+      movable = sumAmounts(extractAllAmountsFromText(movableTam[1]));
     }
   }
 
-  return null;
-}
+  // Immovable self-acquired
+  let saAmount = 0;
+  const saEn = src.match(
+    /Self[\-\s]*acquired\s*assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|Inherited|பூர்வீக|Liabilit|கடன்)/i
+  );
+  if (saEn) {
+    saAmount = sumAmounts(extractAllAmountsFromText(saEn[1]));
+  }
+  if (!saAmount) {
+    const saTam = src.match(
+      /(?:சுயமாக|தாமாக)[\s\S]{0,60}(?:சொத்து|மதிப்பு|வாங்கிய)([\s\S]{0,300}?)(?=பூர்வீக|பரம்பரை|Inherited|கடன்\s*பொ|Liabilit)/i
+    );
+    if (saTam) saAmount = sumAmounts(extractAllAmountsFromText(saTam[1]));
+  }
 
-function extractAffidavitSummary(markdown) {
-  const normalized = normalizeText(String(markdown || '')
-    .replace(/\r/g, '\n')
-    .replace(/\n+/g, '\n')
-    .replace(/₹/g, 'Rs. '));
+  // Immovable inherited
+  let inhAmount = 0;
+  const inhEn = src.match(
+    /Inherited\s*assets[\s\S]{0,60}Total\s*Value\s*\)?\s*([\s\S]{0,200}?)(?=\n\s*\n|9\.\s*Liabilit|கடன்\s*பொறுப்பு|Highest|உயரளவு)/i
+  );
+  if (inhEn) {
+    inhAmount = sumAmounts(extractAllAmountsFromText(inhEn[1]));
+  }
+  if (!inhAmount) {
+    const inhTam = src.match(
+      /(?:பூர்வீக|பரம்பரை)[\s\S]{0,30}(?:சொத்து|மதிப்பு)([\s\S]{0,500}?)(?=கடன்\s*பொ|Liabilit|Highest|உயரளவு|10\.\s*|பணை|ML\s|\n\s*\n\s*\n)/i
+    );
+    if (inhTam) inhAmount = sumAmounts(extractAllAmountsFromText(inhTam[1]));
+  }
 
-  const criminalCount = extractTextAfterLabel(normalized, [
-    /pending criminal cases[^\d]{0,30}(\d{1,2})/i,
-    /criminal cases[^\d]{0,20}(\d{1,2})/i,
-    /number of pending criminal cases[^\d]{0,30}(\d{1,2})/i,
-  ]);
-  const criminalCases = criminalCount != null ? Number(criminalCount) : null;
+  const immovable = saAmount + inhAmount;
+  if (movable + immovable > 0) {
+    totalAssets = movable + immovable;
+  }
+
+  // ── Liabilities (loans only, excluding disputed amounts) ──
+  let totalLiabilities = null;
+  const liabSection = src.match(
+    /(?:9\.\s*Liabilities|கடன்\s*பொறுப்புகள்)([\s\S]*?)(?=10\.\s*Liabilit|பிரச்சனைக்குரிய|Highest\s*educational|உயரளவு\s*கல்வி)/i
+  );
+  if (liabSection) {
+    totalLiabilities = sumAmounts(extractAllAmountsFromText(liabSection[1])) || null;
+  } else {
+    const loanLine = src.match(/(?:Loan\s*from\s*Bank|வங்கி[\s\S]{0,40}கடன்)[\s\S]{0,120}(?:Total\s*\)?\s*)?([\s\S]{0,200}?)(?=\n\s*\n)/i);
+    if (loanLine) totalLiabilities = sumAmounts(extractAllAmountsFromText(loanLine[1])) || null;
+  }
+
+  // ── Education ──
+  let education = null;
+  // Part B English
+  const eduMatch = partB.match(
+    /(?:Highest\s*educational|educational)\s*qualification[:\s-]*([\s\S]{3,400}?)(?=\n\s*\n|\bVERIFICATION\b|\bசரிபார்ப்பு\b)/i
+  ) || normalized.match(
+    /\(10\)\s*My\s*educational\s*qualification[\s\S]{0,30}?:\s*-?\s*([\s\S]{3,400}?)(?=\n\s*\(11\)|\n\s*PART[\s-]*B|\nM\.\w+KUMAR)/i
+  );
+  if (eduMatch) {
+    const block = eduMatch[1].trim();
+    const items = block.match(/\d+\.\s*[^\n]+/g);
+    if (items?.length) {
+      education = items[items.length - 1].replace(/^\d+\.\s*/, '').trim();
+    } else {
+      const firstLine = block.split('\n')[0].trim();
+      if (firstLine.length > 3 && firstLine.length < 200) education = firstLine;
+    }
+  }
+  // Tamil education
+  if (!education) {
+    const tamEdu = normalized.match(/கல்வித்\s*தகுதி[:\s-]*([\s\S]{3,300}?)(?=\n\s*\n|சரிபார்ப்பு)/);
+    if (tamEdu) {
+      const firstLine = tamEdu[1].trim().split('\n')[0].trim();
+      if (firstLine.length > 3) education = firstLine;
+    }
+  }
+
+  // ── Profession ──
+  const selfProfMatch = normalized.match(/\(a\)\s*Self\s*:\s*([^\n(]{2,80})/i);
+  const spouseProfMatch = normalized.match(/\(b\)\s*Spouse\s*:\s*([^\n(]{2,80})/i);
+
+  const assetsText = totalAssets ? `Rs ${totalAssets}` : null;
+  const liabilitiesText = totalLiabilities ? `Rs ${totalLiabilities}` : null;
 
   return {
     criminalCases,
     criminalCasesText: criminalCases != null ? `${criminalCases} declared criminal case${criminalCases === 1 ? '' : 's'}` : null,
-    education: extractTextAfterLabel(normalized, [
-      /educational qualification[^A-Za-z0-9]{0,30}([^\n]{3,120})/i,
-      /highest school\/university education[^A-Za-z0-9]{0,30}([^\n]{3,120})/i,
-      /highest educational qualification[^A-Za-z0-9]{0,30}([^\n]{3,120})/i,
-    ]),
-    assetsText: extractCurrencyAfterLabel(normalized, [
-      /total assets[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-      /total value of movable assets[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-      /movable assets[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-    ]),
-    liabilitiesText: extractCurrencyAfterLabel(normalized, [
-      /total liabilities[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-      /liabilities[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-      /dues[^\dR]{0,30}((?:Rs\.?|INR)?\s?[\d,]+(?:\.\d+)?[^\n]{0,40})/i,
-    ]),
-    selfProfession: extractTextAfterLabel(normalized, [
-      /self profession[^A-Za-z0-9]{0,20}([^\n]{3,120})/i,
-    ]),
-    spouseProfession: extractTextAfterLabel(normalized, [
-      /spouse profession[^A-Za-z0-9]{0,20}([^\n]{3,120})/i,
-    ]),
+    education,
+    assetsText,
+    liabilitiesText,
+    selfProfession: selfProfMatch ? selfProfMatch[1].trim() : null,
+    spouseProfession: spouseProfMatch ? spouseProfMatch[1].trim() : null,
   };
 }
 
-async function resolvePythonBin() {
-  const candidates = [
-    process.env.DOCLING_PYTHON,
-    process.env.PYTHON_BIN,
-    path.resolve(__dirname, '../../.venv/bin/python'),
-    'python3',
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    try {
-      if (candidate.includes(path.sep)) {
-        await fs.access(candidate);
-        return candidate;
-      }
-
-      const { stdout } = await execFileAsync('sh', ['-lc', `command -v ${candidate}`], { timeout: 10000 });
-      if (stdout.trim()) {
-        return candidate;
-      }
-    } catch {
-      // Try the next candidate.
-    }
-  }
-
-  return null;
-}
-
-async function runDoclingOnPdf(pdfPath, cacheKey) {
+/**
+ * Run Tesseract OCR on a PDF file. Converts pages to images with pdftoppm,
+ * then OCRs each image with Tesseract using tam+eng (bilingual).
+ * Caches OCR text output in .cache/eci-2026/affidavits/<cacheKey>.txt
+ */
+async function runTesseractOnPdf(pdfPath, cacheKey) {
   await ensureCacheDirectories();
 
-  const markdownPath = path.join(affidavitCacheDir, `${cacheKey}.md`);
+  const ocrCachePath = path.join(affidavitCacheDir, `${cacheKey}.txt`);
   try {
-    return await fs.readFile(markdownPath, 'utf8');
+    return await fs.readFile(ocrCachePath, 'utf8');
   } catch (error) {
     if (error.code !== 'ENOENT') {
       throw error;
     }
   }
 
-  const pythonBin = await resolvePythonBin();
-  if (!pythonBin) {
-    return null;
+  const workDir = path.join(tempOcrDir, cacheKey);
+  await fs.mkdir(workDir, { recursive: true });
+
+  try {
+    // Get page count and only OCR last 8 pages (Part B is at the end)
+    let firstPage = 1;
+    try {
+      const { stdout: info } = await execFileAsync('pdfinfo', [pdfPath], { timeout: 10000 });
+      const pagesMatch = info.match(/Pages:\s*(\d+)/);
+      if (pagesMatch) {
+        const total = parseInt(pagesMatch[1], 10);
+        if (total > 8) firstPage = total - 7;
+      }
+    } catch { /* pdfinfo might not be available, process all pages */ }
+
+    const imgPrefix = path.join(workDir, 'page');
+    const pdftoppmArgs = ['-r', '200', '-png'];
+    if (firstPage > 1) pdftoppmArgs.push('-f', String(firstPage));
+    pdftoppmArgs.push(pdfPath, imgPrefix);
+
+    await execFileAsync('pdftoppm', pdftoppmArgs, {
+      timeout: OCR_TIMEOUT_MS,
+    }).catch(() => {});
+
+    const files = await fs.readdir(workDir);
+    const imgFiles = files.filter((f) => f.endsWith('.png')).sort();
+
+    if (imgFiles.length === 0) {
+      return null;
+    }
+
+    let fullText = '';
+    for (const img of imgFiles) {
+      const imgPath = path.join(workDir, img);
+      try {
+        const { stdout } = await execFileAsync('tesseract', [imgPath, '-', '--oem', '3', '-l', 'tam+eng'], {
+          timeout: 60000,
+          maxBuffer: 10 * 1024 * 1024,
+        });
+        fullText += `${stdout}\n\n`;
+      } catch { /* skip corrupt page */ }
+    }
+    if (!fullText.trim()) return null;
+
+    await fs.writeFile(ocrCachePath, fullText, 'utf8');
+    return fullText;
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
-
-  const script = [
-    'from docling.document_converter import DocumentConverter',
-    'import pathlib, sys',
-    'result = DocumentConverter().convert(sys.argv[1])',
-    'pathlib.Path(sys.argv[2]).write_text(result.document.export_to_markdown(), encoding="utf-8")',
-  ].join('; ');
-
-  await execFileAsync(
-    pythonBin,
-    ['-c', script, pdfPath, markdownPath],
-    { timeout: DOCILING_TIMEOUT_MS, maxBuffer: 40 * 1024 * 1024 }
-  );
-
-  return fs.readFile(markdownPath, 'utf8');
 }
 
 async function fetchAffidavitSummary(pdfToken, cacheKey) {
@@ -378,8 +498,10 @@ async function fetchAffidavitSummary(pdfToken, cacheKey) {
 
   await ensureCacheDirectories();
 
-  const pdfPath = path.join(tempDoclingDir, `${cacheKey}.pdf`);
-  const pdfUrl = `${ECI_BASE_URL}/affidavit-pdf-download/${pdfToken}`;
+  const pdfPath = path.join(tempOcrDir, `${cacheKey}.pdf`);
+  const pdfUrl = pdfToken.startsWith('http')
+    ? pdfToken
+    : `${ECI_BASE_URL}/affidavit-pdf-download/${pdfToken}`;
   const response = await fetch(pdfUrl, {
     headers: {
       'user-agent': 'Mozilla/5.0 (compatible; TN-Election-Dashboard/1.0)',
@@ -394,10 +516,12 @@ async function fetchAffidavitSummary(pdfToken, cacheKey) {
   await fs.writeFile(pdfPath, Buffer.from(arrayBuffer));
 
   try {
-    const markdown = await runDoclingOnPdf(pdfPath, cacheKey);
-    return markdown ? extractAffidavitSummary(markdown) : null;
+    const ocrText = await runTesseractOnPdf(pdfPath, cacheKey);
+    return ocrText ? extractAffidavitSummary(ocrText) : null;
   } catch {
     return null;
+  } finally {
+    await fs.rm(pdfPath, { force: true }).catch(() => {});
   }
 }
 
@@ -779,7 +903,9 @@ async function build2026Entries() {
           label: 'Election Commission of India affidavit portal',
           url: card.listingUrl,
           detailUrl: card.profileUrl,
-          affidavitPdfUrl: detail.pdfToken ? `${ECI_BASE_URL}/affidavit-pdf-download/${detail.pdfToken}` : null,
+          affidavitPdfUrl: detail.pdfToken
+            ? (detail.pdfToken.startsWith('http') ? detail.pdfToken : `${ECI_BASE_URL}/affidavit-pdf-download/${detail.pdfToken}`)
+            : null,
         },
       };
     } catch (error) {

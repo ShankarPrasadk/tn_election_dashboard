@@ -72,32 +72,40 @@ export function enrichCandidateEntry(entry, profiles) {
 export async function loadCandidateDirectory() {
   if (!directoryPromise) {
     directoryPromise = (async () => {
-      // Load ALL candidates from Supabase (paginate past default 1000-row limit)
-      const PAGE_SIZE = 1000;
-      let allRows = [];
-      let from = 0;
-      let done = false;
+      let entries;
+      try {
+        // Load ALL candidates from Supabase (paginate past default 1000-row limit)
+        const PAGE_SIZE = 1000;
+        let allRows = [];
+        let from = 0;
+        let done = false;
 
-      while (!done) {
-        const { data, error } = await supabase
-          .from('candidates')
-          .select('*')
-          .order('year', { ascending: false })
-          .range(from, from + PAGE_SIZE - 1);
+        while (!done) {
+          const { data, error } = await supabase
+            .from('candidates')
+            .select('*')
+            .order('year', { ascending: false })
+            .range(from, from + PAGE_SIZE - 1);
 
-        if (error) throw new Error(`Failed to load candidates: ${error.message}`);
-        allRows = allRows.concat(data);
-        if (data.length < PAGE_SIZE) done = true;
-        else from += PAGE_SIZE;
+          if (error) throw new Error(`Failed to load candidates: ${error.message}`);
+          allRows = allRows.concat(data);
+          if (data.length < PAGE_SIZE) done = true;
+          else from += PAGE_SIZE;
+        }
+
+        entries = allRows.map(rowToCandidate);
+      } catch {
+        // Fallback: load from static JSON if Supabase is unavailable
+        const resp = await fetch('/data/tn-candidate-directory.json');
+        const json = await resp.json();
+        entries = json.entries || [];
       }
 
       const profiles = await getCuratedProfiles();
-      const entries = allRows.map(rowToCandidate).map((e) => enrichCandidateEntry(e, profiles));
-
       return {
         generated: new Date().toISOString(),
         totalEntries: entries.length,
-        entries,
+        entries: entries.map((e) => enrichCandidateEntry(e, profiles)),
       };
     })();
   }
