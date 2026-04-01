@@ -621,7 +621,8 @@ export default function DashboardPage() {
           <a href="https://myneta.info" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">myneta.info</a>{' '}
           (<a href="https://adrindia.org" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ADR</a>).
           Affidavit source: <a href="https://affidavitarchive.nic.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">affidavitarchive.nic.in</a>.
-          This platform does not independently verify candidate declarations. For authoritative data, refer to ECI/TNSEC publications.
+          This platform does not independently verify, investigate, or allege anything — all data is from candidates' own self-declarations. Not affiliated with any political party or government body.
+          See our <a href="/terms" className="text-amber-500/70 hover:text-amber-400">Terms of Service</a> for full legal disclaimers.
         </p>
       </div>    </div>
   );

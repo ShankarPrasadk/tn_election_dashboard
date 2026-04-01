@@ -64,7 +64,6 @@ Every voter deserves easy access to candidate data. The information is already p
 **Tech stack:** React + Vite, data pipeline uses Playwright + Tesseract OCR to scrape ECI affidavit portal
 
 🔗 https://tn-election-dashboard.vercel.app
-📂 GitHub: https://github.com/ShankarPrasadk/tn_election_dashboard
 
 Feedback welcome!
 ```
@@ -159,7 +158,6 @@ Built with:
 📝 Tesseract OCR for PDF affidavits
 🚀 Deployed on Vercel
 
-GitHub: github.com/ShankarPrasadk/tn_election_dashboard
 
 #TNElection2026 #TamilNadu #OpenSource #DataVisualization
 ```
@@ -244,7 +242,6 @@ Tech: React, Vite, Recharts, Playwright for data scraping, Tesseract OCR for PDF
 The data is entirely from public sources (Election Commission of India, TNSEC, ADR/myneta.info). The platform is free, independent, and non-partisan.
 
 🔗 Live: https://tn-election-dashboard.vercel.app
-📂 GitHub: https://github.com/ShankarPrasadk/tn_election_dashboard
 
 Electoral transparency benefits everyone. Please share with people who vote in Tamil Nadu! 🙏
 
@@ -281,7 +278,7 @@ Some interesting findings from the data:
 - The candidate with the most cases has 29 pending criminal cases
 - Average candidate asset declaration is ₹5+ crores ($600K+)
 
-Source code: https://github.com/ShankarPrasadk/tn_election_dashboard
+
 ```
 
 ---

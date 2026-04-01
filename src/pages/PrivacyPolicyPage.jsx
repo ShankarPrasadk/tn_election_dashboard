@@ -138,9 +138,8 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-xl font-semibold text-white mt-8 mb-3">11. Contact Us</h2>
           <p>
-            If you have any questions about this Privacy Policy, please visit our{' '}
-            <Link to="/about" className="text-amber-400 hover:text-amber-300">About page</Link>{' '}
-            for contact information.
+            If you have any questions about this Privacy Policy, please email{' '}
+            <a href="mailto:tnelectiondashboard@proton.me" className="text-amber-400 hover:text-amber-300">tnelectiondashboard@proton.me</a>.
           </p>
         </section>
       </div>

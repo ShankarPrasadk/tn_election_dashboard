@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Github, Globe, Shield, Database, BarChart3 } from 'lucide-react';
+import { Mail, Globe, Shield, Database, BarChart3 } from 'lucide-react';
 
 export default function AboutPage() {
   return (
@@ -105,20 +105,11 @@ export default function AboutPage() {
           </p>
           <div className="space-y-3">
             <a
-              href="mailto:shankar.prasad.k@outlook.com"
+              href="mailto:tnelectiondashboard@proton.me"
               className="flex items-center gap-3 text-amber-400 hover:text-amber-300 transition-colors"
             >
               <Mail size={16} />
-              shankar.prasad.k@outlook.com
-            </a>
-            <a
-              href="https://github.com/ShankarPrasadk/tn_election_dashboard"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 text-amber-400 hover:text-amber-300 transition-colors"
-            >
-              <Github size={16} />
-              GitHub Repository
+              tnelectiondashboard@proton.me
             </a>
           </div>
         </section>

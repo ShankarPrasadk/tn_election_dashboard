@@ -43,7 +43,7 @@ All data is sourced from **official and publicly available** records:
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/ShankarPrasadk/tn_election_dashboard.git
+git clone <repository-url>
 cd tn_election_dashboard
 npm install
 npm run dev
@@ -65,8 +65,7 @@ This is an **independent, non-partisan** platform. We are **not affiliated** wit
 
 ## 📬 Contact
 
-- **Email:** shankar.prasad.k@outlook.com
-- **GitHub:** [@ShankarPrasadk](https://github.com/ShankarPrasadk)
+- **Email:** tnelectiondashboard@proton.me
 
 ---
 

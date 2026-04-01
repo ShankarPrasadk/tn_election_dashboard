@@ -230,12 +230,16 @@ export default function CriminalPage() {
 
       {/* Disclaimer */}
       <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">
-        <h4 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Criminal Case Data Notice</h4>
+        <h4 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Legal Notice — Criminal Case Data</h4>
         <p className="text-xs text-slate-400 leading-relaxed">
-          The criminal case data is sourced from myneta.info and based on self-declarations made by candidates
-          in their official election affidavits. These refer to <strong className="text-slate-300">pending cases and allegations,
-          not proven convictions</strong>. This information is provided for transparency and should not be interpreted
-          as a determination of guilt. Users are encouraged to independently verify this data.
+          All criminal case data is sourced exclusively from candidates' own self-sworn affidavits filed with
+          the Election Commission of India under Section 33A of the Representation of the People Act, 1951,
+          and as compiled by myneta.info (Association for Democratic Reforms).
+          This platform does not independently investigate, allege, or determine guilt of any candidate.
+          All cases listed are <strong className="text-slate-300">pending allegations, not proven convictions</strong>.
+          Every person is presumed innocent until proven guilty by a court of law.
+          This data is presented in the public interest under the voters' fundamental right to know (PUCL v. Union of India, 2003).
+          For data corrections, contact <a href="mailto:tnelectiondashboard@proton.me" className="text-amber-400 hover:text-amber-300">tnelectiondashboard@proton.me</a>.
         </p>
       </div>
     </div>
