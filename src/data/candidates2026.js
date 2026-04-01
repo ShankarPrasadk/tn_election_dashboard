@@ -318,12 +318,22 @@ export const VOTER_STATS_2026 = {
 // Opinion polls 2026
 export const OPINION_POLLS_2026 = [
   {
-    agency: 'IANS-Matrize',
-    date: '2026-03-15',
-    sampleSize: 17410,
+    agency: 'Lok Poll',
+    date: '2026-04-01',
+    sampleSize: 24000,
     marginOfError: 3,
-    seats: { SPA: '104-114', 'AIADMK+': '114-127', TVK: '6-12', Others: '1-6' },
-    voteShare: { SPA: '37-38%', 'AIADMK+': '39-40%', TVK: '14-15%', Others: '10-12%' },
+    seats: { SPA: '125-135', 'AIADMK+': '82-92', TVK: '10-16', Others: '2-5' },
+    voteShare: { SPA: '39%', 'AIADMK+': '36%', TVK: '16%', Others: '9%' },
+    source: 'Oneindia',
+  },
+  {
+    agency: 'O&R-CVoter Analysis',
+    date: '2026-03-28',
+    sampleSize: 15000,
+    marginOfError: 3,
+    seats: { SPA: '108-118', 'AIADMK+': '100-112', TVK: '12-18', Others: '0-4' },
+    voteShare: { SPA: '32.6%', 'AIADMK+': '39.5%', TVK: '21.9%', Others: '6%' },
+    source: 'Opinions & Ratings',
   },
   {
     agency: 'News18-Vote Vibe',
@@ -340,6 +350,14 @@ export const OPINION_POLLS_2026 = [
     marginOfError: 3,
     seats: { SPA: '180+', 'AIADMK+': '50-60', TVK: '0-10', Others: '0' },
     voteShare: { SPA: '44.9%', 'AIADMK+': '38.5%', TVK: '9.7%', Others: '6.9%' },
+  },
+  {
+    agency: 'IANS-Matrize',
+    date: '2026-03-15',
+    sampleSize: 17410,
+    marginOfError: 3,
+    seats: { SPA: '104-114', 'AIADMK+': '114-127', TVK: '6-12', Others: '1-6' },
+    voteShare: { SPA: '37-38%', 'AIADMK+': '39-40%', TVK: '14-15%', Others: '10-12%' },
   },
 ];
 
