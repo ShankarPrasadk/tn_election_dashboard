@@ -1,5 +1,6 @@
 import { PARTY_COLORS } from '../data/electionData';
 import PartySymbolIcon from './PartySymbolIcon';
+import PartyFlag from './PartyFlag';
 
 export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'amber' }) {
   const colorMap = {
@@ -37,17 +38,37 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'a
   );
 }
 
-export function PartyBadge({ party, size = 'sm' }) {
+export function PartyBadge({ party, size = 'sm', showFlag = true }) {
   const color = PARTY_COLORS[party] || PARTY_COLORS.Others;
   const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm';
   const iconSize = size === 'sm' ? 12 : 16;
+  const flagSize = size === 'sm' ? 10 : 14;
   return (
     <span
       className={`${sizeClass} rounded-full font-semibold inline-flex items-center gap-1`}
       style={{ backgroundColor: `${color}20`, color: color, border: `1px solid ${color}40` }}
     >
+      {showFlag && <PartyFlag party={party} size={flagSize} />}
       <PartySymbolIcon party={party} size={iconSize} color={color} />
       {party}
+    </span>
+  );
+}
+
+/** Larger party identity block — flag + symbol + name for prominent displays */
+export function PartyIdentity({ party, size = 'md' }) {
+  const color = PARTY_COLORS[party] || PARTY_COLORS.Others;
+  const sizes = {
+    sm: { flag: 12, symbol: 14, text: 'text-xs' },
+    md: { flag: 16, symbol: 18, text: 'text-sm' },
+    lg: { flag: 22, symbol: 24, text: 'text-base' },
+  };
+  const s = sizes[size] || sizes.md;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <PartyFlag party={party} size={s.flag} />
+      <PartySymbolIcon party={party} size={s.symbol} color={color} />
+      <span className={`${s.text} font-semibold`} style={{ color }}>{party}</span>
     </span>
   );
 }

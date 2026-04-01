@@ -6,7 +6,9 @@ import {
 } from 'recharts';
 import { Users, AlertTriangle, Banknote, GraduationCap, Vote, TrendingUp, Clock, ArrowRight, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
+import { StatCard, YearSelector, SectionHeader, PartyBadge, PartyIdentity } from '../components/UIComponents';
+import PartyFlag from '../components/PartyFlag';
+import PartySymbolIcon from '../components/PartySymbolIcon';
 import AdBanner from '../components/AdBanner';
 import {
   ELECTION_SUMMARY, PARTY_COLORS, CRIMINAL_STATS, ASSET_STATS,
@@ -148,7 +150,11 @@ export default function DashboardPage() {
                     <img src={c.photo} alt={c.name} className="w-8 h-8 rounded-full object-cover" onError={e => { e.target.style.display = 'none'; }} />
                     <div>
                       <p className="text-sm font-medium text-white whitespace-nowrap">{c.name}</p>
-                      <p className="text-[10px] text-slate-500">{c.party}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <PartyFlag party={c.party} size={8} />
+                        <PartySymbolIcon party={c.party} size={10} color={PARTY_COLORS[c.party]} />
+                        <span className="text-[10px] text-slate-500">{c.party}</span>
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -221,9 +227,9 @@ export default function DashboardPage() {
                 <tr className="text-slate-400 border-b border-slate-700">
                   <th className="text-left p-2">Agency</th>
                   <th className="text-left p-2">Date</th>
-                  <th className="text-center p-2">SPA</th>
-                  <th className="text-center p-2">AIADMK+</th>
-                  <th className="text-center p-2">TVK</th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="DMK" size={8} /><PartySymbolIcon party="DMK" size={10} color={PARTY_COLORS.DMK} />SPA</span></th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="AIADMK" size={8} /><PartySymbolIcon party="AIADMK" size={10} color={PARTY_COLORS.AIADMK} />AIADMK+</span></th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="TVK" size={8} /><PartySymbolIcon party="TVK" size={10} color={PARTY_COLORS.TVK} />TVK</span></th>
                   <th className="text-center p-2">Others</th>
                   <th className="text-center p-2">Sample</th>
                 </tr>
@@ -297,7 +303,11 @@ export default function DashboardPage() {
               return (
                 <div key={entry.party} className="group">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-slate-300 tracking-wide">{entry.party}</span>
+                    <span className="text-xs font-medium text-slate-300 tracking-wide inline-flex items-center gap-1.5">
+                      <PartyFlag party={entry.party} size={10} />
+                      <PartySymbolIcon party={entry.party} size={12} color={color} />
+                      {entry.party}
+                    </span>
                     <span className="text-xs font-bold tabular-nums" style={{ color }}>{entry.seats}</span>
                   </div>
                   <div className="relative h-7 bg-slate-800/80 rounded-lg overflow-hidden border border-slate-700/30">
@@ -386,7 +396,8 @@ export default function DashboardPage() {
               const c = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
               return (
                 <div key={entry.party} className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: c, boxShadow: `0 0 4px ${c}60` }} />
+                  <PartyFlag party={entry.party} size={8} />
+                  <PartySymbolIcon party={entry.party} size={10} color={c} />
                   <span className="text-[10px] text-slate-400 truncate">{entry.party}</span>
                   <span className="text-[10px] font-semibold text-slate-300 ml-auto tabular-nums">{entry.seats}</span>
                 </div>

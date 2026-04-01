@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Search, Vote, Users, ExternalLink, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PartyBadge } from '../components/UIComponents';
+import PartyFlag from '../components/PartyFlag';
+import PartySymbolIcon from '../components/PartySymbolIcon';
 import { PARTY_COLORS } from '../data/electionData';
 import { CANDIDATES_2026, ALLIANCE_2026, VOTER_STATS_2026 } from '../data/candidates2026';
 import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfiles';
@@ -208,7 +210,8 @@ export default function CandidatesPage() {
                 {ALLIANCE_2026.SPA.parties.map((party) => (
                   <div key={party.party} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PARTY_COLORS[party.party] || '#6b7280' }} />
+                      <PartyFlag party={party.party} size={14} />
+                      <PartySymbolIcon party={party.party} size={14} color={PARTY_COLORS[party.party] || '#6b7280'} />
                       <span className="text-slate-300">{party.party}</span>
                     </div>
                     <span className="text-white font-medium">{party.seats} seats</span>
@@ -222,7 +225,8 @@ export default function CandidatesPage() {
                 {ALLIANCE_2026.NDA.parties.map((party) => (
                   <div key={party.party} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PARTY_COLORS[party.party] || '#6b7280' }} />
+                      <PartyFlag party={party.party} size={14} />
+                      <PartySymbolIcon party={party.party} size={14} color={PARTY_COLORS[party.party] || '#6b7280'} />
                       <span className="text-slate-300">{party.party}</span>
                     </div>
                     <span className="text-white font-medium">{party.seats} seats</span>
