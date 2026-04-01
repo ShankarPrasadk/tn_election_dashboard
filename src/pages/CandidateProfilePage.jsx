@@ -23,6 +23,10 @@ import { findDirectoryCandidate, loadCandidateDirectory } from '../data/candidat
 import { PARTY_COLORS } from '../data/electionData';
 import { getBrowserPublicProfile } from '../data/publicProfileEnrichment';
 import PartySymbolIcon from '../components/PartySymbolIcon';
+import ShareBar from '../components/ShareBar';
+import RelatedCandidates from '../components/RelatedCandidates';
+import ExploreCTA from '../components/ExploreCTA';
+import { loadCandidateDirectory as loadDirectory } from '../data/candidateDirectory';
 
 function formatList(values) {
   if (!values?.length) {
@@ -342,8 +346,23 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
           </div>
         </div>
       </div>
+
+      <ShareBar title={`${candidate.name} — ${candidate.party} candidate from ${candidate.constituency} | TN Election Dashboard`} />
+
+      <RelatedCandidatesFetcher current={candidate} />
+
+      <ExploreCTA exclude={['/candidates']} maxItems={4} title="Keep Exploring" />
     </div>
   );
+}
+
+function RelatedCandidatesFetcher({ current }) {
+  const [entries, setEntries] = useState([]);
+  useEffect(() => {
+    loadDirectory().then(d => setEntries(d.entries || []));
+  }, []);
+  if (!entries.length) return null;
+  return <RelatedCandidates current={current} allEntries={entries} />;
 }
 
 function CuratedCandidateProfile({ candidate, enrichment, navigate }) {

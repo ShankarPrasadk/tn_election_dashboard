@@ -9,6 +9,8 @@ import { CRIMINAL_STATS, PARTY_COLORS, KEY_CANDIDATES } from '../data/electionDa
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
 import { computeLiveStats } from '../data/liveStats';
+import ShareBar from '../components/ShareBar';
+import ExploreCTA from '../components/ExploreCTA';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -221,6 +223,10 @@ export default function CriminalPage() {
           ))}
         </div>
       </div>
+
+      <ShareBar title="Criminal Records of TN 2026 Election Candidates | TN Election Dashboard" />
+
+      <ExploreCTA exclude={['/criminal']} maxItems={4} title="Explore More Data" />
 
       {/* Disclaimer */}
       <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">

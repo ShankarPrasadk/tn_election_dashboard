@@ -18,6 +18,9 @@ import { HISTORICAL_VOTE_SHARE, HISTORICAL_SEATS, HISTORICAL_TURNOUT } from '../
 import { CANDIDATES_2026, ELECTION_SCHEDULE_2026, VOTER_STATS_2026, OPINION_POLLS_2026 } from '../data/candidates2026';
 import { CANDIDATE_PROFILES } from '../data/candidateProfiles';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
+import CommunityPoll from '../components/CommunityPoll';
+import ElectionQuiz from '../components/ElectionQuiz';
+import ShareBar from '../components/ShareBar';
 import { computeLiveStats } from '../data/liveStats';
 
 function CountdownTimer() {
@@ -600,6 +603,14 @@ export default function DashboardPage() {
           })}
         </div>
       </div>
+      {/* Engagement Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <CommunityPoll />
+        <ElectionQuiz />
+      </div>
+
+      <ShareBar title="TN Election Dashboard — India's most comprehensive Tamil Nadu election analytics" />
+
       {/* Data Source Disclaimer */}
       <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-4">
         <p className="text-[10px] text-slate-500 leading-relaxed">
