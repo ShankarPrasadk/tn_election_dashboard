@@ -1,3 +1,16 @@
+# ─── Allow Search Engine Crawlers ────────────────────────────────
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://tn-election-dashboard.vercel.app/sitemap.xml
+
 # ─── Block AI/LLM Crawlers & Scrapers ───────────────────────────
 # These bots scrape content for AI training datasets
 

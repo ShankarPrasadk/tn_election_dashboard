@@ -66,6 +66,11 @@ export default function Sidebar() {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
+          <div className="flex justify-center gap-3 mb-2">
+            <NavLink to="/about" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">About</NavLink>
+            <NavLink to="/privacy" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">Privacy</NavLink>
+            <NavLink to="/terms" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">Terms</NavLink>
+          </div>
           <p className="text-xs text-slate-500 text-center">
             Source: <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">TNSEC</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ECI</a> · myneta.info
             <br />

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import NewsTicker from './components/NewsTicker';
+import CookieConsent from './components/CookieConsent';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const CandidatesPage = lazy(() => import('./pages/CandidatesPage'));
@@ -16,6 +17,9 @@ const AskPage = lazy(() => import('./pages/AskPage'));
 const ConstituencyPage = lazy(() => import('./pages/ConstituencyPage'));
 const MapPage = lazy(() => import('./pages/MapPage'));
 const NewsPage = lazy(() => import('./pages/NewsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -52,10 +56,14 @@ export default function App() {
               <Route path="/map" element={<MapPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/ask" element={<AskPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </Suspense>
         </main>
       </div>
+      <CookieConsent />
       <Analytics />
     </BrowserRouter>
   );
