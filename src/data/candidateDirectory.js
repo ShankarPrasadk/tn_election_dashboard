@@ -1,6 +1,5 @@
 import { loadCuratedProfiles, findCandidateProfile } from './candidateProfiles';
 import { generateCandidateAvatarUrl, generateCandidateId, getGenericCandidateBio, normalizeName } from './candidateUtils';
-import { supabase } from '../lib/supabase';
 
 let directoryPromise;
 let cachedProfiles = null;
@@ -26,36 +25,6 @@ function findCuratedMatch(entry, profiles) {
   }) || null;
 }
 
-// Convert Supabase snake_case row to app camelCase
-function rowToCandidate(row) {
-  return {
-    id: row.id,
-    year: row.year,
-    name: row.name,
-    party: row.party,
-    constituency: row.constituency,
-    district: row.district,
-    reserved: row.reserved,
-    status: row.status,
-    criminalCases: row.criminal_cases,
-    criminalCasesText: row.criminal_cases_text,
-    education: row.education,
-    assetsText: row.assets_text,
-    liabilitiesText: row.liabilities_text,
-    assetsCrores: row.assets_crores != null ? Number(row.assets_crores) : null,
-    liabilitiesCrores: row.liabilities_crores != null ? Number(row.liabilities_crores) : null,
-    ageText: row.age_text,
-    voterEnrollment: row.voter_enrollment,
-    selfProfession: row.self_profession,
-    spouseProfession: row.spouse_profession,
-    photo: row.photo,
-    source: row.source,
-    votes: row.votes,
-    voteShare: row.vote_share != null ? Number(row.vote_share) : null,
-    margin: row.margin,
-  };
-}
-
 export function enrichCandidateEntry(entry, profiles) {
   const curatedProfile = findCuratedMatch(entry, profiles);
   return {
@@ -72,38 +41,14 @@ export function enrichCandidateEntry(entry, profiles) {
 export async function loadCandidateDirectory() {
   if (!directoryPromise) {
     directoryPromise = (async () => {
-      let entries;
-      try {
-        // Load ALL candidates from Supabase (paginate past default 1000-row limit)
-        const PAGE_SIZE = 1000;
-        let allRows = [];
-        let from = 0;
-        let done = false;
-
-        while (!done) {
-          const { data, error } = await supabase
-            .from('candidates')
-            .select('*')
-            .order('year', { ascending: false })
-            .range(from, from + PAGE_SIZE - 1);
-
-          if (error) throw new Error(`Failed to load candidates: ${error.message}`);
-          allRows = allRows.concat(data);
-          if (data.length < PAGE_SIZE) done = true;
-          else from += PAGE_SIZE;
-        }
-
-        entries = allRows.map(rowToCandidate);
-      } catch {
-        // Fallback: load from static JSON if Supabase is unavailable
-        const resp = await fetch('/data/tn-candidate-directory.json');
-        const json = await resp.json();
-        entries = json.entries || [];
-      }
+      // Primary: load from static JSON (freshest OCR-extracted data)
+      const resp = await fetch('/data/tn-candidate-directory.json');
+      const json = await resp.json();
+      const entries = json.entries || [];
 
       const profiles = await getCuratedProfiles();
       return {
-        generated: new Date().toISOString(),
+        generated: json.generatedAt || new Date().toISOString(),
         totalEntries: entries.length,
         entries: entries.map((e) => enrichCandidateEntry(e, profiles)),
       };
