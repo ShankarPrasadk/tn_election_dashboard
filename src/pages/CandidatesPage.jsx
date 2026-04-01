@@ -3,7 +3,7 @@ import { Search, Vote, Users, ExternalLink, MapPin, ChevronLeft, ChevronRight } 
 import { Link } from 'react-router-dom';
 import { PartyBadge } from '../components/UIComponents';
 import { PARTY_COLORS } from '../data/electionData';
-import { CANDIDATES_2026, ALLIANCE_2026, VOTER_STATS_2026, OPINION_POLLS_2026 } from '../data/candidates2026';
+import { CANDIDATES_2026, ALLIANCE_2026, VOTER_STATS_2026 } from '../data/candidates2026';
 import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfiles';
 import { getCandidateRouteId, loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
@@ -266,70 +266,6 @@ export default function CandidatesPage() {
                 );
               })}
             </div>
-          </div>
-
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-purple-400 mb-3 uppercase">Pre-Poll Surveys — Seat Projections</h3>
-            <p className="text-xs text-slate-500 mb-3">Latest surveys from multiple agencies. Numbers represent projected seats (out of 234). Majority mark: 118.</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-slate-900">
-                  <tr className="text-slate-400 border-b border-slate-700">
-                    <th className="text-left p-2">Agency</th>
-                    <th className="text-left p-2">Date</th>
-                    <th className="text-center p-2">SPA</th>
-                    <th className="text-center p-2">AIADMK+</th>
-                    <th className="text-center p-2">TVK</th>
-                    <th className="text-center p-2">Others</th>
-                    <th className="text-center p-2">Sample</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {OPINION_POLLS_2026.map((poll, index) => (
-                    <tr key={index} className={`border-b border-slate-700/50 hover:bg-slate-800/80 ${index === 0 ? 'bg-amber-500/5' : ''}`}>
-                      <td className="p-2">
-                        <span className="text-white font-medium">{poll.agency}</span>
-                        {index === 0 && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">New</span>}
-                      </td>
-                      <td className="p-2 text-slate-400">{new Date(poll.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</td>
-                      <td className="p-2 text-center"><span className="text-red-400 font-medium">{poll.seats.SPA}</span></td>
-                      <td className="p-2 text-center"><span className="text-green-400 font-medium">{poll.seats['AIADMK+']}</span></td>
-                      <td className="p-2 text-center"><span className="text-sky-400 font-medium">{poll.seats.TVK}</span></td>
-                      <td className="p-2 text-center"><span className="text-slate-500">{poll.seats.Others}</span></td>
-                      <td className="p-2 text-center text-slate-400">{poll.sampleSize.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-700/50">
-              <h4 className="text-xs font-semibold text-purple-400 uppercase mb-2">Vote Share Estimates</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-slate-500 border-b border-slate-700/30">
-                      <th className="text-left p-1.5">Agency</th>
-                      <th className="text-center p-1.5">SPA</th>
-                      <th className="text-center p-1.5">AIADMK+</th>
-                      <th className="text-center p-1.5">TVK</th>
-                      <th className="text-center p-1.5">Others</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {OPINION_POLLS_2026.map((poll, index) => (
-                      <tr key={index} className="border-b border-slate-700/20">
-                        <td className="p-1.5 text-slate-400">{poll.agency}</td>
-                        <td className="p-1.5 text-center text-red-400">{poll.voteShare.SPA}</td>
-                        <td className="p-1.5 text-center text-green-400">{poll.voteShare['AIADMK+']}</td>
-                        <td className="p-1.5 text-center text-sky-400">{poll.voteShare.TVK}</td>
-                        <td className="p-1.5 text-center text-slate-500">{poll.voteShare.Others}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-600 mt-2">Sources: Lok Poll via Oneindia, O&R-CVoter, News18-Vote Vibe, Agni News, IANS-Matrize. Seat projections are pre-poll estimates only.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
