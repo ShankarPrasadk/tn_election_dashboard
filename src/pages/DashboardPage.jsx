@@ -494,7 +494,7 @@ export default function DashboardPage() {
       <AdBanner variant="in-feed" />
 
       {/* Charts Row 2 — Education & Age */}
-      {(educationData[year] || liveEducation) && (ageData[year] || liveAge) && (
+      {(educationData[year] || liveEducation) && (ageDataMap[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Education — horizontal bars with inline progress */}
         <div className="glass-card rounded-2xl p-4 overflow-hidden">
