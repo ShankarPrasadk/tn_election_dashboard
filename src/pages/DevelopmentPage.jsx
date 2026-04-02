@@ -6,6 +6,7 @@ import {
 import { StatCard, SectionHeader } from '../components/UIComponents';
 import { Building2, Heart, AlertOctagon, Factory, School, Stethoscope, Info } from 'lucide-react';
 import { DEVELOPMENT_DATA } from '../data/electionData';
+import { useElectionState } from '../context/StateContext';
 
 const PERIODS = Object.keys(DEVELOPMENT_DATA);
 const GOVT_COLORS = {
@@ -16,8 +17,20 @@ const GOVT_COLORS = {
 };
 
 export default function DevelopmentPage() {
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
   const [period, setPeriod] = useState('2021-2026');
   const data = DEVELOPMENT_DATA[period];
+
+  if (isPY) {
+    return (
+      <div className="max-w-3xl mx-auto py-16 text-center">
+        <Building2 className="mx-auto text-amber-400 mb-4" size={48} />
+        <h1 className="text-2xl font-bold text-white mb-2">Development Data — Puducherry</h1>
+        <p className="text-slate-400">Development indicators and government performance data for Puducherry will be available soon.</p>
+      </div>
+    );
+  }
 
   const comparisonMetrics = PERIODS.map(p => ({
     period: p,

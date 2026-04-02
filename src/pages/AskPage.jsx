@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, AlertCircle, User, Bot, Trash2 } from 'lucide-react';
+import { useElectionState } from '../context/StateContext';
 
-const SUGGESTED_QUESTIONS = [
+const TN_SUGGESTED_QUESTIONS = [
   'Who will likely win the 2026 TN election and why?',
   'What is the anti-incumbency pattern in Tamil Nadu?',
   'Compare DMK and AIADMK performance from 2006 to 2021',
@@ -10,6 +11,17 @@ const SUGGESTED_QUESTIONS = [
   'What is the criminal record situation among TN candidates?',
   'Explain the alliance dynamics in Tamil Nadu politics',
   'What was the 2G scam impact on 2011 election?',
+];
+
+const PY_SUGGESTED_QUESTIONS = [
+  'Who will likely win the 2026 Puducherry election?',
+  'What is the political history of Puducherry?',
+  'Compare AINRC and INC performance in Puducherry',
+  'Who is N. Rangasamy and what has he done as CM?',
+  'What are the key constituencies in Puducherry?',
+  'How does BJP alliance with AINRC work in Puducherry?',
+  'Explain the NDA vs SPA dynamics in Puducherry 2026',
+  'What is Puducherry\'s unique UT status and how does it affect elections?',
 ];
 
 function formatMessage(text) {
@@ -57,6 +69,9 @@ function Message({ message }) {
 }
 
 export default function AskPage() {
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const suggestedQuestions = isPY ? PY_SUGGESTED_QUESTIONS : TN_SUGGESTED_QUESTIONS;
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -115,10 +130,10 @@ export default function AskPage() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Bot className="text-amber-400" size={28} />
-            Ask About TN Elections
+            Ask About {config.name} Elections
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            AI-powered assistant for Tamil Nadu election data, history, and analysis (1952–2026)
+            AI-powered assistant for {config.name} election data, history, and analysis ({config.yearRange})
           </p>
         </div>
         {messages.length > 0 && (
@@ -140,12 +155,12 @@ export default function AskPage() {
             <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
               <Bot size={32} className="text-amber-400" />
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">TN Election AI Assistant</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">{config.name} Election AI Assistant</h2>
             <p className="text-sm text-slate-400 mb-6 max-w-md">
-              Ask anything about Tamil Nadu elections — history, candidates, parties, alliances, predictions, criminal records, and more.
+              Ask anything about {config.name} elections — history, candidates, parties, alliances, predictions, criminal records, and more.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
-              {SUGGESTED_QUESTIONS.map((q) => (
+              {suggestedQuestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => handleSuggestion(q)}
@@ -189,7 +204,7 @@ export default function AskPage() {
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask anything about TN elections..."
+            placeholder={`Ask anything about ${config.name} elections...`}
             className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2.5 text-sm placeholder-slate-500 focus:border-amber-500/50 focus:outline-none"
             disabled={loading}
             maxLength={1000}

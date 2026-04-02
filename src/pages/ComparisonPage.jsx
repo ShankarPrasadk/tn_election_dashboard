@@ -3,7 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Search, X } from 'lucide-react';
 import { PartyBadge } from '../components/UIComponents';
 import { KEY_CANDIDATES, PARTY_COLORS } from '../data/electionData';
+import { PY_KEY_CANDIDATES, PY_PARTY_COLORS } from '../data/pyElectionData';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
+import { useElectionState } from '../context/StateContext';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 
 /* ---- Searchable Candidate Picker ---- */
@@ -102,15 +104,19 @@ function toComparable(entry) {
 }
 
 export default function ComparisonPage() {
+  const { stateCode } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const keyCandidates = isPY ? PY_KEY_CANDIDATES : KEY_CANDIDATES;
+  const partyColors = isPY ? { ...PARTY_COLORS, ...PY_PARTY_COLORS } : PARTY_COLORS;
   const [allCandidates, setAllCandidates] = useState([]);
   const [candidate1Id, setCandidate1Id] = useState(null);
   const [candidate2Id, setCandidate2Id] = useState(null);
 
   useEffect(() => {
     // Merge KEY_CANDIDATES + directory entries (prefer KEY_CANDIDATES for richer data)
-    loadCandidateDirectory().then((dir) => {
-      const keyMap = new Map(KEY_CANDIDATES.map((k) => [k.id, k]));
-      const merged = [...KEY_CANDIDATES];
+    loadCandidateDirectory(stateCode).then((dir) => {
+      const keyMap = new Map(keyCandidates.map((k) => [k.id, k]));
+      const merged = [...keyCandidates];
 
       (dir?.entries || []).forEach((e) => {
         if (!keyMap.has(e.id)) {
@@ -122,11 +128,11 @@ export default function ComparisonPage() {
       if (!candidate1Id && merged.length > 0) setCandidate1Id(merged[0].id);
       if (!candidate2Id && merged.length > 1) setCandidate2Id(merged[1].id);
     }).catch(() => {
-      setAllCandidates(KEY_CANDIDATES);
-      setCandidate1Id(KEY_CANDIDATES[0]?.id);
-      setCandidate2Id(KEY_CANDIDATES[1]?.id);
+      setAllCandidates(keyCandidates);
+      setCandidate1Id(keyCandidates[0]?.id);
+      setCandidate2Id(keyCandidates[1]?.id);
     });
-  }, []);
+  }, [stateCode]);
 
   const raw1 = allCandidates.find((c) => c.id === candidate1Id);
   const raw2 = allCandidates.find((c) => c.id === candidate2Id);
@@ -147,7 +153,7 @@ export default function ComparisonPage() {
 
   // Radar comparison (only for rich KEY_CANDIDATES profiles)
   const radarData = bothRich ? (() => {
-    const getMax = (fn) => Math.max(...KEY_CANDIDATES.map(fn)) || 1;
+    const getMax = (fn) => Math.max(...keyCandidates.map(fn)) || 1;
     return [
       { subject: 'Wins', [c1.name]: (Object.values(c1.elections).filter((e) => e.won).length / getMax((c) => Object.values(c.elections).filter((e) => e.won).length)) * 100, [c2.name]: (Object.values(c2.elections).filter((e) => e.won).length / getMax((c) => Object.values(c.elections).filter((e) => e.won).length)) * 100 },
       { subject: 'Clean Record', [c1.name]: Math.max(0, 100 - (c1.criminalCases.total / getMax((c) => c.criminalCases.total)) * 100), [c2.name]: Math.max(0, 100 - (c2.criminalCases.total / getMax((c) => c.criminalCases.total)) * 100) },
@@ -201,9 +207,9 @@ export default function ComparisonPage() {
             <div className="flex items-center gap-4 mb-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${PARTY_COLORS[c.party] || '#64748b'}20` }}
+                style={{ backgroundColor: `${partyColors[c.party] || '#64748b'}20` }}
               >
-                <PartySymbolIcon party={c.party} size={28} color={PARTY_COLORS[c.party] || '#64748b'} />
+                <PartySymbolIcon party={c.party} size={28} color={partyColors[c.party] || '#64748b'} />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">{c.name}</h3>
@@ -254,8 +260,8 @@ export default function ComparisonPage() {
               <PolarGrid stroke="#334155" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
               <PolarRadiusAxis tick={{ fill: '#64748b', fontSize: 10 }} />
-              <Radar name={c1.name} dataKey={c1.name} stroke={PARTY_COLORS[c1.party]} fill={`${PARTY_COLORS[c1.party]}40`} fillOpacity={0.5} />
-              <Radar name={c2.name} dataKey={c2.name} stroke={PARTY_COLORS[c2.party]} fill={`${PARTY_COLORS[c2.party]}40`} fillOpacity={0.5} />
+              <Radar name={c1.name} dataKey={c1.name} stroke={partyColors[c1.party]} fill={`${partyColors[c1.party]}40`} fillOpacity={0.5} />
+              <Radar name={c2.name} dataKey={c2.name} stroke={partyColors[c2.party]} fill={`${partyColors[c2.party]}40`} fillOpacity={0.5} />
               <Tooltip />
             </RadarChart>
           </ResponsiveContainer>
@@ -272,8 +278,8 @@ export default function ComparisonPage() {
               <XAxis dataKey="year" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey={c1.name} fill={PARTY_COLORS[c1.party]} radius={[4, 4, 0, 0]} />
-              <Bar dataKey={c2.name} fill={PARTY_COLORS[c2.party]} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={c1.name} fill={partyColors[c1.party]} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={c2.name} fill={partyColors[c2.party]} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

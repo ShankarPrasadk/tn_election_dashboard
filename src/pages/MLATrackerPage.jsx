@@ -2,7 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Award, AlertTriangle, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { PARTY_COLORS } from '../data/electionData';
+import { PY_PARTY_COLORS } from '../data/pyElectionData';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
+import { useElectionState } from '../context/StateContext';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
 import { useI18n } from '../i18n';
@@ -28,6 +30,9 @@ function MarginBadge({ marginPercent }) {
 }
 
 export default function MLATrackerPage() {
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const partyColors = isPY ? { ...PARTY_COLORS, ...PY_PARTY_COLORS } : PARTY_COLORS;
   const [search, setSearch] = useState('');
   const [partyFilter, setPartyFilter] = useState('All');
   const [districtFilter, setDistrictFilter] = useState('All');
@@ -43,9 +48,10 @@ export default function MLATrackerPage() {
 
     async function loadData() {
       try {
+        const electionFile = isPY ? '/data/elections-py-2021.json' : '/data/elections-2021.json';
         const [electionResp, directory] = await Promise.all([
-          fetch('/data/elections-2021.json').then(r => r.json()),
-          loadCandidateDirectory(),
+          fetch(electionFile).then(r => { if (!r.ok) throw new Error('No data'); return r.json(); }),
+          loadCandidateDirectory(stateCode),
         ]);
 
         const dirWinners = (directory.entries || []).filter(e => e.year === 2021 && e.status === 'Won');
@@ -97,7 +103,7 @@ export default function MLATrackerPage() {
 
     loadData();
     return () => { active = false; };
-  }, []);
+  }, [stateCode]);
 
   const stats = useMemo(() => {
     if (!mlas.length) return null;
@@ -192,7 +198,7 @@ export default function MLATrackerPage() {
           <Award className="text-amber-400" /> {t('mla.title')}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          All 234 MLAs elected in the 2021 Tamil Nadu Legislative Assembly Election — party, margin, assets, criminal records
+          All {config.totalSeats} MLAs elected in the 2021 {config.name} Legislative Assembly Election — party, margin, assets, criminal records
         </p>
       </div>
 
@@ -252,7 +258,7 @@ export default function MLATrackerPage() {
                   <span className="text-[11px] text-slate-400 truncate flex-1 mr-2">{edu || 'Unknown'}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-28 h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500/70 rounded-full" style={{ width: `${(count / 234) * 100}%` }} />
+                      <div className="h-full bg-amber-500/70 rounded-full" style={{ width: `${(count / config.totalSeats) * 100}%` }} />
                     </div>
                     <span className="text-[10px] text-slate-500 w-6 text-right">{count}</span>
                   </div>
@@ -414,12 +420,12 @@ export default function MLATrackerPage() {
       <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
         <p className="text-xs text-slate-400">
           <AlertTriangle size={12} className="inline text-amber-400 mr-1" />
-          All MLA data is from the 2021 Tamil Nadu Legislative Assembly Election results (ECI) and candidate affidavits filed with the Election Commission (via myneta.info/ADR).
+          All MLA data is from the 2021 {config.name} Legislative Assembly Election results (ECI) and candidate affidavits filed with the Election Commission (via myneta.info/ADR).
           Criminal cases are self-declared pending allegations — not proven convictions. Asset figures are declared values from election affidavits. Every person is presumed innocent until proven guilty.
         </p>
       </div>
 
-      <ShareBar title="MLA Tracker — All 234 Tamil Nadu MLAs (2021)" />
+      <ShareBar title={`MLA Tracker — All ${config.totalSeats} ${config.name} MLAs (2021)`} />
       <ExploreCTA exclude={['/mla-tracker']} maxItems={4} title="More Election Data" />
     </div>
   );

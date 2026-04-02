@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, ReferenceLine } from 'recharts';
 import { TrendingUp, AlertTriangle, BarChart3, Info, ChevronDown, ChevronUp } from 'lucide-react';
-import { generateForecast, FORECAST_ALLIANCE_COLORS, FORECAST_ALLIANCE_LABELS } from '../data/forecastModel';
+import { generateForecast, getForecastLabels, FORECAST_ALLIANCE_COLORS, FORECAST_ALLIANCE_LABELS } from '../data/forecastModel';
 import { OPINION_POLLS_2026 } from '../data/candidates2026';
+import { PY_OPINION_POLLS_2026 } from '../data/pyElectionData';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
 function ProbabilityMeter({ label, percent, color }) {
   return (
@@ -58,29 +60,33 @@ function SeatRangeBar({ alliance, data, color, majorityMark, totalSeats }) {
 export default function ForecastPage() {
   const [showMethodology, setShowMethodology] = useState(false);
   const { t } = useI18n();
-  const result = useMemo(() => generateForecast(), []);
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const { colors: allianceColors, labels: allianceLabels } = getForecastLabels(stateCode);
+  const result = useMemo(() => generateForecast(stateCode), [stateCode]);
   const { forecast, winProbability, antiIncumbencyRate, majorityMark, totalSeats, pollsUsed } = result;
+  const polls = isPY ? PY_OPINION_POLLS_2026 : OPINION_POLLS_2026;
 
   const barData = Object.entries(forecast).map(([key, val]) => ({
     name: key,
-    fullName: FORECAST_ALLIANCE_LABELS[key],
+    fullName: allianceLabels[key],
     mid: val.seatMid,
     min: val.seatMin,
     max: val.seatMax,
     voteShare: val.voteShare,
-    color: FORECAST_ALLIANCE_COLORS[key],
+    color: allianceColors[key],
   }));
 
   const pieData = Object.entries(forecast).map(([key, val]) => ({
     name: key,
-    fullName: FORECAST_ALLIANCE_LABELS[key],
+    fullName: allianceLabels[key],
     value: val.seatMid,
-    color: FORECAST_ALLIANCE_COLORS[key],
+    color: allianceColors[key],
   }));
 
-  const spaLeading = forecast.SPA.seatMid >= forecast.NDA.seatMid;
+  const spaLeading = (forecast.SPA?.seatMid || 0) >= (forecast.NDA?.seatMid || 0);
   const leader = spaLeading ? 'SPA' : 'NDA';
-  const leaderColor = FORECAST_ALLIANCE_COLORS[leader];
+  const leaderColor = allianceColors[leader];
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -99,7 +105,7 @@ export default function ForecastPage() {
         <div className="text-center">
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">{t('forecast.projectedWinner')}</p>
           <p className="text-4xl font-bold mb-1" style={{ color: leaderColor }}>
-            {FORECAST_ALLIANCE_LABELS[leader].split(' (')[0]}
+            {allianceLabels[leader].split(' (')[0]}
           </p>
           <p className="text-2xl font-semibold text-white">
             {forecast[leader].seatMin}–{forecast[leader].seatMax} seats
@@ -116,11 +122,11 @@ export default function ForecastPage() {
           <BarChart3 className="text-amber-400" size={16} /> {t('forecast.winProbability')}
         </h3>
         <div className="space-y-3">
-          <ProbabilityMeter label="DMK Alliance (SPA)" percent={winProbability.SPA} color={FORECAST_ALLIANCE_COLORS.SPA} />
-          <ProbabilityMeter label="AIADMK Alliance (NDA)" percent={winProbability.NDA} color={FORECAST_ALLIANCE_COLORS.NDA} />
+          <ProbabilityMeter label={isPY ? 'Congress Alliance (SPA)' : 'DMK Alliance (SPA)'} percent={winProbability.SPA} color={allianceColors.SPA} />
+          <ProbabilityMeter label={isPY ? 'AINRC Alliance (NDA)' : 'AIADMK Alliance (NDA)'} percent={winProbability.NDA} color={allianceColors.NDA} />
         </div>
         <p className="text-[10px] text-slate-500 mt-3">
-          Historical anti-incumbency rate in TN since 1967: <strong className="text-amber-400">{antiIncumbencyRate}%</strong> — ruling parties have lost power in {antiIncumbencyRate}% of elections
+          Historical anti-incumbency rate in {config.name} since 1967: <strong className="text-amber-400">{antiIncumbencyRate}%</strong> — ruling parties have lost power in {antiIncumbencyRate}% of elections
         </p>
       </div>
 
@@ -129,7 +135,7 @@ export default function ForecastPage() {
         <h3 className="text-sm font-semibold text-white mb-4">{t('forecast.projectedSeatRanges')}</h3>
         <div className="space-y-5">
           {Object.entries(forecast).map(([key, data]) => (
-            <SeatRangeBar key={key} alliance={key} data={data} color={FORECAST_ALLIANCE_COLORS[key]} majorityMark={majorityMark} totalSeats={totalSeats} />
+            <SeatRangeBar key={key} alliance={key} data={data} color={allianceColors[key]} majorityMark={majorityMark} totalSeats={totalSeats} />
           ))}
         </div>
       </div>
@@ -184,14 +190,14 @@ export default function ForecastPage() {
               </tr>
             </thead>
             <tbody>
-              {OPINION_POLLS_2026.map((poll, i) => (
+              {polls.map((poll, i) => (
                 <tr key={i} className="border-b border-slate-700/30 hover:bg-slate-700/20">
                   <td className="py-2 px-2 font-medium">{poll.agency}</td>
                   <td className="py-2 px-2 text-slate-400">{new Date(poll.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</td>
                   <td className="py-2 px-2 text-right">{poll.sampleSize.toLocaleString()}</td>
-                  <td className="py-2 px-2 text-right font-medium" style={{ color: FORECAST_ALLIANCE_COLORS.SPA }}>{poll.seats.SPA || poll.seats['DMK+'] || '—'}</td>
-                  <td className="py-2 px-2 text-right font-medium" style={{ color: FORECAST_ALLIANCE_COLORS.NDA }}>{poll.seats['AIADMK+'] || poll.seats.NDA || '—'}</td>
-                  <td className="py-2 px-2 text-right font-medium" style={{ color: FORECAST_ALLIANCE_COLORS.TVK }}>{poll.seats.TVK || '—'}</td>
+                  <td className="py-2 px-2 text-right font-medium" style={{ color: allianceColors.SPA }}>{poll.seats.SPA || poll.seats['DMK+'] || '—'}</td>
+                  <td className="py-2 px-2 text-right font-medium" style={{ color: allianceColors.NDA }}>{poll.seats['AIADMK+'] || poll.seats.NDA || '—'}</td>
+                  <td className="py-2 px-2 text-right font-medium" style={{ color: allianceColors.TVK }}>{poll.seats.TVK || '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -225,16 +231,16 @@ export default function ForecastPage() {
           <div className="px-5 pb-5 text-xs text-slate-400 space-y-2">
             <p><strong className="text-slate-300">Methodology:</strong> Weighted poll aggregation using {pollsUsed} opinion polls. Each poll is weighted by recency (√1/days_ago) and sample size (√sample/10000). Seat projections are the weighted average of poll ranges.</p>
             <p><strong className="text-slate-300">Win probability</strong> is estimated based on the gap between projected midpoint seats and historical anti-incumbency patterns in TN elections since 1967.</p>
-            <p><strong className="text-slate-300">Historical context:</strong> Tamil Nadu has a {antiIncumbencyRate}% anti-incumbency rate since 1967, with ruling parties losing power in most elections. The current incumbent is DMK (SPA).</p>
+            <p><strong className="text-slate-300">Historical context:</strong> {config.name} has a {antiIncumbencyRate}% anti-incumbency rate since 1967, with ruling parties losing power in most elections. The current incumbent is {isPY ? 'AINRC (NDA)' : 'DMK (SPA)'}.</p>
             <p className="text-amber-400/70 flex items-start gap-1">
               <AlertTriangle size={12} className="flex-shrink-0 mt-0.5" />
-              <span>This is a statistical projection, not a prediction of actual results. Opinion polls have inherent margins of error (±3-5%). Actual results on May 4, 2026 may differ significantly. This platform does not endorse any party or alliance.</span>
+              <span>This is a statistical projection, not a prediction of actual results. Opinion polls have inherent margins of error (±3-5%). Actual results on {isPY ? 'May 4' : 'May 13'}, 2026 may differ significantly. This platform does not endorse any party or alliance.</span>
             </p>
           </div>
         )}
       </div>
 
-      <ShareBar title="TN 2026 Election Forecast — Who will win Tamil Nadu?" />
+      <ShareBar title={`${config.name} 2026 Election Forecast — Who will win ${config.name}?`} />
       <ExploreCTA exclude={['/forecast']} maxItems={4} title="More Election Data" />
     </div>
   );

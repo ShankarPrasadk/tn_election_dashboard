@@ -6,12 +6,14 @@ import {
 import { StatCard, YearSelector, SectionHeader, PartyBadge } from '../components/UIComponents';
 import { AlertTriangle, ShieldAlert, TrendingUp, Scale } from 'lucide-react';
 import { CRIMINAL_STATS, PARTY_COLORS, KEY_CANDIDATES } from '../data/electionData';
+import { PY_CRIMINAL_STATS, PY_PARTY_COLORS, PY_KEY_CANDIDATES } from '../data/pyElectionData';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
 import { computeLiveStats } from '../data/liveStats';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -30,18 +32,23 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
 export default function CriminalPage() {
   const [year, setYear] = useState(2026);
   const { t } = useI18n();
+  const { stateCode } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const criminalStats = isPY ? PY_CRIMINAL_STATS : CRIMINAL_STATS;
+  const partyColors = isPY ? PY_PARTY_COLORS : PARTY_COLORS;
+  const keyCandidates = isPY ? PY_KEY_CANDIDATES : KEY_CANDIDATES;
   const [liveStats, setLiveStats] = useState(null);
 
   useEffect(() => {
-    loadCandidateDirectory()
+    loadCandidateDirectory(stateCode)
       .then(dir => setLiveStats(computeLiveStats(dir.entries)))
       .catch(() => {});
-  }, []);
+  }, [stateCode]);
 
   const is2026 = year === 2026;
-  const data = is2026 ? liveStats?.criminal : CRIMINAL_STATS[year];
+  const data = is2026 ? liveStats?.criminal : criminalStats[year];
 
-  const allStats = { ...CRIMINAL_STATS };
+  const allStats = { ...criminalStats };
   if (liveStats?.criminal) allStats[2026] = liveStats.criminal;
 
   const trendData = Object.entries(allStats).map(([yr, d]) => ({
@@ -75,7 +82,7 @@ export default function CriminalPage() {
   // Top candidates with most criminal cases
   const topCriminals = is2026
     ? (liveStats?.topCriminals || [])
-    : [...KEY_CANDIDATES]
+    : [...keyCandidates]
         .filter(c => c.criminalCases.total > 0)
         .sort((a, b) => b.criminalCases.total - a.criminalCases.total);
 
@@ -141,7 +148,7 @@ export default function CriminalPage() {
               <Tooltip content={CUSTOM_TOOLTIP} />
               <Bar dataKey="percent" radius={[0, 4, 4, 0]} name="Candidates with Cases">
                 {data.topParties.map((entry) => (
-                  <Cell key={entry.party} fill={PARTY_COLORS[entry.party] || PARTY_COLORS.Others} />
+                  <Cell key={entry.party} fill={partyColors[entry.party] || partyColors.Others} />
                 ))}
               </Bar>
             </BarChart>
@@ -199,9 +206,9 @@ export default function CriminalPage() {
                 <span className="text-lg font-bold text-slate-500 w-8">#{i + 1}</span>
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `${PARTY_COLORS[c.party]}20` }}
+                  style={{ backgroundColor: `${partyColors[c.party]}20` }}
                 >
-                  <PartySymbolIcon party={c.party} size={22} color={PARTY_COLORS[c.party]} />
+                  <PartySymbolIcon party={c.party} size={22} color={partyColors[c.party]} />
                 </div>
                 <div>
                   <p className="text-white font-medium">{c.name}</p>

@@ -21,6 +21,8 @@ import { PartyBadge } from '../components/UIComponents';
 import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfiles';
 import { findDirectoryCandidate, loadCandidateDirectory } from '../data/candidateDirectory';
 import { PARTY_COLORS } from '../data/electionData';
+import { PY_PARTY_COLORS } from '../data/pyElectionData';
+import { useElectionState } from '../context/StateContext';
 import { getBrowserPublicProfile } from '../data/publicProfileEnrichment';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import ShareBar from '../components/ShareBar';
@@ -215,7 +217,7 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-slate-400">State</span>
-              <span className="text-slate-200">Tamil Nadu</span>
+              <StateNameLabel />
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-slate-400">Party</span>
@@ -582,9 +584,16 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
   );
 }
 
+// Small helper to display state name dynamically
+function StateNameLabel() {
+  const { config } = useElectionState();
+  return <span className="text-slate-200">{config.name}</span>;
+}
+
 export default function CandidateProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { stateCode } = useElectionState();
   const curatedCandidate = findCandidateProfile(id);
   const [directoryCandidate, setDirectoryCandidate] = useState(null);
   const [candidateEnrichment, setCandidateEnrichment] = useState(null);
@@ -599,7 +608,7 @@ export default function CandidateProfilePage() {
     let active = true;
     setLoading(true);
 
-    loadCandidateDirectory()
+    loadCandidateDirectory(stateCode)
       .then((data) => {
         if (active) {
           setDirectoryCandidate(findDirectoryCandidate(data.entries, id));

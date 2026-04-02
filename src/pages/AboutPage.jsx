@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { Mail, Globe, Shield, Database, BarChart3 } from 'lucide-react';
+import { useElectionState } from '../context/StateContext';
 
 export default function AboutPage() {
+  const { config } = useElectionState();
+
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-white mb-2">About TN Election Dashboard</h1>
+      <h1 className="text-3xl font-bold text-white mb-2">About Election Dashboard</h1>
       <p className="text-sm text-slate-400 mb-8">
-        India's most comprehensive Tamil Nadu election analytics platform
+        India's most comprehensive election analytics platform
       </p>
 
       <div className="space-y-5 text-slate-300 text-sm leading-relaxed">
@@ -17,14 +20,14 @@ export default function AboutPage() {
             Our Mission
           </h2>
           <p>
-            TN Election Dashboard is dedicated to promoting electoral transparency and informed
-            voting in Tamil Nadu. We believe every voter deserves easy access to comprehensive,
+            Election Dashboard is dedicated to promoting electoral transparency and informed
+            voting across Indian states. We believe every voter deserves easy access to comprehensive,
             accurate data about their candidates and representatives.
           </p>
           <p className="mt-3">
-            Our platform aggregates publicly available election data spanning from 1952 to 2026,
+            Our platform aggregates publicly available election data,
             presenting it through intuitive visualizations and analytics that make complex
-            electoral data accessible to everyone.
+            electoral data accessible to everyone. Currently covering {config.name}.
           </p>
         </section>
 
@@ -36,7 +39,7 @@ export default function AboutPage() {
               { title: 'Historical Trends', desc: 'Election results and party performance from 1952 to present, including seat counts, vote shares, and alliance dynamics.' },
               { title: 'Candidate Profiles', desc: 'Detailed profiles including criminal records, assets, education, and profession — all from official affidavit data.' },
               { title: 'Criminal Record Analysis', desc: 'Transparency data showing candidates with declared criminal cases, helping voters make informed choices.' },
-              { title: 'Constituency Insights', desc: 'Deep-dive into each of 234 constituencies with candidate comparisons, historical winners, and demographic data.' },
+              { title: 'Constituency Insights', desc: `Deep-dive into each of ${config.totalSeats} constituencies with candidate comparisons, historical winners, and demographic data.` },
               { title: 'Development Indicators', desc: 'District-level development data including HDI, literacy rates, healthcare access, and infrastructure metrics.' },
               { title: 'Live News', desc: 'Curated election news from verified sources to keep voters updated on the latest developments.' },
             ].map(({ title, desc }) => (
@@ -84,7 +87,7 @@ export default function AboutPage() {
             Independence & Neutrality
           </h2>
           <p>
-            TN Election Dashboard is an <strong className="text-white">independent, non-partisan</strong> platform.
+            Election Dashboard is an <strong className="text-white">independent, non-partisan</strong> platform.
             We are <strong className="text-white">not affiliated</strong> with any political party, government body,
             or election commission.
           </p>

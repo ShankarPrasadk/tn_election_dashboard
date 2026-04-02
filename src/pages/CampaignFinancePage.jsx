@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { IndianRupee, TrendingUp, AlertTriangle, Search } from 'lucide-react';
 import { ELECTION_SUMMARY, PARTY_COLORS } from '../data/electionData';
+import { useElectionState } from '../context/StateContext';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
 import { useI18n } from '../i18n';
@@ -46,6 +47,7 @@ const ELECTORAL_BONDS = [
 ];
 
 export default function CampaignFinancePage() {
+  const { config } = useElectionState();
   const [selectedYear, setSelectedYear] = useState(2021);
   const { t } = useI18n();
   const spending = PARTY_SPENDING[selectedYear] || [];
@@ -182,7 +184,7 @@ export default function CampaignFinancePage() {
 
       {/* TN Context */}
       <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-amber-400 mb-2">Tamil Nadu Context</h3>
+        <h3 className="text-sm font-semibold text-amber-400 mb-2">{config.name} Context</h3>
         <div className="text-xs text-slate-400 space-y-1">
           <p>• TN parties received ₹{tnBondsTotal} Cr via electoral bonds (DMK: ₹656 Cr, AIADMK: ₹431 Cr)</p>
           <p>• 2021 election saw an estimated ₹1,500+ Cr spent across all parties in Tamil Nadu</p>
@@ -201,7 +203,7 @@ export default function CampaignFinancePage() {
         </p>
       </div>
 
-      <ShareBar title="Campaign Finance — TN Election Dashboard" />
+      <ShareBar title={`Campaign Finance — ${config.name} Election Dashboard`} />
       <ExploreCTA exclude={['/finance']} maxItems={4} title="More Election Data" />
     </div>
   );

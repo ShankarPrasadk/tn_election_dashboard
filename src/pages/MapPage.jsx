@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, GeoJSON, TileLayer, useMap } from 'react-leaflet';
 import { Search, ChevronDown, Trophy, Vote, Users, X } from 'lucide-react';
 import { PARTY_COLORS } from '../data/electionData';
+import { PY_PARTY_COLORS } from '../data/pyElectionData';
+import { useElectionState } from '../context/StateContext';
 import { supabase } from '../lib/supabase';
 import 'leaflet/dist/leaflet.css';
 
@@ -12,6 +14,7 @@ const PARTY_MAP_COLORS = {
   DMK: '#e11d48',
   ADMK: '#16a34a',
   AIADMK: '#16a34a',
+  AINRC: '#22c55e',
   INC: '#3b82f6',
   BJP: '#f97316',
   PMK: '#eab308',
@@ -95,6 +98,8 @@ function FlyToBounds({ bounds }) {
 
 export default function MapPage() {
   const navigate = useNavigate();
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
   const [year, setYear] = useState(2021);
   const [geojson, setGeojson] = useState(null);
   const [electionData, setElectionData] = useState(null);
@@ -105,8 +110,13 @@ export default function MapPage() {
 
   // Load data
   useEffect(() => {
-    fetch('/data/tn-constituencies.geojson').then(r => r.json()).then(setGeojson);
-  }, []);
+    if (isPY) {
+      // No PY GeoJSON available yet
+      setGeojson(null);
+    } else {
+      fetch('/data/tn-constituencies.geojson').then(r => r.json()).then(setGeojson);
+    }
+  }, [stateCode]);
 
   useEffect(() => {
     (async () => {
@@ -275,7 +285,7 @@ export default function MapPage() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">Constituency Map</h1>
-          <p className="text-slate-400 text-sm mt-1">Interactive map of Tamil Nadu's 234 assembly constituencies</p>
+          <p className="text-slate-400 text-sm mt-1">Interactive map of {config.name}'s {config.totalSeats} assembly constituencies</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -440,7 +450,7 @@ export default function MapPage() {
           <div className="glass rounded-xl p-4">
             <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
             <div className="grid grid-cols-2 gap-1">
-              {['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND'].map(p => (
+              {(isPY ? ['AINRC', 'BJP', 'INC', 'DMK', 'AIADMK', 'IND'] : ['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND']).map(p => (
                 <div key={p} className="flex items-center gap-2 text-xs">
                   <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(p) }} />
                   <span className="text-slate-400">{p}</span>
@@ -456,7 +466,7 @@ export default function MapPage() {
                     <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: getPartyColor(party) }} />
                     <span className="text-slate-300 text-xs flex-1">{party}</span>
                     <div className="flex-1 bg-slate-800 rounded-full h-1.5 mx-1">
-                      <div className="h-1.5 rounded-full" style={{ width: `${(seats / 234) * 100}%`, backgroundColor: getPartyColor(party) }} />
+                      <div className="h-1.5 rounded-full" style={{ width: `${(seats / config.totalSeats) * 100}%`, backgroundColor: getPartyColor(party) }} />
                     </div>
                     <span className="text-white text-xs font-semibold w-6 text-right">{seats}</span>
                   </div>

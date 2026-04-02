@@ -9,6 +9,12 @@ import {
   HISTORICAL_ELECTIONS, HISTORICAL_SEATS, HISTORICAL_VOTE_SHARE,
   HISTORICAL_TURNOUT, CM_TIMELINE, ANTI_INCUMBENCY, PARTY_EVOLUTION
 } from '../data/historicalElections';
+import {
+  PY_PARTY_COLORS, PY_CRIMINAL_STATS, PY_ASSET_STATS,
+  PY_HISTORICAL_ELECTIONS, PY_HISTORICAL_SEATS,
+  PY_HISTORICAL_VOTE_SHARE, PY_HISTORICAL_TURNOUT,
+} from '../data/pyElectionData';
+import { useElectionState } from '../context/StateContext';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import SwingAnalysis from '../components/SwingAnalysis';
 import { ExportDropdown } from '../components/DataExport';
@@ -400,24 +406,34 @@ function PartyFamilyTree() {
 // ─── Main Component ───────────────────────────────────────────
 
 export default function TrendsPage() {
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
   const [era, setEra] = useState('All');
   const [activeTab, setActiveTab] = useState('overview');
 
+  const partyColors = isPY ? { ...PARTY_COLORS, ...PY_PARTY_COLORS } : PARTY_COLORS;
+  const historicalElections = isPY ? PY_HISTORICAL_ELECTIONS : HISTORICAL_ELECTIONS;
+  const historicalSeats = isPY ? PY_HISTORICAL_SEATS : HISTORICAL_SEATS;
+  const historicalVoteShare = isPY ? PY_HISTORICAL_VOTE_SHARE : HISTORICAL_VOTE_SHARE;
+  const historicalTurnout = isPY ? PY_HISTORICAL_TURNOUT : HISTORICAL_TURNOUT;
+
   const filteredElections = useMemo(() =>
-    HISTORICAL_ELECTIONS
+    historicalElections
       .filter(e => era === 'All' || e.era === era)
       .sort((a, b) => b.year - a.year),
-    [era]
+    [era, historicalElections]
   );
 
   // Criminal and asset trend data (2006–2021 only)
-  const criminalTrend = Object.entries(CRIMINAL_STATS).map(([yr, d]) => ({
+  const criminalStats = isPY ? PY_CRIMINAL_STATS : CRIMINAL_STATS;
+  const assetStats = isPY ? PY_ASSET_STATS : ASSET_STATS;
+  const criminalTrend = Object.entries(criminalStats).map(([yr, d]) => ({
     year: Number(yr),
     'With Cases (%)': d.percentWithCases,
     'Serious Cases (%)': d.percentSerious,
   }));
 
-  const assetTrend = Object.entries(ASSET_STATS).map(([yr, d]) => ({
+  const assetTrend = Object.entries(assetStats).map(([yr, d]) => ({
     year: Number(yr),
     'Average (₹ Cr)': d.avgAssets,
     'Median (₹ Cr)': d.medianAssets,
@@ -428,9 +444,9 @@ export default function TrendsPage() {
     { id: 'overview', label: 'Overview' },
     { id: 'seats', label: 'Seats & Vote Share' },
     { id: 'turnout', label: 'Turnout' },
-    { id: 'incumbency', label: 'Anti-Incumbency' },
+    ...(!isPY ? [{ id: 'incumbency', label: 'Anti-Incumbency' }] : []),
     { id: 'timeline', label: 'Timeline' },
-    { id: 'evolution', label: 'Party Evolution' },
+    ...(!isPY ? [{ id: 'evolution', label: 'Party Evolution' }] : []),
     { id: 'money', label: 'Money & Crime' },
   ];
 
@@ -446,12 +462,12 @@ export default function TrendsPage() {
               {t('trends.title')}
             </h1>
             <p className="text-slate-400 mt-1">
-              Complete electoral history from 1952 to 2026 — {HISTORICAL_ELECTIONS.length} elections, 13 Chief Ministers, 3 political eras
+              Complete electoral history of {config.name} — {historicalElections.length} elections since {isPY ? 1964 : 1952}
             </p>
           </div>
           <ExportDropdown
-            data={HISTORICAL_ELECTIONS}
-            filename="tn-historical-elections"
+            data={historicalElections}
+            filename={`${stateCode.toLowerCase()}-historical-elections`}
             label="Export"
           />
         </div>
@@ -480,33 +496,38 @@ export default function TrendsPage() {
       {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
       {activeTab === 'overview' && (
         <div className="space-y-5">
-          {/* CM Timeline Bar */}
-          <div className="glass rounded-xl p-4">
-            <SectionHeader title="Chief Ministers of Tamil Nadu" subtitle="1952 to present — hover for details" />
-            <CMVisualTimeline />
-          </div>
+          {/* CM Timeline Bar — TN only */}
+          {!isPY && (
+            <div className="glass rounded-xl p-4">
+              <SectionHeader title="Chief Ministers of Tamil Nadu" subtitle="1952 to present — hover for details" />
+              <CMVisualTimeline />
+            </div>
+          )}
 
-          {/* Combined Seats Chart (1952-2021) */}
+          {/* Combined Seats Chart */}
           <div className="glass rounded-xl p-4">
-            <SectionHeader title="Seats Won by Major Parties" subtitle="All 16 completed elections (1952–2021)" />
+            <SectionHeader title="Seats Won by Major Parties" subtitle={`All ${historicalElections.filter(e => e.status !== 'upcoming').length} completed elections`} />
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={HISTORICAL_SEATS} barGap={1}>
+              <BarChart data={historicalSeats} barGap={1}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <Tooltip content={ChartTooltip} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Dravidian Era →', position: 'top', fill: '#f59e0b', fontSize: 10 }} />
-                <Bar dataKey="INC" fill={PARTY_COLORS.INC} name="Congress" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="DMK" fill={PARTY_COLORS.DMK} name="DMK" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="AIADMK" fill={PARTY_COLORS.AIADMK} name="AIADMK" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="BJP" fill={PARTY_COLORS.BJP} name="BJP" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="Others" fill={PARTY_COLORS.Others} name="Others" radius={[2, 2, 0, 0]} />
+                {!isPY && <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Dravidian Era →', position: 'top', fill: '#f59e0b', fontSize: 10 }} />}
+                <Bar dataKey="INC" fill={partyColors.INC} name="Congress" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="DMK" fill={partyColors.DMK} name="DMK" radius={[2, 2, 0, 0]} />
+                {isPY && <Bar dataKey="AINRC" fill={partyColors.AINRC || '#22c55e'} name="AINRC" radius={[2, 2, 0, 0]} />}
+                <Bar dataKey="AIADMK" fill={partyColors.AIADMK} name="AIADMK" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="BJP" fill={partyColors.BJP || '#f97316'} name="BJP" radius={[2, 2, 0, 0]} />
+                {!isPY && <Bar dataKey="Others" fill={partyColors.Others} name="Others" radius={[2, 2, 0, 0]} />}
+                {isPY && <Bar dataKey="IND" fill="#64748b" name="Independents" radius={[2, 2, 0, 0]} />}
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Quick Observations */}
+          {!isPY && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
@@ -539,36 +560,37 @@ export default function TrendsPage() {
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">{obs.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
+          </div>          )}        </div>
       )}
 
       {/* ═══════════════ SEATS & VOTE SHARE TAB ═══════════════ */}
       {activeTab === 'seats' && (
         <div className="space-y-5">
           <div className="glass rounded-xl p-4">
-            <SectionHeader title="Seats Won — Stacked View" subtitle="Composition of legislature after each election" />
+            <SectionHeader title="Seats Won — Stacked View" subtitle={`Composition of ${config.name} legislature after each election`} />
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={HISTORICAL_SEATS}>
+              <BarChart data={historicalSeats}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <Tooltip content={ChartTooltip} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" />
-                <Bar dataKey="INC" stackId="seats" fill={PARTY_COLORS.INC} name="Congress" />
-                <Bar dataKey="DMK" stackId="seats" fill={PARTY_COLORS.DMK} name="DMK" />
-                <Bar dataKey="AIADMK" stackId="seats" fill={PARTY_COLORS.AIADMK} name="AIADMK" />
-                <Bar dataKey="BJP" stackId="seats" fill={PARTY_COLORS.BJP} name="BJP" />
-                <Bar dataKey="Others" stackId="seats" fill={PARTY_COLORS.Others} name="Others" radius={[2, 2, 0, 0]} />
+                {!isPY && <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" />}
+                <Bar dataKey="INC" stackId="seats" fill={partyColors.INC} name="Congress" />
+                <Bar dataKey="DMK" stackId="seats" fill={partyColors.DMK} name="DMK" />
+                {isPY && <Bar dataKey="AINRC" stackId="seats" fill={partyColors.AINRC || '#22c55e'} name="AINRC" />}
+                <Bar dataKey="AIADMK" stackId="seats" fill={partyColors.AIADMK} name="AIADMK" />
+                <Bar dataKey="BJP" stackId="seats" fill={partyColors.BJP || '#f97316'} name="BJP" />
+                {!isPY && <Bar dataKey="Others" stackId="seats" fill={partyColors.Others} name="Others" radius={[2, 2, 0, 0]} />}
+                {isPY && <Bar dataKey="IND" stackId="seats" fill="#64748b" name="Independents" radius={[2, 2, 0, 0]} />}
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           <div className="glass rounded-xl p-4">
-            <SectionHeader title="Vote Share Trend (%)" subtitle="How party vote shares evolved from 1952 to 2021" />
+            <SectionHeader title="Vote Share Trend (%)" subtitle={`How party vote shares evolved in ${config.name}`} />
             <ResponsiveContainer width="100%" height={400}>
-              <AreaChart data={HISTORICAL_VOTE_SHARE}>
+              <AreaChart data={historicalVoteShare}>
                 <defs>
                   <linearGradient id="gradDMK" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.3} />
@@ -588,16 +610,18 @@ export default function TrendsPage() {
                 <YAxis unit="%" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <Tooltip content={ChartTooltip} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: '1967', fill: '#f59e0b', fontSize: 10 }} />
-                <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#gradINC)" strokeWidth={2} name="Congress" dot={{ r: 3 }} />
-                <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#gradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 4 }} />
-                <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#gradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 4 }} />
-                <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={2} name="BJP" dot={{ r: 3 }} strokeDasharray="5 3" />
+                {!isPY && <ReferenceLine x={1967} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: '1967', fill: '#f59e0b', fontSize: 10 }} />}
+                <Area type="monotone" dataKey="INC" stroke={partyColors.INC} fill="url(#gradINC)" strokeWidth={2} name="Congress" dot={{ r: 3 }} />
+                <Area type="monotone" dataKey="DMK" stroke={partyColors.DMK} fill="url(#gradDMK)" strokeWidth={2.5} name="DMK" dot={{ r: 4 }} />
+                {isPY && <Area type="monotone" dataKey="AINRC" stroke={partyColors.AINRC || '#22c55e'} fill="none" strokeWidth={2.5} name="AINRC" dot={{ r: 4 }} />}
+                <Area type="monotone" dataKey="AIADMK" stroke={partyColors.AIADMK} fill="url(#gradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={{ r: 4 }} />
+                <Area type="monotone" dataKey="BJP" stroke={partyColors.BJP || '#f97316'} fill="none" strokeWidth={2} name="BJP" dot={{ r: 3 }} strokeDasharray="5 3" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          {/* DMK vs AIADMK head-to-head */}
+          {/* DMK vs AIADMK head-to-head — TN only */}
+          {!isPY && (
           <div className="glass rounded-xl p-4">
             <SectionHeader title="DMK vs AIADMK — Head to Head" subtitle="Seats won in elections where both contested (1977–2021)" />
             <div className="space-y-3">
@@ -647,16 +671,17 @@ export default function TrendsPage() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 
-      {/* ═══════════════ TURNOUT TAB ═══════════════ */}
+      {/* ═════════════ TURNOUT TAB ═════════════ */}
       {activeTab === 'turnout' && (
         <div className="space-y-5">
           <div className="glass rounded-xl p-4">
-            <SectionHeader title="Voter Turnout (1952–2021)" subtitle="Percentage of registered voters who voted" />
+            <SectionHeader title={`Voter Turnout in ${config.name}`} subtitle={`Percentage of registered voters who voted`} />
             <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={HISTORICAL_TURNOUT}>
+              <ComposedChart data={historicalTurnout}>
                 <defs>
                   <linearGradient id="gradTurnout" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
@@ -677,6 +702,7 @@ export default function TrendsPage() {
           </div>
 
           {/* Turnout records */}
+          {!isPY && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: 'Highest Turnout', value: '78.0%', year: '2011', note: 'Anti-DMK wave over 2G scam', color: '#22c55e' },
@@ -690,11 +716,12 @@ export default function TrendsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 
-      {/* ═══════════════ ANTI-INCUMBENCY TAB ═══════════════ */}
-      {activeTab === 'incumbency' && (
+      {/* ═════════════ ANTI-INCUMBENCY TAB (TN only) ═════════════ */}
+      {activeTab === 'incumbency' && !isPY && (
         <div className="space-y-5">
           <div className="glass rounded-xl p-4">
             <SectionHeader title="The Anti-Incumbency Pattern" subtitle="Tamil Nadu's famous pattern of rejecting ruling parties" />
@@ -714,8 +741,8 @@ export default function TrendsPage() {
         </div>
       )}
 
-      {/* ═══════════════ PARTY EVOLUTION TAB ═══════════════ */}
-      {activeTab === 'evolution' && (
+      {/* ═══════════════ PARTY EVOLUTION TAB (TN only) ═══════════════ */}
+      {activeTab === 'evolution' && !isPY && (
         <div className="space-y-5">
           <div className="glass rounded-xl p-4">
             <SectionHeader title="Party Family Tree" subtitle="How Tamil Nadu's political parties were born — from DK to TVK" />

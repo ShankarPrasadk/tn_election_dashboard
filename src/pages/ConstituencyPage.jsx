@@ -3,45 +3,50 @@ import { Search, MapPin, Users, ChevronRight, Star, StarOff } from 'lucide-react
 import { Link } from 'react-router-dom';
 import { PartyBadge } from '../components/UIComponents';
 import { CANDIDATES_2026 } from '../data/candidates2026';
+import { PY_CANDIDATES_2026 } from '../data/pyElectionData';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
 import { ConstituencyCard } from '../components/ConstituencyCard';
 import { ExportDropdown, exportCSV } from '../components/DataExport';
 import VoterCheckWidget from '../components/VoterCheckWidget';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
-const PARTY_ORDER = ['DMK', 'AIADMK', 'BJP', 'NTK', 'TVK', 'INC', 'PMK', 'AMMK', 'CPI', 'CPI(M)', 'VCK', 'DMDK', 'MDMK', 'IUML'];
+const PARTY_ORDER = ['DMK', 'AIADMK', 'AINRC', 'BJP', 'NTK', 'TVK', 'INC', 'PMK', 'AMMK', 'CPI', 'CPI(M)', 'VCK', 'LJK', 'NMK', 'DMDK', 'MDMK', 'IUML'];
 
 export default function ConstituencyPage() {
   const [search, setSearch] = useState('');
   const { t } = useI18n();
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const candidates2026 = isPY ? PY_CANDIDATES_2026 : CANDIDATES_2026;
   const [districtFilter, setDistrictFilter] = useState('All');
   const [directoryIds, setDirectoryIds] = useState(new Set());
   const [savedConstituency, setSavedConstituency] = useState(() => {
-    try { return localStorage.getItem('tn-my-constituency') || ''; } catch { return ''; }
+    try { return localStorage.getItem(`${stateCode}-my-constituency`) || ''; } catch { return ''; }
   });
   const [shareCard, setShareCard] = useState(null);
 
   const handleSave = useCallback((name) => {
     const next = savedConstituency === name ? '' : name;
     setSavedConstituency(next);
-    try { localStorage.setItem('tn-my-constituency', next); } catch {}
+    try { localStorage.setItem(`${stateCode}-my-constituency`, next); } catch {}
   }, [savedConstituency]);
 
   useEffect(() => {
-    loadCandidateDirectory().then((dir) => {
+    loadCandidateDirectory(stateCode).then((dir) => {
       setDirectoryIds(new Set((dir?.entries || []).map((e) => e.id)));
     }).catch(() => {});
   }, []);
 
   const districts = useMemo(
-    () => ['All', ...new Set(CANDIDATES_2026.map((s) => s.district).filter(Boolean).sort())],
-    []
+    () => ['All', ...new Set(candidates2026.map((s) => s.district).filter(Boolean).sort())],
+    [candidates2026]
   );
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return CANDIDATES_2026.filter((seat) => {
+    return candidates2026.filter((seat) => {
       if (districtFilter !== 'All' && seat.district !== districtFilter) return false;
       if (!q) return true;
       if (seat.constituency.toLowerCase().includes(q)) return true;
@@ -64,13 +69,13 @@ export default function ConstituencyPage() {
           <MapPin className="text-amber-400" /> {t('constituency.title')}
         </h1>
         <p className="text-slate-400 mt-1">
-          Look up your constituency to see all announced 2026 candidates. {CANDIDATES_2026.length} constituencies across Tamil Nadu.
+          Look up your constituency to see all announced 2026 candidates. {candidates2026.length} constituencies across {config.name}.
         </p>
       </div>
 
       {/* Saved Constituency Banner */}
       {savedConstituency && (() => {
-        const saved = CANDIDATES_2026.find((s) => s.constituency === savedConstituency);
+        const saved = candidates2026.find((s) => s.constituency === savedConstituency);
         return saved ? (
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
             <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-1">⭐ Your Constituency</p>
@@ -105,10 +110,10 @@ export default function ConstituencyPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-500">{filtered.length} of {CANDIDATES_2026.length} constituencies</p>
+        <p className="text-xs text-slate-500">{filtered.length} of {candidates2026.length} constituencies</p>
         <ExportDropdown
           data={filtered.map((s) => ({ no: s.no, constituency: s.constituency, district: s.district, reserved: s.reserved || '', ...s.candidates }))}
-          filename="tn-2026-constituencies"
+          filename={`${stateCode.toLowerCase()}-2026-constituencies`}
         />
       </div>
 

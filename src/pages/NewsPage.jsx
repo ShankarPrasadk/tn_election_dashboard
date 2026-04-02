@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag, Timer } from 'lucide-react';
+import { useElectionState } from '../context/StateContext';
 
 const CATEGORY_LABELS = {
   all: 'All News',
@@ -48,6 +49,7 @@ function timeAgo(dateStr) {
 }
 
 export default function NewsPage() {
+  const { config } = useElectionState();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -138,7 +140,7 @@ export default function NewsPage() {
             Election News
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Live updates on Tamil Nadu 2026 elections, parties, crime &amp; election commission
+            Live updates on {config.name} 2026 elections, parties, crime &amp; election commission
           </p>
         </div>
         <div className="flex items-center gap-3">

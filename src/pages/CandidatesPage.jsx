@@ -6,17 +6,29 @@ import PartyFlag from '../components/PartyFlag';
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import { PARTY_COLORS } from '../data/electionData';
 import { CANDIDATES_2026, ALLIANCE_2026, VOTER_STATS_2026 } from '../data/candidates2026';
+import { PY_CANDIDATES_2026, PY_ALLIANCE_2026, PY_VOTER_STATS_2026, PY_PARTY_COLORS } from '../data/pyElectionData';
 import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfiles';
 import { getCandidateRouteId, loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
 import { ExportDropdown } from '../components/DataExport';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
-const SPA_PARTIES = ['DMK', 'INC', 'VCK', 'CPI', 'CPI(M)', 'DMDK', 'MDMK', 'IUML'];
-const NDA_PARTIES = ['AIADMK', 'BJP', 'PMK', 'AMMK'];
+const TN_SPA_PARTIES = ['DMK', 'INC', 'VCK', 'CPI', 'CPI(M)', 'DMDK', 'MDMK', 'IUML'];
+const TN_NDA_PARTIES = ['AIADMK', 'BJP', 'PMK', 'AMMK'];
+const PY_SPA_PARTIES = ['INC', 'DMK', 'VCK', 'CPI', 'CPI(M)'];
+const PY_NDA_PARTIES = ['AINRC', 'BJP', 'AIADMK', 'LJK'];
 const HISTORICAL_PAGE_SIZE = 50;
 
 export default function CandidatesPage() {
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+  const candidates2026 = isPY ? PY_CANDIDATES_2026 : CANDIDATES_2026;
+  const alliance2026 = isPY ? PY_ALLIANCE_2026 : ALLIANCE_2026;
+  const voterStats = isPY ? PY_VOTER_STATS_2026 : VOTER_STATS_2026;
+  const partyColors = isPY ? PY_PARTY_COLORS : PARTY_COLORS;
+  const SPA_PARTIES = isPY ? PY_SPA_PARTIES : TN_SPA_PARTIES;
+  const NDA_PARTIES = isPY ? PY_NDA_PARTIES : TN_NDA_PARTIES;
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [partyFilter, setPartyFilter] = useState('All');
@@ -38,7 +50,7 @@ export default function CandidatesPage() {
   useEffect(() => {
     let active = true;
 
-    loadCandidateDirectory()
+    loadCandidateDirectory(stateCode)
       .then((data) => {
         if (active) {
           setDirectory(data);
@@ -53,7 +65,7 @@ export default function CandidatesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [stateCode]);
 
   useEffect(() => {
     setHistoricalPage(1);
@@ -69,7 +81,7 @@ export default function CandidatesPage() {
     if (right === 'All') return 1;
     return right - left;
   });
-  const districts2026 = ['All', ...new Set(CANDIDATES_2026.map((seat) => seat.district))];
+  const districts2026 = ['All', ...new Set(candidates2026.map((seat) => seat.district))];
 
   let filteredHistorical = historicalEntries.filter((entry) => {
     const query = search.toLowerCase();
@@ -95,7 +107,7 @@ export default function CandidatesPage() {
     historicalPage * HISTORICAL_PAGE_SIZE,
   );
 
-  const filtered2026 = CANDIDATES_2026.filter((seat) => {
+  const filtered2026 = candidates2026.filter((seat) => {
     const query = search.toLowerCase();
     const matchesSearch = search === ''
       || seat.constituency.toLowerCase().includes(query)
@@ -105,7 +117,7 @@ export default function CandidatesPage() {
     return matchesSearch && matchesDistrict;
   });
 
-  const daysUntilElection = Math.ceil((new Date('2026-04-23') - new Date()) / (1000 * 60 * 60 * 24));
+  const daysUntilElection = Math.ceil((new Date(config.pollingDate) - new Date()) / (1000 * 60 * 60 * 24));
 
   function getRouteIdFor2026Candidate(name, party, constituency) {
     const curated = findCandidateProfile(name);
@@ -119,7 +131,7 @@ export default function CandidatesPage() {
           <h1 className="text-3xl font-bold text-white">{t('candidates.title')}</h1>
           <p className="text-slate-400 mt-1">
             {viewMode === '2026'
-              ? `2026 Election - All 234 constituencies • Polling: April 23, 2026 ${daysUntilElection > 0 ? `(${daysUntilElection} days away)` : ''}`
+              ? `2026 Election - All ${config.totalSeats} constituencies • Polling: ${config.pollingDateLabel} ${daysUntilElection > 0 ? `(${daysUntilElection} days away)` : ''}`
               : 'Historical affidavit directory with public criminal, education, assets, and liability disclosures'}
           </p>
         </div>
@@ -140,7 +152,7 @@ export default function CandidatesPage() {
           </button>
           <ExportDropdown
             data={viewMode === '2026' ? CANDIDATES_2026 : filteredHistorical}
-            filename={viewMode === '2026' ? 'tn-candidates-2026' : 'tn-candidates-historical'}
+            filename={viewMode === '2026' ? `${stateCode.toLowerCase()}-candidates-2026` : `${stateCode.toLowerCase()}-candidates-historical`}
             label="Export"
           />
         </div>
@@ -191,35 +203,35 @@ export default function CandidatesPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-xl p-4">
               <p className="text-xs text-amber-400 uppercase">Total Voters</p>
-              <p className="text-xl font-bold text-white">{(VOTER_STATS_2026.totalVoters / 10000000).toFixed(2)} Cr</p>
-              <p className="text-xs text-slate-400 mt-1">{VOTER_STATS_2026.changeFromPrevious}% from 2021</p>
+              <p className="text-xl font-bold text-white">{(voterStats.totalVoters / 10000000).toFixed(2)} Cr</p>
+              <p className="text-xs text-slate-400 mt-1">{voterStats.changeFromPrevious}% from 2021</p>
             </div>
             <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-4">
               <p className="text-xs text-blue-400 uppercase">Constituencies</p>
-              <p className="text-xl font-bold text-white">234</p>
+              <p className="text-xl font-bold text-white">{config.totalSeats}</p>
               <p className="text-xs text-slate-400 mt-1">Single member</p>
             </div>
             <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20 rounded-xl p-4">
-              <p className="text-xs text-red-400 uppercase">SPA (DMK-led)</p>
-              <p className="text-lg font-bold text-white">CM: M.K. Stalin</p>
-              <p className="text-xs text-slate-400 mt-1">{ALLIANCE_2026.SPA.parties.length} parties</p>
+              <p className="text-xs text-red-400 uppercase">{isPY ? 'SPA (INC-led)' : 'SPA (DMK-led)'}</p>
+              <p className="text-lg font-bold text-white">{isPY ? 'Leader: V. Vaithilingam' : 'CM: M.K. Stalin'}</p>
+              <p className="text-xs text-slate-400 mt-1">{alliance2026.SPA.parties.length} parties</p>
             </div>
             <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-xl p-4">
-              <p className="text-xs text-green-400 uppercase">NDA (AIADMK-led)</p>
-              <p className="text-lg font-bold text-white">CM: E.K. Palaniswami</p>
-              <p className="text-xs text-slate-400 mt-1">{ALLIANCE_2026.NDA.parties.length} parties</p>
+              <p className="text-xs text-green-400 uppercase">{isPY ? 'NDA (AINRC-led)' : 'NDA (AIADMK-led)'}</p>
+              <p className="text-lg font-bold text-white">{isPY ? 'CM: N. Rangasamy' : 'CM: E.K. Palaniswami'}</p>
+              <p className="text-xs text-slate-400 mt-1">{alliance2026.NDA.parties.length} parties</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="glass rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-red-400 mb-3 uppercase">Secular Progressive Alliance (SPA)</h3>
+              <h3 className="text-sm font-semibold text-red-400 mb-3 uppercase">{isPY ? 'Congress Alliance (SPA)' : 'Secular Progressive Alliance (SPA)'}</h3>
               <div className="space-y-2">
-                {ALLIANCE_2026.SPA.parties.map((party) => (
+                {alliance2026.SPA.parties.map((party) => (
                   <div key={party.party} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <PartyFlag party={party.party} size={14} />
-                      <PartySymbolIcon party={party.party} size={14} color={PARTY_COLORS[party.party] || '#6b7280'} />
+                      <PartySymbolIcon party={party.party} size={14} color={partyColors[party.party] || '#6b7280'} />
                       <span className="text-slate-300">{party.party}</span>
                     </div>
                     <span className="text-white font-medium">{party.seats} seats</span>
@@ -228,13 +240,13 @@ export default function CandidatesPage() {
               </div>
             </div>
             <div className="glass rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-green-400 mb-3 uppercase">AIADMK-led Alliance (NDA)</h3>
+              <h3 className="text-sm font-semibold text-green-400 mb-3 uppercase">{isPY ? 'AINRC-led Alliance (NDA)' : 'AIADMK-led Alliance (NDA)'}</h3>
               <div className="space-y-2">
-                {ALLIANCE_2026.NDA.parties.map((party) => (
+                {alliance2026.NDA.parties.map((party) => (
                   <div key={party.party} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <PartyFlag party={party.party} size={14} />
-                      <PartySymbolIcon party={party.party} size={14} color={PARTY_COLORS[party.party] || '#6b7280'} />
+                      <PartySymbolIcon party={party.party} size={14} color={partyColors[party.party] || '#6b7280'} />
                       <span className="text-slate-300">{party.party}</span>
                     </div>
                     <span className="text-white font-medium">{party.seats} seats</span>
@@ -245,10 +257,10 @@ export default function CandidatesPage() {
           </div>
 
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-amber-400 mb-1 uppercase tracking-wider">CM Candidates & Key Figures</h3>
+            <h3 className="text-sm font-semibold text-amber-400 mb-1 uppercase tracking-wider">{isPY ? 'Key Candidates' : 'CM Candidates & Key Figures'}</h3>
             <p className="text-xs text-slate-500 mb-4">Every 2026 candidate row below now links to a profile page. Featured leaders retain richer curated dossiers.</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {!isPY && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {CANDIDATE_PROFILES.slice(0, 4).map((profile) => {
                 const partyColor = PARTY_COLORS[profile.party] || '#6b7280';
                 return (
@@ -277,7 +289,7 @@ export default function CandidatesPage() {
                   </Link>
                 );
               })}
-            </div>
+            </div>}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -312,7 +324,7 @@ export default function CandidatesPage() {
                     <th className="text-left p-3 font-medium">District</th>
                     <th className="text-left p-3 font-medium">SPA</th>
                     <th className="text-left p-3 font-medium">NDA</th>
-                    <th className="text-left p-3 font-medium">NTK</th>
+                    {!isPY && <th className="text-left p-3 font-medium">NTK</th>}
                     <th className="text-left p-3 font-medium">TVK</th>
                   </tr>
                 </thead>
@@ -333,7 +345,7 @@ export default function CandidatesPage() {
                           {spaParty && (
                             <Link to={`/candidate/${getRouteIdFor2026Candidate(seat.candidates[spaParty], spaParty, seat.constituency)}`} className="text-white hover:text-amber-300 transition-colors">
                               {seat.candidates[spaParty]}
-                              <span className="text-xs ml-1" style={{ color: PARTY_COLORS[spaParty] || '#6b7280' }}>({spaParty})</span>
+                              <span className="text-xs ml-1" style={{ color: partyColors[spaParty] || '#6b7280' }}>({spaParty})</span>
                             </Link>
                           )}
                         </td>
@@ -341,17 +353,19 @@ export default function CandidatesPage() {
                           {ndaParty && (
                             <Link to={`/candidate/${getRouteIdFor2026Candidate(seat.candidates[ndaParty], ndaParty, seat.constituency)}`} className="text-white hover:text-amber-300 transition-colors">
                               {seat.candidates[ndaParty]}
-                              <span className="text-xs ml-1" style={{ color: PARTY_COLORS[ndaParty] || '#6b7280' }}>({ndaParty})</span>
+                              <span className="text-xs ml-1" style={{ color: partyColors[ndaParty] || '#6b7280' }}>({ndaParty})</span>
                             </Link>
                           )}
                         </td>
-                        <td className="p-3">
-                          {seat.candidates.NTK ? (
-                            <Link to={`/candidate/${getRouteIdFor2026Candidate(seat.candidates.NTK, 'NTK', seat.constituency)}`} className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                              {seat.candidates.NTK}
-                            </Link>
-                          ) : '-'}
-                        </td>
+                        {!isPY && (
+                          <td className="p-3">
+                            {seat.candidates.NTK ? (
+                              <Link to={`/candidate/${getRouteIdFor2026Candidate(seat.candidates.NTK, 'NTK', seat.constituency)}`} className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                                {seat.candidates.NTK}
+                              </Link>
+                            ) : '-'}
+                          </td>
+                        )}
                         <td className="p-3">
                           {seat.candidates.TVK ? (
                             <Link to={`/candidate/${getRouteIdFor2026Candidate(seat.candidates.TVK, 'TVK', seat.constituency)}`} className="text-sky-400 hover:text-sky-300 transition-colors">
