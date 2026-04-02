@@ -545,6 +545,25 @@ export const PY_HISTORICAL_TURNOUT = [
   { year: 2021, turnout: 81.0 },
 ];
 
+// ─── CM TIMELINE ─────────────────────────────────────────────
+
+export const PY_CM_TIMELINE = [
+  { period: '1954–1963', cm: 'Edouard Goubert', party: 'INC', years: 9, note: 'First CM after French cession; appointed' },
+  { period: '1964–1967', cm: 'V. Venkatasubba Reddiar', party: 'INC', years: 3, note: 'First democratically elected CM' },
+  { period: '1967–1968', cm: 'M. O. H. Farook', party: 'DMK', years: 1, note: 'First non-Congress CM' },
+  { period: '1969–1974', cm: 'V. Venkatasubba Reddiar', party: 'INC', years: 5, note: 'Second term' },
+  { period: '1974–1978', cm: 'M. D. R. Ramachandran', party: 'AIADMK', years: 4, note: 'First AIADMK CM of Puducherry' },
+  { period: '1980–1983', cm: 'R. V. Janakiraman', party: 'INC', years: 3, note: 'First term; President\'s Rule followed' },
+  { period: '1985–1990', cm: 'M. D. R. Ramachandran', party: 'AIADMK', years: 5, note: 'Second term' },
+  { period: '1990–1991', cm: 'V. Vaithilingam', party: 'INC', years: 1, note: 'First term' },
+  { period: '1991–1996', cm: 'V. Vaithilingam', party: 'INC', years: 5, note: 'Second consecutive term' },
+  { period: '1996–2000', cm: 'R. V. Janakiraman', party: 'TMC', years: 4, note: 'Switched to TMC; second term' },
+  { period: '2001–2008', cm: 'N. Rangasamy', party: 'INC', years: 7, note: 'First term under INC; longest serving CM' },
+  { period: '2011–2016', cm: 'N. Rangasamy', party: 'AINRC', years: 5, note: 'Founded AINRC; won second term' },
+  { period: '2016–2021', cm: 'V. Narayanasamy', party: 'INC', years: 5, note: 'INC-DMK coalition government' },
+  { period: '2021–present', cm: 'N. Rangasamy', party: 'AINRC', years: 5, note: 'Third term; NDA alliance with BJP' },
+];
+
 // ─── KEY CANDIDATES ──────────────────────────────────────────
 
 export const PY_KEY_CANDIDATES = [

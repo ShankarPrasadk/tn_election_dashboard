@@ -13,6 +13,7 @@ import {
   PY_PARTY_COLORS, PY_CRIMINAL_STATS, PY_ASSET_STATS,
   PY_HISTORICAL_ELECTIONS, PY_HISTORICAL_SEATS,
   PY_HISTORICAL_VOTE_SHARE, PY_HISTORICAL_TURNOUT,
+  PY_CM_TIMELINE,
 } from '../data/pyElectionData';
 import { useElectionState } from '../context/StateContext';
 import PartySymbolIcon from '../components/PartySymbolIcon';
@@ -32,6 +33,8 @@ const CM_PARTY_COLORS = {
   INC: PARTY_COLORS.INC,
   DMK: PARTY_COLORS.DMK,
   AIADMK: PARTY_COLORS.AIADMK,
+  AINRC: '#059669',
+  TMC: '#f59e0b',
 };
 
 const CM_PHOTOS = {
@@ -47,6 +50,15 @@ const CM_PHOTOS = {
   'Edappadi K. Palaniswami': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Palanisamy.jpg/220px-Palanisamy.jpg',
   'M.K. Stalin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg/220px-The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg',
 };
+
+const PY_CM_PHOTOS = {
+  'N. Rangasamy': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Puducherry_CM_N_Rangasamy.jpg/220px-Puducherry_CM_N_Rangasamy.jpg',
+  'V. Vaithilingam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/V._Vaithilingam.jpg/220px-V._Vaithilingam.jpg',
+  'V. Narayanasamy': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/V._Narayanasamy.jpg/220px-V._Narayanasamy.jpg',
+  'R. V. Janakiraman': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/R._V._Janakiraman.jpg/220px-R._V._Janakiraman.jpg',
+};
+
+const ALL_CM_PHOTOS = { ...CM_PHOTOS, ...PY_CM_PHOTOS };
 
 // ─── Tooltip ──────────────────────────────────────────────────
 
@@ -250,8 +262,8 @@ function ElectionTimeline({ elections }) {
                   {!isUpcoming && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-700/30">
                       <div className="text-center flex flex-col items-center">
-                        {CM_PHOTOS[e.chiefMinister] && (
-                          <img src={CM_PHOTOS[e.chiefMinister]} alt={e.chiefMinister} className="w-8 h-8 rounded-full object-cover mb-1 ring-1 ring-slate-600" />
+                        {ALL_CM_PHOTOS[e.chiefMinister] && (
+                          <img src={ALL_CM_PHOTOS[e.chiefMinister]} alt={e.chiefMinister} className="w-8 h-8 rounded-full object-cover mb-1 ring-1 ring-slate-600" />
                         )}
                         <p className="text-lg font-bold text-white">{e.chiefMinister?.split(' ').pop()}</p>
                         <p className="text-[10px] text-slate-500">Chief Minister</p>
@@ -282,13 +294,13 @@ function ElectionTimeline({ elections }) {
 
 // ─── Section: CM Visual Timeline ──────────────────────────────
 
-function CMVisualTimeline() {
+function CMVisualTimeline({ timeline, photos }) {
   const [expandedIdx, setExpandedIdx] = useState(null);
 
   const cmGroups = useMemo(() => {
     const groups = [];
     let current = null;
-    for (const cm of CM_TIMELINE) {
+    for (const cm of timeline) {
       if (!current || current.cm !== cm.cm) {
         if (current) groups.push(current);
         current = { ...cm, totalYears: cm.years };
@@ -300,7 +312,7 @@ function CMVisualTimeline() {
     }
     if (current) groups.push(current);
     return groups.reverse(); // Most recent CM first
-  }, []);
+  }, [timeline]);
 
   return (
     <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
@@ -321,15 +333,15 @@ function CMVisualTimeline() {
             <div className="flex items-center gap-3 px-4 py-3">
               {/* CM Photo */}
               <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden ring-2" style={{ ringColor: color, boxShadow: `0 0 0 2px ${color}` }}>
-                {CM_PHOTOS[cm.cm] ? (
+                {photos[cm.cm] ? (
                   <img
-                    src={CM_PHOTOS[cm.cm]}
+                    src={photos[cm.cm]}
                     alt={cm.cm}
                     className="w-full h-full object-cover"
                     onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                   />
                 ) : null}
-                <div className={`w-full h-full items-center justify-center text-sm font-bold text-white ${CM_PHOTOS[cm.cm] ? 'hidden' : 'flex'}`} style={{ backgroundColor: color }}>
+                <div className={`w-full h-full items-center justify-center text-sm font-bold text-white ${photos[cm.cm] ? 'hidden' : 'flex'}`} style={{ backgroundColor: color }}>
                   {cm.cm.split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
               </div>
@@ -525,13 +537,17 @@ export default function TrendsPage() {
       {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
       {activeTab === 'overview' && (
         <div className="space-y-5">
-          {/* CM Timeline Bar — TN only */}
-          {!isPY && (
-            <div className="glass rounded-xl p-4">
-              <SectionHeader title="Chief Ministers of Tamil Nadu" subtitle="1952 to present — hover for details" />
-              <CMVisualTimeline />
-            </div>
-          )}
+          {/* CM Timeline Bar */}
+          <div className="glass rounded-xl p-4">
+            <SectionHeader
+              title={`Chief Ministers of ${isPY ? 'Puducherry' : 'Tamil Nadu'}`}
+              subtitle={`${isPY ? '1954' : '1952'} to present — tap for details`}
+            />
+            <CMVisualTimeline
+              timeline={isPY ? PY_CM_TIMELINE : CM_TIMELINE}
+              photos={isPY ? PY_CM_PHOTOS : CM_PHOTOS}
+            />
+          </div>
 
           {/* Combined Seats Chart */}
           <div className="glass rounded-xl p-4">
