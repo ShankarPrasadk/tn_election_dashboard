@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag, Timer, Tv, Play } from 'lucide-react';
+import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag, Timer, Tv, Play, Radio } from 'lucide-react';
 import { useElectionState } from '../context/StateContext';
 
 const YOUTUBE_CHANNELS = [
-  { name: 'Sun News', channelId: 'UCYlh4lH762HvHt6mmiecyWQ', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_krQ5JFcM-006DQBQO808jaBHULfCOCSI6M3zYp_YBJFNs=s176-c-k-c0x00ffffff-no-rj', color: '#e11d48' },
-  { name: 'Thanthi TV', channelId: 'UCT8dYtSg1lMSJ09A258Yvpg', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_n0Uo_knOWJA9M-dMVB2jJlpmIq3pPnssnHVxCE08rBVrk=s176-c-k-c0x00ffffff-no-rj', color: '#f97316' },
-  { name: 'Puthiya Thalaimurai', channelId: 'UCt7t2oGMjGNwVDv0bZkGxKA', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_kZ10MrfLwE-MkVjCCg-UqrQr3_R-VBjyCv9gH6qZODZQ=s176-c-k-c0x00ffffff-no-rj', color: '#3b82f6' },
-  { name: 'Polimer News', channelId: 'UCFx1nseXSCbB0IOBOOzHrzQ', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_mAuRgAlzOkxAj0OdLORLhsJzjkJL6JF4QyGClgx9_11w=s176-c-k-c0x00ffffff-no-rj', color: '#22c55e' },
-  { name: 'News7 Tamil', channelId: 'UCnG_v5FPRsSmAO57QGTyw9g', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_lh3qx7vbKMQMf3Nh1RlXBKsMqmP0BOWpMjLhPuZwVaSA=s176-c-k-c0x00ffffff-no-rj', color: '#a855f7' },
-  { name: 'News18 Tamil Nadu', channelId: 'UCUI1bA3dnFUBnOMGpuYkOqg', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_lJz8jxWmV2Q9M0blxDq2OE4C0_lI-ZJy_QR-p_bBz4Sg=s176-c-k-c0x00ffffff-no-rj', color: '#ef4444' },
-  { name: 'Jaya Plus', channelId: 'UCO2bblKBohgwppTBSjKMG-Q', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_lh3HHT-Xo5C8YZgK5FkYJYL8kTXv1tqIqAu76O7xr__A=s176-c-k-c0x00ffffff-no-rj', color: '#eab308' },
-  { name: 'Kalaignar TV', channelId: 'UC2RNgYNJEBJMgd3GsCaBl7w', thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_mMZuEePRykr6GGK1wKC4tWXc1Mh_Ztt3L29a7k9MJ10w=s176-c-k-c0x00ffffff-no-rj', color: '#dc2626' },
+  { name: 'Sun News', handle: 'SunNewsTV', channelId: 'UCYlh4lH762HvHt6mmiecyWQ', color: '#e11d48' },
+  { name: 'Thanthi TV', handle: 'ThanthiTV', channelId: 'UCFYqIFxANnSDsnz6qDH01Hw', color: '#f97316' },
+  { name: 'Puthiya Thalaimurai', handle: 'PuthiyaThalaimuraiTV', channelId: 'UCAW01Xupb-fd51o0BsQbcLQ', color: '#3b82f6' },
+  { name: 'Polimer News', handle: 'PolimerNews', channelId: 'UCFx1nseXSCbB0IOBOOzHrzQ', color: '#22c55e' },
+  { name: 'News7 Tamil', handle: 'News7Tamil', channelId: 'UC2f4w_ppqHplvjiNaoTAK9w', color: '#a855f7' },
+  { name: 'News18 Tamil Nadu', handle: 'News18TamilNadu', channelId: 'UCUI1bA3dnFUBnOMGpuYkOqg', color: '#ef4444' },
+  { name: 'Jaya Plus', handle: 'jayaboratplus', channelId: 'UCO2bblKBohgwppTBSjKMG-Q', color: '#eab308' },
+  { name: 'Kalaignar TV', handle: 'KalaignarTV', channelId: 'UC2RNgYNJEBJMgd3GsCaBl7w', color: '#dc2626' },
 ];
 
 const CATEGORY_LABELS = {
@@ -210,7 +210,7 @@ export default function NewsPage() {
       {activeTab === 'livetv' && (
         <div className="space-y-4">
           <p className="text-slate-400 text-sm">
-            Watch live Tamil news channels covering the 2026 elections. Click any channel to watch.
+            Watch live Tamil news channels covering the 2026 elections. Click any channel to watch inline or open on YouTube.
           </p>
 
           {/* Active Player */}
@@ -223,15 +223,26 @@ export default function NewsPage() {
                     Now Watching: {activeChannel.name}
                   </span>
                 </div>
-                <button
-                  onClick={() => setActiveChannel(null)}
-                  className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5 transition-colors"
-                >
-                  Close
-                </button>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://www.youtube.com/@${activeChannel.handle}/live`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors flex items-center gap-1"
+                  >
+                    <ExternalLink size={11} /> YouTube
+                  </a>
+                  <button
+                    onClick={() => setActiveChannel(null)}
+                    className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-              <div className="aspect-video">
+              <div className="aspect-video bg-slate-900 relative">
                 <iframe
+                  key={activeChannel.channelId}
                   src={`https://www.youtube.com/embed/live_stream?channel=${activeChannel.channelId}&autoplay=1`}
                   title={`${activeChannel.name} Live`}
                   className="w-full h-full"
@@ -240,16 +251,28 @@ export default function NewsPage() {
                   loading="lazy"
                 />
               </div>
+              <div className="px-4 py-2 bg-slate-800/40 border-t border-white/[0.04] text-center">
+                <span className="text-[11px] text-slate-500">
+                  Stream not loading?{' '}
+                  <a
+                    href={`https://www.youtube.com/@${activeChannel.handle}/live`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-400 hover:text-amber-300 underline"
+                  >
+                    Watch directly on YouTube →
+                  </a>
+                </span>
+              </div>
             </div>
           )}
 
           {/* Channels Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {YOUTUBE_CHANNELS.map((ch) => (
-              <button
+              <div
                 key={ch.channelId}
-                onClick={() => setActiveChannel(ch)}
-                className={`group glass rounded-xl p-4 transition-all duration-200 text-left hover:scale-[1.02] ${
+                className={`group glass rounded-xl p-4 transition-all duration-200 hover:scale-[1.02] ${
                   activeChannel?.channelId === ch.channelId
                     ? 'border-red-500/40 bg-red-500/10 ring-1 ring-red-500/20'
                     : 'hover:border-white/[0.12] hover:bg-slate-800/80'
@@ -257,21 +280,11 @@ export default function NewsPage() {
               >
                 <div className="flex flex-col items-center gap-3">
                   <div className="relative">
-                    <img
-                      src={ch.thumbnail}
-                      alt={ch.name}
-                      className="w-16 h-16 rounded-full object-cover border-2 transition-colors"
-                      style={{ borderColor: activeChannel?.channelId === ch.channelId ? '#ef4444' : ch.color + '40' }}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
                     <div
-                      className="w-16 h-16 rounded-full items-center justify-center text-white font-bold text-lg hidden"
-                      style={{ backgroundColor: ch.color }}
+                      className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl border-2 transition-colors"
+                      style={{ backgroundColor: ch.color + '30', borderColor: activeChannel?.channelId === ch.channelId ? '#ef4444' : ch.color + '60' }}
                     >
-                      {ch.name.charAt(0)}
+                      <Radio size={24} style={{ color: ch.color }} />
                     </div>
                     {activeChannel?.channelId === ch.channelId && (
                       <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
@@ -282,13 +295,29 @@ export default function NewsPage() {
                   <span className="text-xs font-medium text-slate-300 text-center group-hover:text-white transition-colors line-clamp-2">
                     {ch.name}
                   </span>
+                  <div className="flex gap-1.5 w-full">
+                    <button
+                      onClick={() => setActiveChannel(ch)}
+                      className="flex-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Play size={10} /> Watch Here
+                    </button>
+                    <a
+                      href={`https://www.youtube.com/@${ch.handle}/live`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-medium px-2 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <ExternalLink size={10} /> YT
+                    </a>
+                  </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
 
           <p className="text-[11px] text-slate-600 text-center mt-2">
-            Streams are served directly from YouTube. Availability depends on each channel&apos;s live schedule.
+            Streams are served from YouTube. If inline playback doesn&apos;t load, use the YT button to watch directly on YouTube.
           </p>
         </div>
       )}
