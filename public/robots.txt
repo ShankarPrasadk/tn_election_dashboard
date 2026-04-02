@@ -5,15 +5,13 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-User-agent: *
+User-agent: DuckDuckBot
 Allow: /
-Disallow: /api/
 
-Sitemap: https://tn-election-dashboard.vercel.app/sitemap.xml
+User-agent: Slurp
+Allow: /
 
 # ─── Block AI/LLM Crawlers & Scrapers ───────────────────────────
-# These bots scrape content for AI training datasets
-
 User-agent: GPTBot
 Disallow: /
 
@@ -86,20 +84,7 @@ Disallow: /
 User-agent: Timpibot
 Disallow: /
 
-# ─── Allow legitimate search engines ───────────────────────────
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-# ─── Default: block unknown bots ───────────────────────────────
+# ─── Default rule ──────────────────────────────────────────────
 User-agent: *
 Disallow: /api/
 Disallow: /data/
