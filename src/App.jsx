@@ -11,6 +11,7 @@ import CookieConsent from './components/CookieConsent';
 import { ToastProvider } from './components/Toast';
 import { I18nProvider } from './i18n';
 import { StateProvider } from './context/StateContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const CandidatesPage = lazy(() => import('./pages/CandidatesPage'));
@@ -67,6 +68,7 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <StateProvider>
     <I18nProvider>
     <ToastProvider>
@@ -110,5 +112,6 @@ export default function App() {
     </ToastProvider>
     </I18nProvider>
     </StateProvider>
+    </ThemeProvider>
   );
 }

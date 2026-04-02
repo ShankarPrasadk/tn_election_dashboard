@@ -2,11 +2,12 @@ import { NavLink, Link } from 'react-router-dom';
 import {
   BarChart3, Target, Radio, TrendingUp, Newspaper, Map,
   Menu, X, Users, Scale, Building2, AlertTriangle,
-  MessageCircleQuestion, MapPin, Award, IndianRupee, Vote
+  MessageCircleQuestion, MapPin, Award, IndianRupee, Vote, Sun, Moon
 } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageToggle, useI18n } from '../i18n';
 import { useElectionState } from '../context/StateContext';
+import { useTheme } from '../context/ThemeContext';
 
 const PRIMARY_NAV = [
   { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
@@ -46,6 +47,7 @@ export default function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useI18n();
   const { stateCode, config, switchState, states } = useElectionState();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <>
@@ -122,6 +124,13 @@ export default function TopNav() {
             <div className="hidden sm:block">
               <LanguageToggle />
             </div>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-white/[0.05] transition-all"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           </div>
         </div>
       </header>

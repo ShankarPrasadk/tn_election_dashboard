@@ -157,42 +157,83 @@ export default function DashboardPage() {
         <YearSelector selectedYear={year} onChange={setYear} years={availableYears} />
       </div>
 
-      {/* Countdown + Featured Candidates (2026 only) */}
+      {/* Hero Banner + Countdown + Key Insights (2026 only) */}
       {is2026 && (
-        <div className="glass-card gradient-border rounded-2xl p-4 grid-bg">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="bg-amber-500/[0.08] rounded-lg p-1.5">
-                  <Clock className="w-4 h-4 text-amber-400" />
-                </div>
-                <h2 className="text-base font-bold text-white tracking-tight">{t('dashboard.countdown')}</h2>
-              </div>
-              <p className="text-slate-500 text-xs mb-3">{t('dashboard.countdownSubtitle')}</p>
-              <CountdownTimer />
-            </div>
-            <div className="flex-1 max-w-xl space-y-3">
-              {/* Major Leaders */}
+        <div className="relative glass-card gradient-border rounded-2xl overflow-hidden grid-bg">
+          {/* Background gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.06] via-transparent to-rose-500/[0.04] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/[0.03] rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative p-5">
+            {/* Top row: Countdown + Quick Stats */}
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-5">
               <div>
-                <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{t('dashboard.majorLeaders')}</p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {(isPY ? PY_KEY_CANDIDATES : CANDIDATE_PROFILES.slice(0, 5)).map(c => (
-                    <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
-                      <img src={c.photo} alt={c.name} className="w-7 h-7 rounded-full object-cover ring-1 ring-white/[0.06]" onError={e => { e.target.style.display = 'none'; }} />
-                      <div>
-                        <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <PartyFlag party={c.party} size={8} />
-                          <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
-                          <span className="text-[9px] text-slate-600">{c.party}{isPY ? ` • ${c.role}` : ''}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-amber-500/[0.08] rounded-lg p-1.5">
+                    <Clock className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <h2 className="text-base font-bold text-white tracking-tight">{t('dashboard.countdown')}</h2>
                 </div>
+                <p className="text-slate-500 text-xs mb-3">{t('dashboard.countdownSubtitle')}</p>
+                <CountdownTimer />
               </div>
 
-              <Link to="/candidates" className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 hover:text-amber-300 font-medium">
+              {/* Quick stats strip */}
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { label: 'Seats', value: config.totalSeats, color: '#f59e0b' },
+                  { label: 'Majority', value: config.majorityMark, color: '#ef4444' },
+                  { label: 'Voters', value: voterStats.totalVoters >= 10000000 ? `${(voterStats.totalVoters / 10000000).toFixed(1)}Cr` : `${(voterStats.totalVoters / 100000).toFixed(1)}L`, color: '#3b82f6' },
+                  { label: 'Parties', value: isPY ? '6+' : '10+', color: '#8b5cf6' },
+                ].map(s => (
+                  <div key={s.label} className="text-center glass rounded-xl px-4 py-2.5 border border-white/[0.04]">
+                    <p className="text-lg font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
+                    <p className="text-[9px] text-slate-500 uppercase tracking-widest">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Insights */}
+            <div className="glass rounded-xl p-3 mb-4 border border-amber-500/[0.06]">
+              <p className="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold mb-2">Key Insights</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {(isPY ? [
+                  'NDA (AINRC+BJP) seeks re-election under CM N. Rangasamy',
+                  'INDIA bloc (INC+DMK) aims to recapture Puducherry',
+                  'TVK contesting 28 of 30 seats in its debut election',
+                ] : [
+                  'Multi-cornered fight: SPA vs NDA vs TVK vs NTK across all 234 seats',
+                  'TVK (Vijay\'s party) and NTK contest all 234 — first time 4 major forces',
+                  'Anti-incumbency watch: DMK seeks rare consecutive win since 1962',
+                ]).map((insight, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="w-1 h-1 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{insight}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Major Leaders */}
+            <div>
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{t('dashboard.majorLeaders')}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {(isPY ? PY_KEY_CANDIDATES : CANDIDATE_PROFILES.slice(0, 5)).map(c => (
+                  <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
+                    <img src={c.photo} alt={c.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-white/[0.08]" onError={e => { e.target.style.display = 'none'; }} />
+                    <div>
+                      <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <PartyFlag party={c.party} size={8} />
+                        <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
+                        <span className="text-[9px] text-slate-600">{c.party}{isPY ? ` • ${c.role}` : ''}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <Link to="/candidates" className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 hover:text-amber-300 font-medium mt-2">
                 {t('dashboard.viewAllCandidates')} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -242,6 +283,31 @@ export default function DashboardPage() {
           color="blue"
         />
       </div>
+
+      {/* Data Coverage Indicator (2026 only) */}
+      {is2026 && liveStats && !isPY && (
+        <div className="glass rounded-xl px-4 py-2.5 flex flex-wrap items-center gap-x-6 gap-y-1">
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Affidavit Data Coverage</p>
+          {[
+            { label: 'Criminal Records', synced: liveStats.criminal?.affidavitsSynced || 0, total: liveStats.totalCandidates },
+            { label: 'Assets', synced: liveStats.assets ? (liveStats.criminal?.affidavitsSynced || 0) : 0, total: liveStats.totalCandidates },
+            { label: 'Education', synced: liveStats.education?.reduce((s, d) => s + d.count, 0) || 0, total: liveStats.totalCandidates },
+            { label: 'Age', synced: liveStats.age?.reduce((s, d) => s + d.count, 0) || 0, total: liveStats.totalCandidates },
+          ].map(d => {
+            const pct = d.total > 0 ? Math.round((d.synced / d.total) * 100) : 0;
+            return (
+              <div key={d.label} className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400">{d.label}</span>
+                <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[10px] text-slate-500 tabular-nums">{pct}%</span>
+              </div>
+            );
+          })}
+          <span className="text-[10px] text-slate-600">Source: ECI Affidavit Portal</span>
+        </div>
+      )}
 
       {/* Pre-Poll Surveys (2026 only) */}
       {is2026 && !isPY && (

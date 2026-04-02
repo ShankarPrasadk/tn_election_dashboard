@@ -113,7 +113,7 @@ export default function MapPage() {
   // Load data
   useEffect(() => {
     if (isPY) {
-      setGeojson(null);
+      fetch('/data/py-constituencies.geojson').then(r => r.json()).then(setGeojson).catch(() => setGeojson(null));
     } else {
       fetch('/data/tn-constituencies.geojson').then(r => r.json()).then(setGeojson);
       fetch('/data/tn-voter-roll-2026.json').then(r => r.json()).then(setVoterData).catch(() => {});
@@ -275,7 +275,7 @@ export default function MapPage() {
     return geojson.features
       .filter(f => {
         const name = (f.properties?.AC_NAME || '').toLowerCase();
-        const district = (f.properties?.DIST_NAME || '').toLowerCase();
+        const district = (f.properties?.DIST_NAME || f.properties?.DISTRICT || '').toLowerCase();
         return name.includes(q) || district.includes(q);
       })
       .slice(0, 8);
@@ -411,8 +411,8 @@ export default function MapPage() {
         <div className="flex-1 glass rounded-xl overflow-hidden" style={{ minHeight: 500 }}>
           {geojson && (
             <MapContainer
-              center={[10.8, 78.8]}
-              zoom={7}
+              center={isPY ? [11.93, 79.83] : [10.8, 78.8]}
+              zoom={isPY ? 12 : 7}
               style={{ height: '70vh', minHeight: 500, width: '100%', background: '#0f172a' }}
               zoomControl={true}
               attributionControl={false}
@@ -423,7 +423,7 @@ export default function MapPage() {
               />
               <GeoJSON
                 ref={geoJsonRef}
-                key={`${year}-${colorMode}`}
+                key={`${stateCode}-${year}-${colorMode}`}
                 data={geojson}
                 style={style}
                 onEachFeature={onEachFeature}
