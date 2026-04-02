@@ -3,14 +3,14 @@ import { Newspaper, RefreshCw, Clock, ExternalLink, Filter, Tag, Timer, Tv, Play
 import { useElectionState } from '../context/StateContext';
 
 const YOUTUBE_CHANNELS = [
-  { name: 'Sun News', handle: 'SunNewsTV', channelId: 'UCYlh4lH762HvHt6mmiecyWQ', color: '#e11d48' },
-  { name: 'Thanthi TV', handle: 'ThanthiTV', channelId: 'UCFYqIFxANnSDsnz6qDH01Hw', color: '#f97316' },
-  { name: 'Puthiya Thalaimurai', handle: 'PuthiyaThalaimuraiTV', channelId: 'UCAW01Xupb-fd51o0BsQbcLQ', color: '#3b82f6' },
-  { name: 'Polimer News', handle: 'PolimerNews', channelId: 'UCFx1nseXSCbB0IOBOOzHrzQ', color: '#22c55e' },
-  { name: 'News7 Tamil', handle: 'News7Tamil', channelId: 'UC2f4w_ppqHplvjiNaoTAK9w', color: '#a855f7' },
-  { name: 'News18 Tamil Nadu', handle: 'News18TamilNadu', channelId: 'UCUI1bA3dnFUBnOMGpuYkOqg', color: '#ef4444' },
-  { name: 'Jaya Plus', handle: 'jayaboratplus', channelId: 'UCO2bblKBohgwppTBSjKMG-Q', color: '#eab308' },
-  { name: 'Kalaignar TV', handle: 'KalaignarTV', channelId: 'UC2RNgYNJEBJMgd3GsCaBl7w', color: '#dc2626' },
+  { name: 'Sun News', handle: 'SunNewsTV', channelId: 'UCYlh4lH762HvHt6mmiecyWQ', color: '#e11d48', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Sun_News_logo.png/200px-Sun_News_logo.png' },
+  { name: 'Thanthi TV', handle: 'ThanthiTV', channelId: 'UCFYqIFxANnSDsnz6qDH01Hw', color: '#f97316', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Thanthi_TV_logo.png/200px-Thanthi_TV_logo.png' },
+  { name: 'Puthiya Thalaimurai', handle: 'PuthiyaThalaimuraiTV', channelId: 'UCAW01Xupb-fd51o0BsQbcLQ', color: '#3b82f6', logo: 'https://upload.wikimedia.org/wikipedia/en/1/14/Puthiya_Thalaimurai_TV_logo.png' },
+  { name: 'Polimer News', handle: 'PolimerNews', channelId: 'UCFx1nseXSCbB0IOBOOzHrzQ', color: '#22c55e', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5b/Polimer_News_logo.png/200px-Polimer_News_logo.png' },
+  { name: 'News7 Tamil', handle: 'News7Tamil', channelId: 'UC2f4w_ppqHplvjiNaoTAK9w', color: '#a855f7', logo: 'https://upload.wikimedia.org/wikipedia/en/4/4f/News7_Tamil_logo.png' },
+  { name: 'News18 Tamil Nadu', handle: 'News18TamilNadu', channelId: 'UCUI1bA3dnFUBnOMGpuYkOqg', color: '#ef4444', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/News18_Tamil_Nadu_logo.svg/200px-News18_Tamil_Nadu_logo.svg.png' },
+  { name: 'Jaya Plus', handle: 'jayaboratplus', channelId: 'UCO2bblKBohgwppTBSjKMG-Q', color: '#eab308', logo: 'https://upload.wikimedia.org/wikipedia/en/4/4f/Jaya_Plus_logo.png' },
+  { name: 'Kalaignar TV', handle: 'KalaignarTV', channelId: 'UC2RNgYNJEBJMgd3GsCaBl7w', color: '#dc2626', logo: 'https://upload.wikimedia.org/wikipedia/en/5/5b/Kalaignar_TV_logo.png' },
 ];
 
 const CATEGORY_LABELS = {
@@ -281,10 +281,20 @@ export default function NewsPage() {
                 <div className="flex flex-col items-center gap-3">
                   <div className="relative">
                     <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl border-2 transition-colors"
-                      style={{ backgroundColor: ch.color + '30', borderColor: activeChannel?.channelId === ch.channelId ? '#ef4444' : ch.color + '60' }}
+                      className="w-16 h-16 rounded-full flex items-center justify-center border-2 transition-colors overflow-hidden bg-white"
+                      style={{ borderColor: activeChannel?.channelId === ch.channelId ? '#ef4444' : ch.color + '60' }}
                     >
-                      <Radio size={24} style={{ color: ch.color }} />
+                      <img
+                        src={ch.logo}
+                        alt={ch.name}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.classList.remove('bg-white');
+                          e.target.parentElement.style.backgroundColor = ch.color + '30';
+                          e.target.parentElement.innerHTML = `<span style="color:${ch.color}" class="font-bold text-xl">${ch.name.charAt(0)}</span>`;
+                        }}
+                      />
                     </div>
                     {activeChannel?.channelId === ch.channelId && (
                       <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
