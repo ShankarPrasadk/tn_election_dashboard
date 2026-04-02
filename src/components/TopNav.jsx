@@ -14,6 +14,7 @@ const PRIMARY_NAV = [
   { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
   { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
   { to: '/results', icon: Radio, i18nKey: 'nav.results' },
+  { to: '/stories', icon: BookOpen, i18nKey: 'nav.stories' },
   { to: '/map', icon: Map, i18nKey: 'nav.map' },
 ];
 
@@ -23,6 +24,7 @@ const ALL_NAV_GROUPS = [
     { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
     { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
     { to: '/results', icon: Radio, i18nKey: 'nav.results' },
+    { to: '/stories', icon: BookOpen, i18nKey: 'nav.stories' },
     { to: '/map', icon: Map, i18nKey: 'nav.map' },
   ]},
   { group: 'Data', items: [
