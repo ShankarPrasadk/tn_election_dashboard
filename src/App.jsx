@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
+import TopNav from './components/TopNav';
 import NewsTicker from './components/NewsTicker';
 import CookieConsent from './components/CookieConsent';
 import { I18nProvider } from './i18n';
@@ -52,9 +53,10 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <NewsTicker />
-      <div className="flex min-h-screen">
+      <TopNav />
+      <div className="flex">
         <Sidebar />
-        <main id="main-content" className="flex-1 p-4 lg:p-6 overflow-auto" role="main">
+        <main id="main-content" className="flex-1 p-4 lg:p-6 min-h-[calc(100vh-3.5rem)] overflow-auto" role="main">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />

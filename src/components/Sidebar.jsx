@@ -1,132 +1,79 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee, Vote } from 'lucide-react';
-import { useState } from 'react';
-import { LanguageToggle, useI18n } from '../i18n';
+import { Users, Scale, Building2, AlertTriangle, MessageCircleQuestion, MapPin, Award, IndianRupee, Vote } from 'lucide-react';
+import { useI18n } from '../i18n';
 import { useElectionState } from '../context/StateContext';
 
-const NAV_ITEMS = [
-  { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
-  { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
-  { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
-  { to: '/candidates', icon: Users, i18nKey: 'nav.candidates' },
-  { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
-  { to: '/results', icon: Radio, i18nKey: 'nav.results' },
-  { to: '/development', icon: Building2, i18nKey: 'nav.development' },
-  { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
-  { to: '/constituency', icon: MapPin, i18nKey: 'nav.constituency' },
-  { to: '/map', icon: Map, i18nKey: 'nav.map' },
-  { to: '/voters', icon: Vote, i18nKey: 'nav.voters' },
-  { to: '/comparison', icon: Scale, i18nKey: 'nav.compare' },
-  { to: '/mla-tracker', icon: Award, i18nKey: 'nav.mla' },
-  { to: '/finance', icon: IndianRupee, i18nKey: 'nav.finance' },
-  { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
+const SIDEBAR_GROUPS = [
+  { label: 'Data', items: [
+    { to: '/candidates', icon: Users, i18nKey: 'nav.candidates' },
+    { to: '/voters', icon: Vote, i18nKey: 'nav.voters' },
+    { to: '/constituency', icon: MapPin, i18nKey: 'nav.constituency' },
+  ]},
+  { label: 'Analysis', items: [
+    { to: '/comparison', icon: Scale, i18nKey: 'nav.compare' },
+    { to: '/mla-tracker', icon: Award, i18nKey: 'nav.mla' },
+    { to: '/finance', icon: IndianRupee, i18nKey: 'nav.finance' },
+    { to: '/development', icon: Building2, i18nKey: 'nav.development' },
+    { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
+  ]},
+  { label: 'Tools', items: [
+    { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
+  ]},
 ];
 
 export default function Sidebar() {
-  const [open, setOpen] = useState(false);
   const { t } = useI18n();
-  const { stateCode, config, switchState, states } = useElectionState();
+  const { config } = useElectionState();
 
   return (
-    <>
-      {/* Mobile toggle */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 glass rounded-xl p-2.5 text-slate-300 hover:text-white transition-colors"
-      >
-        {open ? <X size={20} /> : <Menu size={20} />}
-      </button>
+    <aside className="hidden lg:flex flex-col w-14 hover:w-52 group/sidebar transition-all duration-300 ease-out bg-[#080c16]/60 backdrop-blur-xl border-r border-white/[0.04] overflow-hidden flex-shrink-0 sticky top-14 h-[calc(100vh-3.5rem)]">
+      {/* Ambient glow */}
+      <div className="absolute top-0 left-0 w-20 h-20 bg-amber-500/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-60
-        bg-[#080c16]/90 backdrop-blur-xl border-r border-white/[0.04]
-        transform transition-transform duration-300 ease-out
-        ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Ambient glow */}
-        <div className="absolute top-0 left-0 w-40 h-40 bg-amber-500/[0.04] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="p-4 border-b border-white/[0.04]">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <img src={config.emblem} alt={`${config.name} Election Commission`} className="w-9 h-9 flex-shrink-0 object-contain" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full pulse-dot" />
-            </div>
-            <h1 className="text-lg font-bold text-white tracking-tight">
-              <span className="text-amber-400">{config.shortName === 'Pondy' ? 'PY' : config.code}</span> Election
-              <span className="block text-[10px] font-normal text-slate-500 mt-0.5 tracking-wide">
-                Dashboard • {config.yearRange}
-              </span>
-            </h1>
-          </div>
-
-          {/* State Switcher */}
-          <div className="mt-3 flex glass rounded-lg p-0.5">
-            {Object.values(states).map((s) => (
-              <button
-                key={s.code}
-                onClick={() => switchState(s.code)}
-                className={`flex-1 text-[11px] font-semibold py-1.5 rounded-md transition-all duration-200 ${
-                  stateCode === s.code
-                    ? 'bg-amber-500/20 text-amber-400 shadow-sm shadow-amber-500/20'
-                    : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {s.code === 'TN' ? 'Tamil Nadu' : 'Puducherry'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <nav aria-label="Main navigation" className="p-3 space-y-0.5 overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(100vh - 180px)' }}>
-          {NAV_ITEMS.map(({ to, icon: Icon, i18nKey }) => (
-            <NavLink
-              key={to}
-              to={to}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => `
-                flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 relative group
-                ${isActive
-                  ? 'bg-amber-500/[0.08] text-amber-400'
-                  : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+      <nav className="flex-1 py-3 space-y-3 overflow-y-auto custom-scrollbar" aria-label="Secondary navigation">
+        {SIDEBAR_GROUPS.map(({ label, items }) => (
+          <div key={label}>
+            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-600 px-4 mb-1.5 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 whitespace-nowrap">{label}</p>
+            <div className="space-y-0.5 px-2">
+              {items.map(({ to, icon: Icon, i18nKey }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  title={t(i18nKey)}
+                  className={({ isActive }) => `
+                    flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 relative group/item whitespace-nowrap overflow-hidden
+                    ${isActive
+                      ? 'bg-amber-500/[0.08] text-amber-400'
+                      : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.04]'}
+                  `}
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                      )}
+                      <Icon size={16} className={`flex-shrink-0 ${isActive ? 'text-amber-400' : 'text-slate-600 group-hover/item:text-slate-400'}`} />
+                      <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">{t(i18nKey)}</span>
+                    </>
                   )}
-                  <Icon size={16} className={isActive ? 'text-amber-400' : 'text-slate-600 group-hover:text-slate-400'} />
-                  {t(i18nKey)}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/[0.04] bg-[#080c16]/80 backdrop-blur-sm">
-          <div className="flex justify-center mb-2">
-            <LanguageToggle />
-          </div>
-          <div className="flex justify-center gap-3 mb-1.5">
-            <NavLink to="/about" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">About</NavLink>
-            <NavLink to="/privacy" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">Privacy</NavLink>
-            <NavLink to="/terms" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">Terms</NavLink>
-          </div>
-          <p className="text-[10px] text-slate-600 text-center">
-            <a href={config.electionCommissionURL} target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">{config.electionCommissionName}</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">ECI</a> · myneta.info
-          </p>
+      {/* Footer */}
+      <div className="p-2 border-t border-white/[0.04] opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+        <div className="flex justify-center gap-2 text-[10px]">
+          <NavLink to="/about" className="text-slate-600 hover:text-amber-400 transition-colors">About</NavLink>
+          <NavLink to="/privacy" className="text-slate-600 hover:text-amber-400 transition-colors">Privacy</NavLink>
+          <NavLink to="/terms" className="text-slate-600 hover:text-amber-400 transition-colors">Terms</NavLink>
         </div>
-      </aside>
-
-      {/* Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-    </>
+        <p className="text-[9px] text-slate-700 text-center mt-1 whitespace-nowrap overflow-hidden">
+          <a href={config.electionCommissionURL} target="_blank" rel="noopener noreferrer" className="text-amber-500/40 hover:text-amber-400">{config.electionCommissionName}</a>
+        </p>
+      </div>
+    </aside>
   );
 }
