@@ -10,6 +10,8 @@ import {
   HISTORICAL_TURNOUT, CM_TIMELINE, ANTI_INCUMBENCY, PARTY_EVOLUTION
 } from '../data/historicalElections';
 import PartySymbolIcon from '../components/PartySymbolIcon';
+import SwingAnalysis from '../components/SwingAnalysis';
+import { ExportDropdown } from '../components/DataExport';
 
 // ─── Constants ────────────────────────────────────────────────
 
@@ -435,13 +437,20 @@ export default function TrendsPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="space-y-4">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
-            74 Years of Tamil Nadu Elections
-          </h1>
-          <p className="text-slate-400 mt-1">
-            Complete electoral history from 1952 to 2026 — {HISTORICAL_ELECTIONS.length} elections, 13 Chief Ministers, 3 political eras
-          </p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight">
+              74 Years of Tamil Nadu Elections
+            </h1>
+            <p className="text-slate-400 mt-1">
+              Complete electoral history from 1952 to 2026 — {HISTORICAL_ELECTIONS.length} elections, 13 Chief Ministers, 3 political eras
+            </p>
+          </div>
+          <ExportDropdown
+            data={HISTORICAL_ELECTIONS}
+            filename="tn-historical-elections"
+            label="Export"
+          />
         </div>
         <HeroStats />
       </div>
@@ -813,6 +822,9 @@ export default function TrendsPage() {
           </div>
         </div>
       )}
+
+      {/* Swing Analysis */}
+      <SwingAnalysis />
 
       {/* Footer attribution & Legal Disclaimer */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 space-y-4">

@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import NewsTicker from './components/NewsTicker';
 import CookieConsent from './components/CookieConsent';
+import { I18nProvider } from './i18n';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const CandidatesPage = lazy(() => import('./pages/CandidatesPage'));
@@ -20,6 +21,11 @@ const NewsPage = lazy(() => import('./pages/NewsPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ForecastPage = lazy(() => import('./pages/ForecastPage'));
+const LiveResultsPage = lazy(() => import('./pages/LiveResultsPage'));
+const MLATrackerPage = lazy(() => import('./pages/MLATrackerPage'));
+const CampaignFinancePage = lazy(() => import('./pages/CampaignFinancePage'));
+const EmbedPage = lazy(() => import('./pages/EmbedPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -37,12 +43,13 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <I18nProvider>
     <BrowserRouter>
       <ScrollToTop />
       <NewsTicker />
       <div className="flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <main id="main-content" className="flex-1 p-4 lg:p-8 overflow-auto" role="main">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
@@ -56,6 +63,11 @@ export default function App() {
               <Route path="/map" element={<MapPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/ask" element={<AskPage />} />
+              <Route path="/forecast" element={<ForecastPage />} />
+              <Route path="/results" element={<LiveResultsPage />} />
+              <Route path="/mla-tracker" element={<MLATrackerPage />} />
+              <Route path="/finance" element={<CampaignFinancePage />} />
+              <Route path="/embed" element={<EmbedPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/about" element={<AboutPage />} />
@@ -66,5 +78,6 @@ export default function App() {
       <CookieConsent />
       <Analytics />
     </BrowserRouter>
+    </I18nProvider>
   );
 }

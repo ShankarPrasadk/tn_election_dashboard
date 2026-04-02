@@ -1,18 +1,24 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper } from 'lucide-react';
+import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee, Code } from 'lucide-react';
 import { useState } from 'react';
+import { LanguageToggle } from '../i18n';
 
 const NAV_ITEMS = [
   { to: '/', icon: BarChart3, label: 'Dashboard' },
+  { to: '/forecast', icon: Target, label: 'Forecast' },
   { to: '/trends', icon: TrendingUp, label: 'Trends (1952–2026)' },
   { to: '/candidates', icon: Users, label: 'Candidates' },
   { to: '/news', icon: Newspaper, label: 'Live News' },
+  { to: '/results', icon: Radio, label: 'Live Results' },
   { to: '/development', icon: Building2, label: 'Development' },
   { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
   { to: '/constituency', icon: MapPin, label: 'My Constituency' },
   { to: '/map', icon: Map, label: 'Map' },
   { to: '/comparison', icon: Scale, label: 'Compare' },
+  { to: '/mla-tracker', icon: Award, label: 'MLA Tracker' },
+  { to: '/finance', icon: IndianRupee, label: 'Campaign Finance' },
   { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
+  { to: '/embed', icon: Code, label: 'Embed' },
 ];
 
 export default function Sidebar() {
@@ -46,7 +52,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav aria-label="Main navigation" className="p-4 space-y-1">
           {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
@@ -66,6 +72,9 @@ export default function Sidebar() {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
+          <div className="flex justify-center mb-2">
+            <LanguageToggle />
+          </div>
           <div className="flex justify-center gap-3 mb-2">
             <NavLink to="/about" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">About</NavLink>
             <NavLink to="/privacy" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">Privacy</NavLink>

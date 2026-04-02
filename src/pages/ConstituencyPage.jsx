@@ -1,10 +1,13 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Search, MapPin, Users, ChevronRight } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { Search, MapPin, Users, ChevronRight, Star, StarOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PartyBadge } from '../components/UIComponents';
 import { CANDIDATES_2026 } from '../data/candidates2026';
 import { loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
+import { ConstituencyCard } from '../components/ConstituencyCard';
+import { ExportDropdown, exportCSV } from '../components/DataExport';
+import VoterCheckWidget from '../components/VoterCheckWidget';
 
 const PARTY_ORDER = ['DMK', 'AIADMK', 'BJP', 'NTK', 'TVK', 'INC', 'PMK', 'AMMK', 'CPI', 'CPI(M)', 'VCK', 'DMDK', 'MDMK', 'IUML'];
 
@@ -12,6 +15,16 @@ export default function ConstituencyPage() {
   const [search, setSearch] = useState('');
   const [districtFilter, setDistrictFilter] = useState('All');
   const [directoryIds, setDirectoryIds] = useState(new Set());
+  const [savedConstituency, setSavedConstituency] = useState(() => {
+    try { return localStorage.getItem('tn-my-constituency') || ''; } catch { return ''; }
+  });
+  const [shareCard, setShareCard] = useState(null);
+
+  const handleSave = useCallback((name) => {
+    const next = savedConstituency === name ? '' : name;
+    setSavedConstituency(next);
+    try { localStorage.setItem('tn-my-constituency', next); } catch {}
+  }, [savedConstituency]);
 
   useEffect(() => {
     loadCandidateDirectory().then((dir) => {
@@ -53,6 +66,19 @@ export default function ConstituencyPage() {
         </p>
       </div>
 
+      {/* Saved Constituency Banner */}
+      {savedConstituency && (() => {
+        const saved = CANDIDATES_2026.find((s) => s.constituency === savedConstituency);
+        return saved ? (
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+            <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-1">⭐ Your Constituency</p>
+            <ConstituencyCard constituency={saved.constituency} candidates={saved.candidates} district={saved.district} no={saved.no} />
+          </div>
+        ) : null;
+      })()}
+
+      <VoterCheckWidget />
+
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -76,7 +102,13 @@ export default function ConstituencyPage() {
         </select>
       </div>
 
-      <p className="text-xs text-slate-500">{filtered.length} of {CANDIDATES_2026.length} constituencies</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-500">{filtered.length} of {CANDIDATES_2026.length} constituencies</p>
+        <ExportDropdown
+          data={filtered.map((s) => ({ no: s.no, constituency: s.constituency, district: s.district, reserved: s.reserved || '', ...s.candidates }))}
+          filename="tn-2026-constituencies"
+        />
+      </div>
 
       {/* Constituency Cards */}
       <div className="space-y-4">
@@ -97,9 +129,26 @@ export default function ConstituencyPage() {
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">{seat.district} District</p>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Users size={14} />
-                  {parties.length} candidates
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <Users size={14} />
+                    {parties.length} candidates
+                  </div>
+                  <button
+                    onClick={() => handleSave(seat.constituency)}
+                    className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+                    title={savedConstituency === seat.constituency ? 'Remove from saved' : 'Set as My Constituency'}
+                  >
+                    {savedConstituency === seat.constituency
+                      ? <Star size={16} className="text-amber-400 fill-amber-400" />
+                      : <StarOff size={16} className="text-slate-600 hover:text-amber-400" />}
+                  </button>
+                  <button
+                    onClick={() => setShareCard(shareCard === seat.no ? null : seat.no)}
+                    className="px-2 py-1 rounded-lg text-[10px] text-slate-400 hover:text-white bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
+                  >
+                    Share
+                  </button>
                 </div>
               </div>
 
@@ -135,6 +184,11 @@ export default function ConstituencyPage() {
                     </div>
                   ))}
               </div>
+              {shareCard === seat.no && (
+                <div className="mt-3">
+                  <ConstituencyCard constituency={seat.constituency} candidates={seat.candidates} district={seat.district} no={seat.no} />
+                </div>
+              )}
             </div>
           );
         })}

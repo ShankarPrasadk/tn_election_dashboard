@@ -9,6 +9,7 @@ import { CANDIDATES_2026, ALLIANCE_2026, VOTER_STATS_2026 } from '../data/candid
 import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfiles';
 import { getCandidateRouteId, loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
+import { ExportDropdown } from '../components/DataExport';
 
 const SPA_PARTIES = ['DMK', 'INC', 'VCK', 'CPI', 'CPI(M)', 'DMDK', 'MDMK', 'IUML'];
 const NDA_PARTIES = ['AIADMK', 'BJP', 'PMK', 'AMMK'];
@@ -135,6 +136,11 @@ export default function CandidatesPage() {
             <Users size={14} className="inline mr-1.5" />
             2006-2021 Directory
           </button>
+          <ExportDropdown
+            data={viewMode === '2026' ? CANDIDATES_2026 : filteredHistorical}
+            filename={viewMode === '2026' ? 'tn-candidates-2026' : 'tn-candidates-historical'}
+            label="Export"
+          />
         </div>
       </div>
 
