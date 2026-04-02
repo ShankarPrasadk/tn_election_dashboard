@@ -142,6 +142,12 @@ export const PY_OPINION_POLLS_2026 = [
     seats: { NDA: '16-20', SPA: '8-12', TVK: '0-2', Others: '0-2' },
     voteShare: { NDA: '42%', SPA: '35%', TVK: '12%', Others: '11%' },
     source: 'Puducherry Today',
+    projections: {
+      'NDA (AINRC+BJP)': { min: 16, max: 20, color: '#059669' },
+      'INDIA (INC+DMK)': { min: 8, max: 12, color: '#3b82f6' },
+      'TVK': { min: 0, max: 2, color: '#0284c7' },
+      'Others': { min: 0, max: 2, color: '#94a3b8' },
+    },
   },
   {
     agency: 'South India Pulse',
@@ -151,6 +157,12 @@ export const PY_OPINION_POLLS_2026 = [
     seats: { NDA: '14-18', SPA: '10-14', TVK: '0-2', Others: '0-2' },
     voteShare: { NDA: '39%', SPA: '37%', TVK: '14%', Others: '10%' },
     source: 'South India Pulse',
+    projections: {
+      'NDA (AINRC+BJP)': { min: 14, max: 18, color: '#059669' },
+      'INDIA (INC+DMK)': { min: 10, max: 14, color: '#3b82f6' },
+      'TVK': { min: 0, max: 2, color: '#0284c7' },
+      'Others': { min: 0, max: 2, color: '#94a3b8' },
+    },
   },
 ];
 
