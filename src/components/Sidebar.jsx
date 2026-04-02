@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee } from 'lucide-react';
+import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee, Vote } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageToggle, useI18n } from '../i18n';
 import { useElectionState } from '../context/StateContext';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
   { to: '/constituency', icon: MapPin, i18nKey: 'nav.constituency' },
   { to: '/map', icon: Map, i18nKey: 'nav.map' },
+  { to: '/voters', icon: Vote, i18nKey: 'nav.voters' },
   { to: '/comparison', icon: Scale, i18nKey: 'nav.compare' },
   { to: '/mla-tracker', icon: Award, i18nKey: 'nav.mla' },
   { to: '/finance', icon: IndianRupee, i18nKey: 'nav.finance' },

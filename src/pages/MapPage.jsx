@@ -103,18 +103,20 @@ export default function MapPage() {
   const [year, setYear] = useState(2021);
   const [geojson, setGeojson] = useState(null);
   const [electionData, setElectionData] = useState(null);
+  const [voterData, setVoterData] = useState(null);
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedBounds, setSelectedBounds] = useState(null);
+  const [colorMode, setColorMode] = useState('party'); // 'party' | 'voters'
   const geoJsonRef = useRef(null);
 
   // Load data
   useEffect(() => {
     if (isPY) {
-      // No PY GeoJSON available yet
       setGeojson(null);
     } else {
       fetch('/data/tn-constituencies.geojson').then(r => r.json()).then(setGeojson);
+      fetch('/data/tn-voter-roll-2026.json').then(r => r.json()).then(setVoterData).catch(() => {});
     }
   }, [stateCode]);
 
@@ -162,6 +164,30 @@ export default function MapPage() {
     return map;
   }, [electionData]);
 
+  // Voter data lookup by constituency number
+  const voterLookup = useMemo(() => {
+    if (!voterData?.constituencies) return new Map();
+    const map = new Map();
+    voterData.constituencies.forEach(c => map.set(c.no, c));
+    return map;
+  }, [voterData]);
+
+  // Voter density range for choropleth
+  const voterRange = useMemo(() => {
+    if (!voterData?.constituencies?.length) return { min: 100000, max: 700000 };
+    const voters = voterData.constituencies.map(c => c.totalVoters);
+    return { min: Math.min(...voters), max: Math.max(...voters) };
+  }, [voterData]);
+
+  function getVoterColor(totalVoters) {
+    const t = Math.max(0, Math.min(1, (totalVoters - voterRange.min) / (voterRange.max - voterRange.min)));
+    // Blue gradient: light → dark
+    const r = Math.round(30 + (1 - t) * 170);
+    const g = Math.round(60 + (1 - t) * 130);
+    const b = Math.round(120 + t * 135);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
   // GeoJSON AC_NO → election name for features with duplicate polygon names
   const AC_NO_MAP = {
     140: 'TIRUCHIRAPALLI WEST',
@@ -171,7 +197,6 @@ export default function MapPage() {
   // Match GeoJSON feature → election data
   function getFeatureResult(feature) {
     const acNo = feature.properties?.AC_NO;
-    // First try AC_NO-based mapping for known duplicates
     if (AC_NO_MAP[acNo]) {
       return resultLookup.get(AC_NO_MAP[acNo]) || null;
     }
@@ -186,10 +211,23 @@ export default function MapPage() {
 
   // Style each constituency polygon
   function style(feature) {
+    const isSelected = selected?.properties?.AC_NO === feature.properties?.AC_NO;
+    const acNo = feature.properties?.AC_NO;
+
+    if (colorMode === 'voters') {
+      const voter = voterLookup.get(acNo);
+      const color = voter ? getVoterColor(voter.totalVoters) : '#374151';
+      return {
+        fillColor: color,
+        fillOpacity: isSelected ? 0.95 : 0.75,
+        color: isSelected ? '#fff' : '#0f172a',
+        weight: isSelected ? 3 : 0.8,
+      };
+    }
+
     const result = getFeatureResult(feature);
     const winner = getWinner(result);
     const color = winner ? getPartyColor(winner.party) : '#374151';
-    const isSelected = selected?.properties?.AC_NO === feature.properties?.AC_NO;
 
     return {
       fillColor: color,
@@ -201,11 +239,18 @@ export default function MapPage() {
 
   // Event handlers
   function onEachFeature(feature, layer) {
-    // Add hover tooltip with constituency name
     const name = feature.properties?.AC_NAME || '';
+    const acNo = feature.properties?.AC_NO;
     const result = getFeatureResult(feature);
     const winner = getWinner(result);
-    const tip = winner ? `${name} — ${winner.party}` : name;
+    const voter = voterLookup.get(acNo);
+
+    let tip;
+    if (colorMode === 'voters' && voter) {
+      tip = `${name} — ${voter.totalVoters.toLocaleString('en-IN')} voters`;
+    } else {
+      tip = winner ? `${name} — ${winner.party}` : name;
+    }
     layer.bindTooltip(tip, { sticky: true, className: 'map-tooltip', direction: 'top', offset: [0, -10] });
 
     layer.on({
@@ -288,19 +333,37 @@ export default function MapPage() {
           <p className="text-slate-400 text-sm mt-1">Interactive map of {config.name}'s {config.totalSeats} assembly constituencies</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <select
-              value={year}
-              onChange={e => setYear(Number(e.target.value))}
-              className="appearance-none bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Color mode toggle */}
+          <div className="flex glass rounded-lg p-0.5">
+            <button
+              onClick={() => setColorMode('party')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${colorMode === 'party' ? 'bg-amber-500/20 text-amber-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              {YEAR_OPTIONS.map(y => (
-                <option key={y} value={y}>{y} Election</option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              Party
+            </button>
+            <button
+              onClick={() => setColorMode('voters')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${colorMode === 'voters' ? 'bg-cyan-500/20 text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              Voters
+            </button>
           </div>
+
+          {colorMode === 'party' && (
+            <div className="relative">
+              <select
+                value={year}
+                onChange={e => setYear(Number(e.target.value))}
+                className="appearance-none bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+              >
+                {YEAR_OPTIONS.map(y => (
+                  <option key={y} value={y}>{y} Election</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          )}
 
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -314,19 +377,26 @@ export default function MapPage() {
             {filteredFeatures.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-[1000] max-h-60 overflow-y-auto">
                 {filteredFeatures.map(f => {
+                  const acNo = f.properties.AC_NO;
                   const result = getFeatureResult(f);
                   const winner = getWinner(result);
+                  const voter = voterLookup.get(acNo);
                   return (
                     <button
-                      key={f.properties.AC_NO}
+                      key={acNo}
                       onClick={() => handleSelectFromSearch(f)}
                       className="w-full text-left px-3 py-2 hover:bg-slate-700 text-sm flex items-center gap-2"
                     >
-                      {winner && (
+                      {colorMode === 'party' && winner && (
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getPartyColor(winner.party) }} />
                       )}
+                      {colorMode === 'voters' && (
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: voter ? getVoterColor(voter.totalVoters) : '#374151' }} />
+                      )}
                       <span className="text-white">{f.properties.AC_NAME}</span>
-                      <span className="text-slate-500 text-xs ml-auto">{f.properties.DIST_NAME}</span>
+                      <span className="text-slate-500 text-xs ml-auto">
+                        {colorMode === 'voters' && voter ? voter.totalVoters.toLocaleString('en-IN') : f.properties.DIST_NAME}
+                      </span>
                     </button>
                   );
                 })}
@@ -353,7 +423,7 @@ export default function MapPage() {
               />
               <GeoJSON
                 ref={geoJsonRef}
-                key={year}
+                key={`${year}-${colorMode}`}
                 data={geojson}
                 style={style}
                 onEachFeature={onEachFeature}
@@ -365,7 +435,7 @@ export default function MapPage() {
 
         {/* Info Panel */}
         <div className="w-full lg:w-80 space-y-4">
-          {selected && selectedResult ? (
+          {selected ? (
             <>
               <div className="glass rounded-xl p-4">
                 <div className="flex items-center justify-between mb-1">
@@ -374,13 +444,41 @@ export default function MapPage() {
                     <X size={16} />
                   </button>
                 </div>
-                <p className="text-slate-400 text-sm">{selected.properties.DIST_NAME} District • {selectedResult.type === 'SC' ? 'SC Reserved' : selectedResult.type === 'ST' ? 'ST Reserved' : 'General'}</p>
+                <p className="text-slate-400 text-sm">{selected.properties.DIST_NAME} District • {selectedResult?.type === 'SC' ? 'SC Reserved' : selectedResult?.type === 'ST' ? 'ST Reserved' : 'General'}</p>
 
-                {selectedWinner && (
+                {/* Voter Data Card */}
+                {(() => {
+                  const voter = voterLookup.get(selected.properties?.AC_NO);
+                  return voter ? (
+                    <div className="mt-3 p-3 rounded-lg bg-cyan-500/[0.06] border border-cyan-500/10">
+                      <p className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold mb-2">2026 Electoral Roll</p>
+                      <p className="text-xl font-bold text-white tabular-nums">{voter.totalVoters.toLocaleString('en-IN')}</p>
+                      <p className="text-[10px] text-slate-500 mb-2">registered voters</p>
+                      <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500/80 to-blue-500" style={{ width: `${100 - voter.femalePercent}%` }} />
+                        <div className="absolute inset-y-0 right-0 rounded-full bg-gradient-to-l from-pink-500/80 to-pink-500" style={{ width: `${voter.femalePercent}%` }} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-blue-400 font-medium">Male</p>
+                          <p className="text-white font-semibold tabular-nums">{voter.maleVoters.toLocaleString('en-IN')}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-pink-400 font-medium">Female</p>
+                          <p className="text-white font-semibold tabular-nums">{voter.femaleVoters.toLocaleString('en-IN')}</p>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-1">{voter.femalePercent}% female • {voter.thirdGender} third gender</p>
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* Election Winner */}
+                {selectedResult && selectedWinner && (
                   <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: `${getPartyColor(selectedWinner.party)}15`, borderLeft: `3px solid ${getPartyColor(selectedWinner.party)}` }}>
                     <div className="flex items-center gap-2">
                       <Trophy size={14} className="text-amber-400" />
-                      <span className="text-xs text-slate-400 uppercase font-medium">Winner</span>
+                      <span className="text-xs text-slate-400 uppercase font-medium">Winner ({year})</span>
                     </div>
                     <p className="text-white font-semibold mt-1">{selectedWinner.name}</p>
                     <div className="flex items-center gap-2 mt-1">
@@ -395,23 +493,26 @@ export default function MapPage() {
                   </div>
                 )}
 
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                  <div className="glass rounded-lg p-2 text-center">
-                    <Vote size={14} className="mx-auto text-blue-400 mb-1" />
-                    <p className="text-white font-semibold">{selectedResult.turnout_percent}%</p>
-                    <p className="text-slate-500 text-xs">Turnout</p>
+                {selectedResult && (
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="glass rounded-lg p-2 text-center">
+                      <Vote size={14} className="mx-auto text-blue-400 mb-1" />
+                      <p className="text-white font-semibold">{selectedResult.turnout_percent}%</p>
+                      <p className="text-slate-500 text-xs">Turnout</p>
+                    </div>
+                    <div className="glass rounded-lg p-2 text-center">
+                      <Users size={14} className="mx-auto text-purple-400 mb-1" />
+                      <p className="text-white font-semibold">{selectedResult.num_candidates}</p>
+                      <p className="text-slate-500 text-xs">Candidates</p>
+                    </div>
                   </div>
-                  <div className="glass rounded-lg p-2 text-center">
-                    <Users size={14} className="mx-auto text-purple-400 mb-1" />
-                    <p className="text-white font-semibold">{selectedResult.num_candidates}</p>
-                    <p className="text-slate-500 text-xs">Candidates</p>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* All candidates */}
+              {selectedResult && (
               <div className="glass rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-slate-300 mb-3">All Candidates</h3>
+                <h3 className="text-sm font-semibold text-slate-300 mb-3">All Candidates ({year})</h3>
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {selectedResult.candidates
                     .filter(c => c.party !== 'NOTA')
@@ -436,29 +537,63 @@ export default function MapPage() {
                   ))}
                 </div>
               </div>
+              )}
             </>
           ) : (
             <div className="glass rounded-xl p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
                 <Search size={20} className="text-slate-500" />
               </div>
-              <p className="text-slate-400 text-sm">Click on a constituency or search to view election results</p>
+              <p className="text-slate-400 text-sm">Click on a constituency or search to view {colorMode === 'voters' ? 'voter data' : 'election results'}</p>
             </div>
           )}
 
-          {/* Always-visible legend & results summary */}
+          {/* Legend */}
           <div className="glass rounded-xl p-4">
-            <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
-            <div className="grid grid-cols-2 gap-1">
-              {(isPY ? ['AINRC', 'BJP', 'INC', 'DMK', 'AIADMK', 'IND'] : ['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND']).map(p => (
-                <div key={p} className="flex items-center gap-2 text-xs">
-                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(p) }} />
-                  <span className="text-slate-400">{p}</span>
+            {colorMode === 'voters' ? (
+              <>
+                <p className="text-xs text-slate-500 uppercase font-medium mb-3">Voter Density</p>
+                <div className="h-3 rounded-full overflow-hidden mb-2" style={{
+                  background: `linear-gradient(90deg, ${getVoterColor(voterRange.min)}, ${getVoterColor((voterRange.min + voterRange.max) / 2)}, ${getVoterColor(voterRange.max)})`,
+                }} />
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>{Math.round(voterRange.min / 1000)}K</span>
+                  <span>Registered Voters</span>
+                  <span>{Math.round(voterRange.max / 1000)}K</span>
                 </div>
-              ))}
-            </div>
+                {voterData && (
+                  <div className="mt-4 space-y-1.5">
+                    <p className="text-[10px] text-slate-500 uppercase font-medium">State Summary</p>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400">Total Voters</span>
+                      <span className="text-white font-medium">{(voterData.totalVoters / 10000000).toFixed(2)} Cr</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-blue-400">Male</span>
+                      <span className="text-white font-medium">{(voterData.maleVoters / 10000000).toFixed(2)} Cr</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-pink-400">Female</span>
+                      <span className="text-white font-medium">{(voterData.femaleVoters / 10000000).toFixed(2)} Cr</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {(isPY ? ['AINRC', 'BJP', 'INC', 'DMK', 'AIADMK', 'IND'] : ['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND']).map(p => (
+                    <div key={p} className="flex items-center gap-2 text-xs">
+                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: getPartyColor(p) }} />
+                      <span className="text-slate-400">{p}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
-            {partyWins.length > 0 && (
+            {colorMode === 'party' && partyWins.length > 0 && (
               <>
                 <p className="text-xs text-slate-500 uppercase font-medium mt-4 mb-2">{year} Seats Won</p>
                 {partyWins.slice(0, 10).map(([party, seats]) => (
