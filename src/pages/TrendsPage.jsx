@@ -34,6 +34,20 @@ const CM_PARTY_COLORS = {
   AIADMK: PARTY_COLORS.AIADMK,
 };
 
+const CM_PHOTOS = {
+  'C. Rajagopalachari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/C._Rajagopalachari_1948.jpg/220px-C._Rajagopalachari_1948.jpg',
+  'K. Kamaraj': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Kamaraj_portrait_%28cropped%29.jpg/220px-Kamaraj_portrait_%28cropped%29.jpg',
+  'M. Bhaktavatsalam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/M._Bhakthavatsalam.jpg/220px-M._Bhakthavatsalam.jpg',
+  'C.N. Annadurai': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/CN_Annadurai.jpg/220px-CN_Annadurai.jpg',
+  'M. Karunanidhi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Karunanidhi_in_the_1940s.jpg/220px-Karunanidhi_in_the_1940s.jpg',
+  'M.G. Ramachandran': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/M.G._Ramachandran_%28headshot%29.jpg/220px-M.G._Ramachandran_%28headshot%29.jpg',
+  'V.R. Janaki': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Janaki_amma.jpg/220px-Janaki_amma.jpg',
+  'J. Jayalalithaa': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/J_Jayalalithaa.jpg/220px-J_Jayalalithaa.jpg',
+  'O. Panneerselvam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/O._Panneerselvam.jpg/220px-O._Panneerselvam.jpg',
+  'Edappadi K. Palaniswami': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Palanisamy.jpg/220px-Palanisamy.jpg',
+  'M.K. Stalin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg/220px-The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg',
+};
+
 // ─── Tooltip ──────────────────────────────────────────────────
 
 const ChartTooltip = ({ active, payload, label }) => {
@@ -235,7 +249,10 @@ function ElectionTimeline({ elections }) {
                   {/* Stats row */}
                   {!isUpcoming && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-700/30">
-                      <div className="text-center">
+                      <div className="text-center flex flex-col items-center">
+                        {CM_PHOTOS[e.chiefMinister] && (
+                          <img src={CM_PHOTOS[e.chiefMinister]} alt={e.chiefMinister} className="w-8 h-8 rounded-full object-cover mb-1 ring-1 ring-slate-600" />
+                        )}
                         <p className="text-lg font-bold text-white">{e.chiefMinister?.split(' ').pop()}</p>
                         <p className="text-[10px] text-slate-500">Chief Minister</p>
                       </div>
@@ -302,8 +319,20 @@ function CMVisualTimeline() {
             }}
           >
             <div className="flex items-center gap-3 px-4 py-3">
-              {/* Color indicator */}
-              <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+              {/* CM Photo */}
+              <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden ring-2" style={{ ringColor: color, boxShadow: `0 0 0 2px ${color}` }}>
+                {CM_PHOTOS[cm.cm] ? (
+                  <img
+                    src={CM_PHOTOS[cm.cm]}
+                    alt={cm.cm}
+                    className="w-full h-full object-cover"
+                    onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                  />
+                ) : null}
+                <div className={`w-full h-full items-center justify-center text-sm font-bold text-white ${CM_PHOTOS[cm.cm] ? 'hidden' : 'flex'}`} style={{ backgroundColor: color }}>
+                  {cm.cm.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                </div>
+              </div>
               {/* Name & party */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white">{cm.cm}</p>
