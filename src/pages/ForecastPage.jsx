@@ -5,6 +5,7 @@ import { generateForecast, FORECAST_ALLIANCE_COLORS, FORECAST_ALLIANCE_LABELS } 
 import { OPINION_POLLS_2026 } from '../data/candidates2026';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
+import { useI18n } from '../i18n';
 
 function ProbabilityMeter({ label, percent, color }) {
   return (
@@ -56,6 +57,7 @@ function SeatRangeBar({ alliance, data, color, majorityMark, totalSeats }) {
 
 export default function ForecastPage() {
   const [showMethodology, setShowMethodology] = useState(false);
+  const { t } = useI18n();
   const result = useMemo(() => generateForecast(), []);
   const { forecast, winProbability, antiIncumbencyRate, majorityMark, totalSeats, pollsUsed } = result;
 
@@ -85,7 +87,7 @@ export default function ForecastPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <TrendingUp className="text-amber-400" /> 2026 Election Forecast
+          <TrendingUp className="text-amber-400" /> {t('forecast.title')}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
           Seat projection based on {pollsUsed} opinion polls · Majority mark: {majorityMark} seats
@@ -95,7 +97,7 @@ export default function ForecastPage() {
       {/* Headline Card */}
       <div className="bg-gradient-to-r from-slate-800/80 to-slate-800/40 rounded-xl p-6 border border-slate-700/50">
         <div className="text-center">
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Projected Winner</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">{t('forecast.projectedWinner')}</p>
           <p className="text-4xl font-bold mb-1" style={{ color: leaderColor }}>
             {FORECAST_ALLIANCE_LABELS[leader].split(' (')[0]}
           </p>
@@ -111,7 +113,7 @@ export default function ForecastPage() {
       {/* Win Probability */}
       <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
         <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-          <BarChart3 className="text-amber-400" size={16} /> Win Probability
+          <BarChart3 className="text-amber-400" size={16} /> {t('forecast.winProbability')}
         </h3>
         <div className="space-y-3">
           <ProbabilityMeter label="DMK Alliance (SPA)" percent={winProbability.SPA} color={FORECAST_ALLIANCE_COLORS.SPA} />
@@ -124,7 +126,7 @@ export default function ForecastPage() {
 
       {/* Seat Range Visualization */}
       <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-        <h3 className="text-sm font-semibold text-white mb-4">Projected Seat Ranges</h3>
+        <h3 className="text-sm font-semibold text-white mb-4">{t('forecast.projectedSeatRanges')}</h3>
         <div className="space-y-5">
           {Object.entries(forecast).map(([key, data]) => (
             <SeatRangeBar key={key} alliance={key} data={data} color={FORECAST_ALLIANCE_COLORS[key]} majorityMark={majorityMark} totalSeats={totalSeats} />
@@ -153,7 +155,7 @@ export default function ForecastPage() {
         </div>
 
         <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-          <h3 className="text-sm font-semibold text-white mb-3">Projected Seat Share</h3>
+          <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.projectedSeatShare')}</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="fullName" cx="50%" cy="50%" outerRadius={85} innerRadius={45} paddingAngle={2}>
@@ -168,7 +170,7 @@ export default function ForecastPage() {
 
       {/* Opinion Polls Table */}
       <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-        <h3 className="text-sm font-semibold text-white mb-3">Source Opinion Polls</h3>
+        <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.sourcePolls')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-slate-300">
             <thead>
@@ -199,7 +201,7 @@ export default function ForecastPage() {
 
       {/* Vote Share Comparison */}
       <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-        <h3 className="text-sm font-semibold text-white mb-3">Projected Vote Share</h3>
+        <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.projectedVoteShare')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {barData.map((d) => (
             <div key={d.name} className="bg-slate-700/30 rounded-lg p-3 text-center">
@@ -216,7 +218,7 @@ export default function ForecastPage() {
           onClick={() => setShowMethodology(!showMethodology)}
           className="w-full p-4 flex items-center justify-between text-sm font-semibold text-white hover:bg-slate-700/20 transition-colors rounded-xl"
         >
-          <span className="flex items-center gap-2"><Info size={16} className="text-amber-400" /> Methodology & Disclaimer</span>
+          <span className="flex items-center gap-2"><Info size={16} className="text-amber-400" /> {t('forecast.methodology')}</span>
           {showMethodology ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
         {showMethodology && (

@@ -22,6 +22,7 @@ import CommunityPoll from '../components/CommunityPoll';
 import ElectionQuiz from '../components/ElectionQuiz';
 import ShareBar from '../components/ShareBar';
 import { computeLiveStats } from '../data/liveStats';
+import { useI18n } from '../i18n';
 
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -83,6 +84,7 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
 export default function DashboardPage() {
   const [year, setYear] = useState(2026);
   const [liveStats, setLiveStats] = useState(null);
+  const { t } = useI18n();
   const summary = ELECTION_SUMMARY[year];
   const is2026 = year === 2026;
 
@@ -117,8 +119,8 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">
-            Tamil Nadu Elections <span className="text-amber-400">{year}</span>
-            {is2026 && <span className="text-sm ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">Upcoming • April 23</span>}
+            {t('dashboard.title')} <span className="text-amber-400">{year}</span>
+            {is2026 && <span className="text-sm ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">{t('dashboard.upcoming')}</span>}
           </h1>
           <p className="text-slate-400 mt-1">
             {summary.totalConstituencies} constituencies • {(summary.totalVoters / 1000000).toFixed(1)}M voters
@@ -126,7 +128,7 @@ export default function DashboardPage() {
           </p>
           {is2026 && (
             <p className="text-sm text-sky-300 mt-2">
-              Pre-election public tracker only. This dashboard does not declare a winner, chief minister, or final two-way race before voting and counting are completed.
+              {t('dashboard.preElectionNote')}
             </p>
           )}
         </div>
@@ -140,13 +142,13 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-5 h-5 text-amber-400" />
-                <h2 className="text-lg font-semibold text-white">Countdown to Election Day</h2>
+                <h2 className="text-lg font-semibold text-white">{t('dashboard.countdown')}</h2>
               </div>
-              <p className="text-slate-400 text-sm mb-3">April 23, 2026 — Tamil Nadu Legislative Assembly Election</p>
+              <p className="text-slate-400 text-sm mb-3">{t('dashboard.countdownSubtitle')}</p>
               <CountdownTimer />
             </div>
             <div className="flex-1 max-w-xl">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Major Leaders And Parties</p>
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">{t('dashboard.majorLeaders')}</p>
               <div className="flex gap-3 overflow-x-auto pb-1">
                 {CANDIDATE_PROFILES.slice(0, 5).map(c => (
                   <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 bg-slate-900/60 border border-slate-700/40 rounded-lg px-3 py-2 hover:border-amber-500/30 transition-colors min-w-fit">
@@ -163,7 +165,7 @@ export default function DashboardPage() {
                 ))}
               </div>
               <Link to="/candidates" className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 mt-2">
-                View all candidates <ArrowRight className="w-3 h-3" />
+                {t('dashboard.viewAllCandidates')} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
@@ -173,14 +175,14 @@ export default function DashboardPage() {
       {/* Key Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title={is2026 ? 'Election Status' : 'CM Elect'}
-          value={is2026 ? 'Multi-cornered contest' : summary.chiefMinister}
+          title={is2026 ? t('dashboard.electionStatus') : 'CM Elect'}
+          value={is2026 ? t('dashboard.multiCornered') : summary.chiefMinister}
           subtitle={is2026 ? 'SPA, NDA, TVK, NTK and other parties are in the field' : summary.cmParty}
           icon={Users}
           color="amber"
         />
         <StatCard
-          title={is2026 ? 'Criminal Records' : 'Winners with Cases'}
+          title={is2026 ? t('dashboard.criminalRecords') : t('dashboard.winnersWithCases')}
           value={criminal
             ? (is2026
               ? (criminal.isPartial ? `${criminal.withCriminalCases} declared` : `${criminal.percentWithCases}%`)

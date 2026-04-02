@@ -11,6 +11,7 @@ import { loadCandidateDirectory } from '../data/candidateDirectory';
 import { computeLiveStats } from '../data/liveStats';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
+import { useI18n } from '../i18n';
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
@@ -28,6 +29,7 @@ const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
 
 export default function CriminalPage() {
   const [year, setYear] = useState(2026);
+  const { t } = useI18n();
   const [liveStats, setLiveStats] = useState(null);
 
   useEffect(() => {
@@ -54,12 +56,12 @@ export default function CriminalPage() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Criminal Records Tracker</h1>
-            <p className="text-slate-400 mt-1">Criminal cases declared by candidates in election affidavits</p>
+            <h1 className="text-3xl font-bold text-white">{t('criminal.title')}</h1>
+            <p className="text-slate-400 mt-1">{t('criminal.subtitle')}</p>
           </div>
           <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021, 2026]} />
         </div>
-        <div className="text-center py-12 text-slate-400">Loading affidavit data…</div>
+        <div className="text-center py-12 text-slate-400">{t('common.loading')}</div>
       </div>
     );
   }
@@ -81,8 +83,8 @@ export default function CriminalPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Criminal Records Tracker</h1>
-          <p className="text-slate-400 mt-1">Criminal cases declared by candidates in election affidavits</p>
+          <h1 className="text-3xl font-bold text-white">{t('criminal.title')}</h1>
+          <p className="text-slate-400 mt-1">{t('criminal.subtitle')}</p>
         </div>
         <YearSelector selectedYear={year} onChange={setYear} years={[2006, 2011, 2016, 2021, 2026]} />
       </div>

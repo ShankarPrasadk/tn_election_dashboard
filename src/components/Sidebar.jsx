@@ -1,28 +1,29 @@
 import { NavLink } from 'react-router-dom';
 import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee, Code } from 'lucide-react';
 import { useState } from 'react';
-import { LanguageToggle } from '../i18n';
+import { LanguageToggle, useI18n } from '../i18n';
 
 const NAV_ITEMS = [
-  { to: '/', icon: BarChart3, label: 'Dashboard' },
-  { to: '/forecast', icon: Target, label: 'Forecast' },
-  { to: '/trends', icon: TrendingUp, label: 'Trends (1952–2026)' },
-  { to: '/candidates', icon: Users, label: 'Candidates' },
-  { to: '/news', icon: Newspaper, label: 'Live News' },
-  { to: '/results', icon: Radio, label: 'Live Results' },
-  { to: '/development', icon: Building2, label: 'Development' },
-  { to: '/criminal', icon: AlertTriangle, label: 'Criminal Records' },
-  { to: '/constituency', icon: MapPin, label: 'My Constituency' },
-  { to: '/map', icon: Map, label: 'Map' },
-  { to: '/comparison', icon: Scale, label: 'Compare' },
-  { to: '/mla-tracker', icon: Award, label: 'MLA Tracker' },
-  { to: '/finance', icon: IndianRupee, label: 'Campaign Finance' },
-  { to: '/ask', icon: MessageCircleQuestion, label: 'Ask' },
-  { to: '/embed', icon: Code, label: 'Embed' },
+  { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
+  { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
+  { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
+  { to: '/candidates', icon: Users, i18nKey: 'nav.candidates' },
+  { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
+  { to: '/results', icon: Radio, i18nKey: 'nav.results' },
+  { to: '/development', icon: Building2, i18nKey: 'nav.development' },
+  { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
+  { to: '/constituency', icon: MapPin, i18nKey: 'nav.constituency' },
+  { to: '/map', icon: Map, i18nKey: 'nav.map' },
+  { to: '/comparison', icon: Scale, i18nKey: 'nav.compare' },
+  { to: '/mla-tracker', icon: Award, i18nKey: 'nav.mla' },
+  { to: '/finance', icon: IndianRupee, i18nKey: 'nav.finance' },
+  { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
+  { to: '/embed', icon: Code, i18nKey: 'nav.embed' },
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <>
@@ -53,7 +54,7 @@ export default function Sidebar() {
         </div>
 
         <nav aria-label="Main navigation" className="p-4 space-y-1">
-          {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+          {NAV_ITEMS.map(({ to, icon: Icon, i18nKey }) => (
             <NavLink
               key={to}
               to={to}
@@ -66,7 +67,7 @@ export default function Sidebar() {
               `}
             >
               <Icon size={18} />
-              {label}
+              {t(i18nKey)}
             </NavLink>
           ))}
         </nav>

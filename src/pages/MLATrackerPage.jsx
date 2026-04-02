@@ -5,6 +5,7 @@ import { KEY_CANDIDATES } from '../data/electionData';
 import { PARTY_COLORS } from '../data/electionData';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
+import { useI18n } from '../i18n';
 
 // Derive MLA data from KEY_CANDIDATES (those who won in 2021)
 function deriveMLAData() {
@@ -63,6 +64,7 @@ export default function MLATrackerPage() {
   const [partyFilter, setPartyFilter] = useState('All');
   const [sortBy, setSortBy] = useState('score');
   const [selectedMLA, setSelectedMLA] = useState(null);
+  const { t } = useI18n();
 
   const mlas = useMemo(() => deriveMLAData(), []);
 
@@ -90,10 +92,10 @@ export default function MLATrackerPage() {
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Award className="text-amber-400" /> MLA Performance Tracker
+          <Award className="text-amber-400" /> {t('mla.title')}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          How did your MLA perform? Scores based on development, governance, criminal record, and asset growth
+          {t('mla.subtitle')}
         </p>
       </div>
 
@@ -101,11 +103,11 @@ export default function MLATrackerPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
           <p className="text-2xl font-bold text-white">{mlas.length}</p>
-          <p className="text-[10px] text-slate-400">MLAs Tracked</p>
+          <p className="text-[10px] text-slate-400">{t('mla.tracked')}</p>
         </div>
         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
           <p className="text-2xl font-bold text-amber-400">{avgScore}/100</p>
-          <p className="text-[10px] text-slate-400">Avg Performance</p>
+          <p className="text-[10px] text-slate-400">{t('mla.avgPerformance')}</p>
         </div>
         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
           <p className="text-2xl font-bold text-red-400">{withCases}</p>

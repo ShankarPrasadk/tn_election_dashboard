@@ -4,6 +4,7 @@ import { IndianRupee, TrendingUp, AlertTriangle, Search } from 'lucide-react';
 import { ELECTION_SUMMARY, PARTY_COLORS } from '../data/electionData';
 import ShareBar from '../components/ShareBar';
 import ExploreCTA from '../components/ExploreCTA';
+import { useI18n } from '../i18n';
 
 // Campaign finance data (ECI reported expenditure limits and party-level data)
 const EXPENDITURE_LIMITS = [
@@ -46,6 +47,7 @@ const ELECTORAL_BONDS = [
 
 export default function CampaignFinancePage() {
   const [selectedYear, setSelectedYear] = useState(2021);
+  const { t } = useI18n();
   const spending = PARTY_SPENDING[selectedYear] || [];
 
   const spendingChart = spending.map((s) => ({
@@ -75,10 +77,10 @@ export default function CampaignFinancePage() {
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <IndianRupee className="text-amber-400" /> Campaign Finance & Election Spending
+          <IndianRupee className="text-amber-400" /> {t('finance.title')}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Follow the money — party spending, electoral bonds, and expenditure limits
+          {t('finance.subtitle')}
         </p>
       </div>
 

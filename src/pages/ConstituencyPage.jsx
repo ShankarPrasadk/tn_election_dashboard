@@ -8,11 +8,13 @@ import { generateCandidateId } from '../data/candidateUtils';
 import { ConstituencyCard } from '../components/ConstituencyCard';
 import { ExportDropdown, exportCSV } from '../components/DataExport';
 import VoterCheckWidget from '../components/VoterCheckWidget';
+import { useI18n } from '../i18n';
 
 const PARTY_ORDER = ['DMK', 'AIADMK', 'BJP', 'NTK', 'TVK', 'INC', 'PMK', 'AMMK', 'CPI', 'CPI(M)', 'VCK', 'DMDK', 'MDMK', 'IUML'];
 
 export default function ConstituencyPage() {
   const [search, setSearch] = useState('');
+  const { t } = useI18n();
   const [districtFilter, setDistrictFilter] = useState('All');
   const [directoryIds, setDirectoryIds] = useState(new Set());
   const [savedConstituency, setSavedConstituency] = useState(() => {
@@ -59,7 +61,7 @@ export default function ConstituencyPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <MapPin className="text-amber-400" /> Find Your Constituency
+          <MapPin className="text-amber-400" /> {t('constituency.title')}
         </h1>
         <p className="text-slate-400 mt-1">
           Look up your constituency to see all announced 2026 candidates. {CANDIDATES_2026.length} constituencies across Tamil Nadu.
@@ -197,8 +199,8 @@ export default function ConstituencyPage() {
       {filtered.length === 0 && (
         <div className="text-center py-16">
           <MapPin className="mx-auto text-slate-600 mb-3" size={40} />
-          <p className="text-slate-400">No constituencies match your search</p>
-          <p className="text-xs text-slate-500 mt-1">Try a different constituency name, district, or candidate</p>
+          <p className="text-slate-400">{t('constituency.noMatch')}</p>
+          <p className="text-xs text-slate-500 mt-1">{t('constituency.tryDifferent')}</p>
         </div>
       )}
     </div>

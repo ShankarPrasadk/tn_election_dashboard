@@ -10,6 +10,7 @@ import { CANDIDATE_PROFILES, findCandidateProfile } from '../data/candidateProfi
 import { getCandidateRouteId, loadCandidateDirectory } from '../data/candidateDirectory';
 import { generateCandidateId } from '../data/candidateUtils';
 import { ExportDropdown } from '../components/DataExport';
+import { useI18n } from '../i18n';
 
 const SPA_PARTIES = ['DMK', 'INC', 'VCK', 'CPI', 'CPI(M)', 'DMDK', 'MDMK', 'IUML'];
 const NDA_PARTIES = ['AIADMK', 'BJP', 'PMK', 'AMMK'];
@@ -26,6 +27,7 @@ export default function CandidatesPage() {
   const [historicalPage, setHistoricalPage] = useState(1);
   const [directory, setDirectory] = useState(null);
   const [loadError, setLoadError] = useState('');
+  const { t } = useI18n();
 
   // Debounce search input
   useEffect(() => {
@@ -114,7 +116,7 @@ export default function CandidatesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Candidate Profiles</h1>
+          <h1 className="text-3xl font-bold text-white">{t('candidates.title')}</h1>
           <p className="text-slate-400 mt-1">
             {viewMode === '2026'
               ? `2026 Election - All 234 constituencies • Polling: April 23, 2026 ${daysUntilElection > 0 ? `(${daysUntilElection} days away)` : ''}`

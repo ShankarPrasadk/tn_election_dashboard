@@ -12,6 +12,7 @@ import {
 import PartySymbolIcon from '../components/PartySymbolIcon';
 import SwingAnalysis from '../components/SwingAnalysis';
 import { ExportDropdown } from '../components/DataExport';
+import { useI18n } from '../i18n';
 
 // ─── Constants ────────────────────────────────────────────────
 
@@ -433,6 +434,8 @@ export default function TrendsPage() {
     { id: 'money', label: 'Money & Crime' },
   ];
 
+  const { t } = useI18n();
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -440,7 +443,7 @@ export default function TrendsPage() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-black text-white tracking-tight">
-              74 Years of Tamil Nadu Elections
+              {t('trends.title')}
             </h1>
             <p className="text-slate-400 mt-1">
               Complete electoral history from 1952 to 2026 — {HISTORICAL_ELECTIONS.length} elections, 13 Chief Ministers, 3 political eras

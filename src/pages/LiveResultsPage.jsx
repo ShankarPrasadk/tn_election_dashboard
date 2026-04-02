@@ -4,6 +4,7 @@ import { Radio, Clock, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react
 import { PARTY_COLORS } from '../data/electionData';
 import { CANDIDATES_2026 } from '../data/candidates2026';
 import ShareBar from '../components/ShareBar';
+import { useI18n } from '../i18n';
 
 // Simulated results data (pre-counting day — shows "Counting not yet started")
 const COUNTING_DATE = new Date('2026-05-04T08:00:00+05:30');
@@ -53,6 +54,7 @@ function CountdownToResults() {
 export default function LiveResultsPage() {
   const results = useMemo(() => generateSimulatedResults(), []);
   const isPreCounting = !results;
+  const { t } = useI18n();
 
   // Constituency summary
   const totalConstituencies = 234;
@@ -67,16 +69,16 @@ export default function LiveResultsPage() {
       <div className="space-y-6 max-w-5xl">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Radio className="text-red-400 animate-pulse" /> Live Results — TN 2026
+            <Radio className="text-red-400 animate-pulse" /> {t('results.title')}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Counting date: May 4, 2026</p>
+          <p className="text-sm text-slate-400 mt-1">{t('results.countingDate')}</p>
         </div>
 
         {/* Status Banner */}
         <div className="bg-gradient-to-r from-amber-500/10 to-slate-800/40 rounded-xl p-8 border border-amber-500/20 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Clock className="text-amber-400" size={24} />
-            <h2 className="text-xl font-bold text-white">Counting Not Yet Started</h2>
+            <h2 className="text-xl font-bold text-white">{t('results.notStarted')}</h2>
           </div>
           <p className="text-slate-400 text-sm mb-6">
             Polling: April 23, 2026 · Counting: May 4, 2026
@@ -89,7 +91,7 @@ export default function LiveResultsPage() {
 
         {/* What to expect */}
         <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-          <h3 className="text-sm font-semibold text-white mb-4">What to Expect on Counting Day</h3>
+          <h3 className="text-sm font-semibold text-white mb-4">{t('results.whatToExpect')}</h3>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="bg-slate-700/30 rounded-lg p-4">
               <CheckCircle2 className="text-green-400 mb-2" size={20} />
@@ -113,21 +115,21 @@ export default function LiveResultsPage() {
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
             <p className="text-3xl font-bold text-white">{totalConstituencies}</p>
-            <p className="text-xs text-slate-400">Constituencies</p>
+            <p className="text-xs text-slate-400">{t('common.constituencies')}</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
             <p className="text-3xl font-bold text-white">{partiesContesting}+</p>
-            <p className="text-xs text-slate-400">Parties Contesting</p>
+            <p className="text-xs text-slate-400">{t('results.partiesContesting')}</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
             <p className="text-3xl font-bold text-amber-400">118</p>
-            <p className="text-xs text-slate-400">Seats for Majority</p>
+            <p className="text-xs text-slate-400">{t('results.seatsForMajority')}</p>
           </div>
         </div>
 
         {/* Key Alliances */}
         <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
-          <h3 className="text-sm font-semibold text-white mb-3">Key Alliances — 2026</h3>
+          <h3 className="text-sm font-semibold text-white mb-3">{t('results.keyAlliances')}</h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4">
               <h4 className="font-bold text-red-400 mb-2">SPA (DMK Alliance)</h4>
