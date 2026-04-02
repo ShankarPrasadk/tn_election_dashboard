@@ -175,51 +175,22 @@ export default function DashboardPage() {
               <div>
                 <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{t('dashboard.majorLeaders')}</p>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {isPY ? (
-                    PY_KEY_CANDIDATES.map(c => (
-                      <div key={c.id} className="flex items-center gap-2 glass rounded-xl px-3 py-2 min-w-fit">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: `${partyColors[c.party] || '#64748b'}25`, color: partyColors[c.party] || '#94a3b8' }}>
-                          {c.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-white whitespace-nowrap">{c.name}</p>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <PartyFlag party={c.party} size={8} />
-                            <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
-                            <span className="text-[9px] text-slate-600">{c.party} • {c.role}</span>
-                          </div>
+                  {(isPY ? PY_KEY_CANDIDATES : CANDIDATE_PROFILES.slice(0, 5)).map(c => (
+                    <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
+                      <img src={c.photo} alt={c.name} className="w-7 h-7 rounded-full object-cover ring-1 ring-white/[0.06]" onError={e => { e.target.style.display = 'none'; }} />
+                      <div>
+                        <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <PartyFlag party={c.party} size={8} />
+                          <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
+                          <span className="text-[9px] text-slate-600">{c.party}{isPY ? ` • ${c.role}` : ''}</span>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    CANDIDATE_PROFILES.slice(0, 5).map(c => (
-                      <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
-                        <img src={c.photo} alt={c.name} className="w-7 h-7 rounded-full object-cover ring-1 ring-white/[0.06]" onError={e => { e.target.style.display = 'none'; }} />
-                        <div>
-                          <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <PartyFlag party={c.party} size={8} />
-                            <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
-                            <span className="text-[9px] text-slate-600">{c.party}</span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </div>
-              {/* Key Constituencies */}
-              <div>
-                <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">Key Constituencies</p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {(isPY ? PY_CANDIDATES_2026 : CANDIDATES_2026.filter(c => ['Kolathur', 'Chepauk-Thiruvallikeni', 'Coimbatore South', 'Thousand Lights', 'Mylapore'].includes(c.constituency))).slice(0, 5).map(c => (
-                    <div key={c.no} className="glass rounded-xl px-3 py-2 min-w-fit">
-                      <p className="text-xs font-semibold text-white whitespace-nowrap">{c.constituency}</p>
-                      <p className="text-[9px] text-slate-500 mt-0.5">{c.district} • #{c.no}</p>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
+
               <Link to="/candidates" className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 hover:text-amber-300 font-medium">
                 {t('dashboard.viewAllCandidates')} <ArrowRight className="w-3 h-3" />
               </Link>

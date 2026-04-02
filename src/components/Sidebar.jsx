@@ -1,9 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Users, Scale, Building2, AlertTriangle, MessageCircleQuestion, MapPin, Award, IndianRupee, Vote } from 'lucide-react';
+import { Target, Users, Scale, Building2, AlertTriangle, MessageCircleQuestion, MapPin, Award, IndianRupee, Vote } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { useElectionState } from '../context/StateContext';
 
 const SIDEBAR_GROUPS = [
+  { label: 'Forecast', items: [
+    { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
+  ]},
   { label: 'Data', items: [
     { to: '/candidates', icon: Users, i18nKey: 'nav.candidates' },
     { to: '/voters', icon: Vote, i18nKey: 'nav.voters' },

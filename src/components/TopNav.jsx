@@ -10,23 +10,22 @@ import { useElectionState } from '../context/StateContext';
 
 const PRIMARY_NAV = [
   { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
-  { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
-  { to: '/results', icon: Radio, i18nKey: 'nav.results' },
   { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
   { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
+  { to: '/results', icon: Radio, i18nKey: 'nav.results' },
   { to: '/map', icon: Map, i18nKey: 'nav.map' },
 ];
 
 const ALL_NAV_GROUPS = [
   { group: 'Main', items: [
     { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
-    { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
-    { to: '/results', icon: Radio, i18nKey: 'nav.results' },
     { to: '/trends', icon: TrendingUp, i18nKey: 'nav.trends' },
     { to: '/news', icon: Newspaper, i18nKey: 'nav.news' },
+    { to: '/results', icon: Radio, i18nKey: 'nav.results' },
     { to: '/map', icon: Map, i18nKey: 'nav.map' },
   ]},
   { group: 'Data', items: [
+    { to: '/forecast', icon: Target, i18nKey: 'nav.forecast' },
     { to: '/candidates', icon: Users, i18nKey: 'nav.candidates' },
     { to: '/voters', icon: Vote, i18nKey: 'nav.voters' },
     { to: '/constituency', icon: MapPin, i18nKey: 'nav.constituency' },

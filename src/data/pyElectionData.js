@@ -548,8 +548,8 @@ export const PY_HISTORICAL_TURNOUT = [
 // ─── KEY CANDIDATES ──────────────────────────────────────────
 
 export const PY_KEY_CANDIDATES = [
-  { id: 'n-rangasamy', name: 'N. Rangasamy', party: 'AINRC', constituency: 'Thattanchavady', criminalCases: { total: 0, serious: 0 }, role: 'Chief Minister (Incumbent)' },
-  { id: 'v-vaithilingam', name: 'V. Vaithilingam', party: 'INC', constituency: 'Thattanchavady', criminalCases: { total: 0, serious: 0 }, role: 'Opposition Leader / MP' },
-  { id: 'a-namassivayam', name: 'A. Namassivayam', party: 'BJP', constituency: 'Mannadipet', criminalCases: { total: 0, serious: 0 }, role: 'BJP State President' },
-  { id: 'r-siva', name: 'R. Siva', party: 'DMK', constituency: 'Villianur', criminalCases: { total: 0, serious: 0 }, role: 'DMK State President' },
+  { id: 'n-rangasamy', name: 'N. Rangasamy', party: 'AINRC', constituency: 'Thattanchavady', criminalCases: { total: 0, serious: 0 }, role: 'Chief Minister (Incumbent)', photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Puducherry_CM_N_Rangasamy.jpg/220px-Puducherry_CM_N_Rangasamy.jpg' },
+  { id: 'v-vaithilingam', name: 'V. Vaithilingam', party: 'INC', constituency: 'Thattanchavady', criminalCases: { total: 0, serious: 0 }, role: 'Opposition Leader / MP', photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/V._Vaithilingam.jpg/220px-V._Vaithilingam.jpg' },
+  { id: 'a-namassivayam', name: 'A. Namassivayam', party: 'BJP', constituency: 'Mannadipet', criminalCases: { total: 0, serious: 0 }, role: 'BJP State President', photo: 'https://ui-avatars.com/api/?name=A+Namassivayam&background=f97316&color=fff&size=256&font-size=0.35&bold=true' },
+  { id: 'r-siva', name: 'R. Siva', party: 'DMK', constituency: 'Villianur', criminalCases: { total: 0, serious: 0 }, role: 'DMK State President', photo: 'https://ui-avatars.com/api/?name=R+Siva&background=e11d48&color=fff&size=256&font-size=0.35&bold=true' },
 ];
