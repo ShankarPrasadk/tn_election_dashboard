@@ -201,7 +201,7 @@ export default function DashboardPage() {
       )}
 
       {/* Key Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 stagger-children">
         <StatCard
           title={is2026 ? t('dashboard.electionStatus') : 'CM Elect'}
           value={is2026 ? t('dashboard.multiCornered') : summary.chiefMinister}

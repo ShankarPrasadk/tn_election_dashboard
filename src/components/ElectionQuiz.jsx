@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trophy, ChevronRight, RotateCcw } from 'lucide-react';
+import { Trophy, ChevronRight, RotateCcw, Share2 } from 'lucide-react';
 
 const QUESTIONS = [
   {
@@ -138,12 +138,27 @@ export default function ElectionQuiz() {
         <p className="text-xs text-slate-500 mb-4">
           {pct}% correct · Share your score with friends!
         </p>
-        <button
-          onClick={startQuiz}
-          className="inline-flex items-center gap-2 px-5 py-2 bg-amber-400/10 text-amber-400 border border-amber-400/30 rounded-lg text-sm font-medium hover:bg-amber-400/20 transition-colors"
-        >
-          <RotateCcw size={14} /> Play Again
-        </button>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={startQuiz}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-amber-400/10 text-amber-400 border border-amber-400/30 rounded-lg text-sm font-medium hover:bg-amber-400/20 transition-colors"
+          >
+            <RotateCcw size={14} /> Play Again
+          </button>
+          <button
+            onClick={() => {
+              const shareText = `${emoji} I scored ${score}/${questions.length} (${pct}%) on the TN Election Quiz! Can you beat me?\n\nhttps://tn-election-dashboard.vercel.app`;
+              if (navigator.share) {
+                navigator.share({ title: 'TN Election Quiz Score', text: shareText }).catch(() => {});
+              } else {
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, '_blank', 'noopener');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-violet-500/10 text-violet-400 border border-violet-500/30 rounded-lg text-sm font-medium hover:bg-violet-500/20 transition-colors"
+          >
+            <Share2 size={14} /> Share Score
+          </button>
+        </div>
       </div>
     );
   }

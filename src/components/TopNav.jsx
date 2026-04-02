@@ -59,6 +59,7 @@ export default function TopNav() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all"
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -66,7 +67,7 @@ export default function TopNav() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
             <div className="relative">
-              <img src={config.emblem} alt="" className="w-8 h-8 object-contain" />
+              <img src={config.emblem} alt={`${config.name} Election Commission`} className="w-8 h-8 object-contain" />
               <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full pulse-dot" />
             </div>
             <div>

@@ -1,4 +1,5 @@
-import { Share2 } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
+import { useState } from 'react';
 
 const SHARE_PLATFORMS = [
   {
@@ -44,6 +45,7 @@ const SHARE_PLATFORMS = [
 ];
 
 export default function ShareBar({ title, compact = false }) {
+  const [copied, setCopied] = useState(false);
   const url = typeof window !== 'undefined' ? window.location.href : '';
   const text = title || 'Check out this election data on TN Election Dashboard';
 
@@ -60,6 +62,8 @@ export default function ShareBar({ title, compact = false }) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard API not available
     }
@@ -117,9 +121,13 @@ export default function ShareBar({ title, compact = false }) {
           <button
             onClick={handleCopy}
             title="Copy link"
-            className="px-3 py-2 rounded-lg border border-slate-700/50 text-xs text-slate-400 hover:text-amber-400 hover:border-amber-400/30 transition-all"
+            className={`px-3 py-2 rounded-lg border text-xs transition-all ${
+              copied
+                ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                : 'border-slate-700/50 text-slate-400 hover:text-amber-400 hover:border-amber-400/30'
+            }`}
           >
-            Copy Link
+            {copied ? <span className="flex items-center gap-1"><Check size={12} /> Copied!</span> : 'Copy Link'}
           </button>
         </div>
       </div>

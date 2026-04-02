@@ -4,8 +4,11 @@ import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
+import BottomNav from './components/BottomNav';
+import BackToTop from './components/BackToTop';
 import NewsTicker from './components/NewsTicker';
 import CookieConsent from './components/CookieConsent';
+import { ToastProvider } from './components/Toast';
 import { I18nProvider } from './i18n';
 import { StateProvider } from './context/StateContext';
 
@@ -37,10 +40,26 @@ function ScrollToTop() {
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="relative">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-amber-400/30 border-t-amber-400" />
-        <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-amber-400" />
+    <div className="space-y-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-7 w-48 bg-slate-700/50 rounded-lg" />
+          <div className="h-4 w-32 bg-slate-700/30 rounded mt-2" />
+        </div>
+        <div className="h-9 w-24 bg-slate-700/30 rounded-lg" />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="glass rounded-xl p-4 space-y-3">
+            <div className="h-4 w-20 bg-slate-700/40 rounded" />
+            <div className="h-8 w-16 bg-slate-700/50 rounded" />
+            <div className="h-3 w-full bg-slate-700/20 rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="glass rounded-xl p-6 space-y-3">
+        <div className="h-5 w-36 bg-slate-700/40 rounded" />
+        <div className="h-48 bg-slate-700/20 rounded-xl" />
       </div>
     </div>
   );
@@ -50,13 +69,14 @@ export default function App() {
   return (
     <StateProvider>
     <I18nProvider>
+    <ToastProvider>
     <BrowserRouter>
       <ScrollToTop />
       <NewsTicker />
       <TopNav />
       <div className="flex">
         <Sidebar />
-        <main id="main-content" className="flex-1 p-4 lg:p-6 min-h-[calc(100vh-3.5rem)] overflow-auto" role="main">
+        <main id="main-content" className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 min-h-[calc(100vh-3.5rem)] overflow-auto" role="main">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
@@ -82,9 +102,12 @@ export default function App() {
           </Suspense>
         </main>
       </div>
+      <BottomNav />
+      <BackToTop />
       <CookieConsent />
       <Analytics />
     </BrowserRouter>
+    </ToastProvider>
     </I18nProvider>
     </StateProvider>
   );
