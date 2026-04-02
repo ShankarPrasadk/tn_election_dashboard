@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import NewsTicker from './components/NewsTicker';
 import CookieConsent from './components/CookieConsent';
 import { I18nProvider } from './i18n';
+import { StateProvider } from './context/StateContext';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const CandidatesPage = lazy(() => import('./pages/CandidatesPage'));
@@ -45,6 +46,7 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <StateProvider>
     <I18nProvider>
     <BrowserRouter>
       <ScrollToTop />
@@ -80,5 +82,6 @@ export default function App() {
       <Analytics />
     </BrowserRouter>
     </I18nProvider>
+    </StateProvider>
   );
 }

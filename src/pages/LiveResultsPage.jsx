@@ -3,8 +3,10 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { Radio, Clock, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { PARTY_COLORS } from '../data/electionData';
 import { CANDIDATES_2026 } from '../data/candidates2026';
+import { PY_CANDIDATES_2026 } from '../data/pyElectionData';
 import ShareBar from '../components/ShareBar';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
 // Simulated results data (pre-counting day — shows "Counting not yet started")
 const COUNTING_DATE = new Date('2026-05-04T08:00:00+05:30');
@@ -55,12 +57,14 @@ export default function LiveResultsPage() {
   const results = useMemo(() => generateSimulatedResults(), []);
   const isPreCounting = !results;
   const { t } = useI18n();
+  const { config, stateCode } = useElectionState();
+  const candidates = stateCode === 'PY' ? PY_CANDIDATES_2026 : CANDIDATES_2026;
 
   // Constituency summary
-  const totalConstituencies = 234;
+  const totalConstituencies = config.totalSeats;
   const partiesContesting = useMemo(() => {
     const parties = new Set();
-    CANDIDATES_2026.forEach((c) => Object.keys(c.candidates).forEach((p) => parties.add(p)));
+    candidates.forEach((c) => Object.keys(c.candidates).forEach((p) => parties.add(p)));
     return parties.size;
   }, []);
 
@@ -96,7 +100,7 @@ export default function LiveResultsPage() {
             <div className="bg-slate-700/30 rounded-lg p-4">
               <CheckCircle2 className="text-green-400 mb-2" size={20} />
               <p className="text-xs font-medium text-white mb-1">Round-wise Results</p>
-              <p className="text-[10px] text-slate-400">Live seat tallies updated every round as counting progresses across 234 constituencies</p>
+              <p className="text-[10px] text-slate-400">Live seat tallies updated every round as counting progresses across {totalConstituencies} constituencies</p>
             </div>
             <div className="bg-slate-700/30 rounded-lg p-4">
               <RefreshCw className="text-blue-400 mb-2" size={20} />

@@ -23,6 +23,12 @@ import ElectionQuiz from '../components/ElectionQuiz';
 import ShareBar from '../components/ShareBar';
 import { computeLiveStats } from '../data/liveStats';
 import { useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
+import {
+  PY_ELECTION_SUMMARY, PY_PARTY_COLORS, PY_CRIMINAL_STATS, PY_ASSET_STATS,
+  PY_EDUCATION_DATA, PY_AGE_DATA, PY_CANDIDATES_2026, PY_VOTER_STATS_2026,
+  PY_OPINION_POLLS_2026, PY_HISTORICAL_VOTE_SHARE
+} from '../data/pyElectionData';
 
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -85,23 +91,38 @@ export default function DashboardPage() {
   const [year, setYear] = useState(2026);
   const [liveStats, setLiveStats] = useState(null);
   const { t } = useI18n();
-  const summary = ELECTION_SUMMARY[year];
+  const { stateCode, config } = useElectionState();
+  const isPY = stateCode === 'PY';
+
+  const electionSummary = isPY ? PY_ELECTION_SUMMARY : ELECTION_SUMMARY;
+  const partyColors = isPY ? PY_PARTY_COLORS : PARTY_COLORS;
+  const criminalStats = isPY ? PY_CRIMINAL_STATS : CRIMINAL_STATS;
+  const assetStats = isPY ? PY_ASSET_STATS : ASSET_STATS;
+  const educationData = isPY ? PY_EDUCATION_DATA : EDUCATION_DATA;
+  const ageDataMap = isPY ? PY_AGE_DATA : AGE_DATA;
+  const voterStats = isPY ? PY_VOTER_STATS_2026 : VOTER_STATS_2026;
+  const opinionPolls = isPY ? PY_OPINION_POLLS_2026 : OPINION_POLLS_2026;
+  const historicalVoteShare = isPY ? PY_HISTORICAL_VOTE_SHARE : HISTORICAL_VOTE_SHARE;
+  const availableYears = isPY ? [2006, 2011, 2016, 2021, 2026] : [2006, 2011, 2016, 2021, 2026];
+
+  const summary = electionSummary[year];
   const is2026 = year === 2026;
 
   useEffect(() => {
+    if (isPY) return; // PY doesn't have live candidate directory yet
     loadCandidateDirectory()
       .then(dir => setLiveStats(computeLiveStats(dir.entries)))
       .catch(() => {});
-  }, []);
+  }, [isPY]);
 
-  const criminal = is2026 ? liveStats?.criminal : CRIMINAL_STATS[year];
-  const assets = is2026 ? liveStats?.assets : ASSET_STATS[year];
-  const liveEducation = is2026 ? liveStats?.education : null;
-  const liveAge = is2026 ? liveStats?.age : null;
+  const criminal = is2026 ? (isPY ? null : liveStats?.criminal) : criminalStats[year];
+  const assets = is2026 ? (isPY ? null : liveStats?.assets) : assetStats[year];
+  const liveEducation = is2026 ? (isPY ? null : liveStats?.education) : null;
+  const liveAge = is2026 ? (isPY ? null : liveStats?.age) : null;
 
   // Compute trend vs previous election for criminal records
   const prevYearMap = { 2011: 2006, 2016: 2011, 2021: 2016 };
-  const prevCriminal = prevYearMap[year] ? CRIMINAL_STATS[prevYearMap[year]] : null;
+  const prevCriminal = prevYearMap[year] ? criminalStats[prevYearMap[year]] : null;
   const criminalTrend = (!is2026 && criminal && prevCriminal)
     ? parseFloat(((criminal.percentWinnersWithCases || criminal.percentWithCases) - (prevCriminal.percentWinnersWithCases || prevCriminal.percentWithCases)).toFixed(1))
     : undefined;
@@ -132,7 +153,7 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
-        <YearSelector selectedYear={year} onChange={setYear} />
+        <YearSelector selectedYear={year} onChange={setYear} years={availableYears} />
       </div>
 
       {/* Countdown + Featured Candidates (2026 only) */}
@@ -150,7 +171,17 @@ export default function DashboardPage() {
               <CountdownTimer />
             </div>
             <div className="flex-1 max-w-xl">
-              <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{t('dashboard.majorLeaders')}</p>
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{isPY ? 'Key Constituencies' : t('dashboard.majorLeaders')}</p>
+              {isPY ? (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {PY_CANDIDATES_2026.slice(0, 5).map(c => (
+                    <div key={c.no} className="glass rounded-xl px-3 py-2 min-w-fit">
+                      <p className="text-xs font-semibold text-white whitespace-nowrap">{c.constituency}</p>
+                      <p className="text-[9px] text-slate-500 mt-0.5">{c.district} • #{c.no}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {CANDIDATE_PROFILES.slice(0, 5).map(c => (
                   <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
@@ -159,13 +190,14 @@ export default function DashboardPage() {
                       <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <PartyFlag party={c.party} size={8} />
-                        <PartySymbolIcon party={c.party} size={10} color={PARTY_COLORS[c.party]} />
+                        <PartySymbolIcon party={c.party} size={10} color={partyColors[c.party]} />
                         <span className="text-[9px] text-slate-600">{c.party}</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
+              )}
               <Link to="/candidates" className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 hover:text-amber-300 mt-2 font-medium">
                 {t('dashboard.viewAllCandidates')} <ArrowRight className="w-3 h-3" />
               </Link>
@@ -179,7 +211,7 @@ export default function DashboardPage() {
         <StatCard
           title={is2026 ? t('dashboard.electionStatus') : 'CM Elect'}
           value={is2026 ? t('dashboard.multiCornered') : summary.chiefMinister}
-          subtitle={is2026 ? 'SPA, NDA, TVK, NTK and other parties are in the field' : summary.cmParty}
+          subtitle={is2026 ? (isPY ? 'NDA (AINRC+BJP), INDIA (DMK+INC) and others contesting' : 'SPA, NDA, TVK, NTK and other parties are in the field') : summary.cmParty}
           icon={Users}
           color="amber"
         />
@@ -189,42 +221,42 @@ export default function DashboardPage() {
             ? (is2026
               ? (criminal.isPartial ? `${criminal.withCriminalCases} declared` : `${criminal.percentWithCases}%`)
               : `${criminal.percentWinnersWithCases || criminal.percentWithCases}%`)
-            : 'Loading…'}
+            : (is2026 ? 'Coming soon' : 'N/A')}
           subtitle={criminal
             ? (is2026
               ? (criminal.isPartial
                 ? `${criminal.affidavitsSynced} of ${criminal.totalCandidatesAnalyzed} affidavits synced`
                 : `${criminal.withCriminalCases} of ${criminal.totalCandidatesAnalyzed} candidates`)
               : `${criminal.winnersWithCases || criminal.withCriminalCases} of ${criminal.winnersAnalyzed || criminal.totalCandidatesAnalyzed} elected MLAs`)
-            : 'Fetching affidavit data…'}
+            : (is2026 ? 'Affidavit data pending' : `${config.name} data`)}
           icon={AlertTriangle}
           color="red"
           trend={criminalTrend}
         />
         <StatCard
           title={is2026 ? 'Avg Assets' : 'Avg Assets (Winners)'}
-          value={is2026 ? (assets ? `₹${assets.avgAssets} Cr` : (liveStats ? 'Awaiting sync' : 'Loading…')) : (assets ? `₹${assets.avgAssets} Cr` : 'TBD')}
-          subtitle={is2026 ? (assets ? `Richest: ₹${assets.richest} Cr • Median: ₹${assets.medianAssets} Cr` : (liveStats ? `${liveStats.totalCandidates} candidates, affidavit asset data pending` : 'Fetching affidavit data…')) : (assets ? `Richest: ₹${assets.richest} Cr` : '')}
+          value={is2026 ? (assets ? `₹${assets.avgAssets} Cr` : (isPY ? 'Coming soon' : (liveStats ? 'Awaiting sync' : 'Loading…'))) : (assets ? `₹${assets.avgAssets} Cr` : 'TBD')}
+          subtitle={is2026 ? (assets ? `Richest: ₹${assets.richest} Cr • Median: ₹${assets.medianAssets} Cr` : (isPY ? `${config.name} affidavit data pending` : (liveStats ? `${liveStats.totalCandidates} candidates, affidavit asset data pending` : 'Fetching affidavit data…'))) : (assets ? `Richest: ₹${assets.richest} Cr` : '')}
           icon={Banknote}
           color="green"
         />
         <StatCard
           title="Total Candidates"
-          value={is2026 ? (liveStats ? liveStats.totalCandidates.toLocaleString() : 'Loading…') : (summary.totalCandidates ? summary.totalCandidates.toLocaleString() : '4500+')}
-          subtitle={is2026 ? `From ECI affidavit portal • ${VOTER_STATS_2026.totalVoters ? (VOTER_STATS_2026.totalVoters / 10000000).toFixed(2) + ' Cr voters' : ''}` : `${summary.turnoutPercent}% voter turnout`}
+          value={is2026 ? (isPY ? (PY_CANDIDATES_2026.length * 4 + '+ expected') : (liveStats ? liveStats.totalCandidates.toLocaleString() : 'Loading…')) : (summary.totalCandidates ? summary.totalCandidates.toLocaleString() : '—')}
+          subtitle={is2026 ? `From ECI affidavit portal • ${voterStats.totalVoters ? (voterStats.totalVoters >= 10000000 ? (voterStats.totalVoters / 10000000).toFixed(2) + ' Cr voters' : (voterStats.totalVoters / 100000).toFixed(1) + ' L voters') : ''}` : `${summary.turnoutPercent}% voter turnout`}
           icon={Vote}
           color="blue"
         />
       </div>
 
       {/* Pre-Poll Surveys (2026 only) */}
-      {is2026 && (
+      {is2026 && !isPY && (
         <div className="glass-card rounded-2xl p-4 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.02] to-transparent pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-base font-bold text-white tracking-tight">Pre-Poll Surveys</h2>
-              <p className="text-[11px] text-slate-500">Latest surveys from multiple agencies. Projected seats out of 234. Majority mark: 118.</p>
+              <p className="text-[11px] text-slate-500">Latest surveys from multiple agencies. Projected seats out of {config.totalSeats}. Majority mark: {config.majorityMark}.</p>
             </div>
             <span className="text-[9px] px-2.5 py-1 bg-purple-500/[0.08] text-purple-400 rounded-full uppercase tracking-widest font-semibold border border-purple-500/[0.12]">Opinion Polls</span>
           </div>
@@ -234,9 +266,9 @@ export default function DashboardPage() {
                 <tr className="text-slate-400 border-b border-slate-700">
                   <th className="text-left p-2">Agency</th>
                   <th className="text-left p-2">Date</th>
-                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="DMK" size={8} /><PartySymbolIcon party="DMK" size={10} color={PARTY_COLORS.DMK} />SPA</span></th>
-                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="AIADMK" size={8} /><PartySymbolIcon party="AIADMK" size={10} color={PARTY_COLORS.AIADMK} />AIADMK+</span></th>
-                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="TVK" size={8} /><PartySymbolIcon party="TVK" size={10} color={PARTY_COLORS.TVK} />TVK</span></th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="DMK" size={8} /><PartySymbolIcon party="DMK" size={10} color={partyColors.DMK} />SPA</span></th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="AIADMK" size={8} /><PartySymbolIcon party="AIADMK" size={10} color={partyColors.AIADMK} />AIADMK+</span></th>
+                  <th className="text-center p-2"><span className="inline-flex items-center gap-1"><PartyFlag party="TVK" size={8} /><PartySymbolIcon party="TVK" size={10} color={partyColors.TVK} />TVK</span></th>
                   <th className="text-center p-2">Others</th>
                   <th className="text-center p-2">Sample</th>
                 </tr>
@@ -290,6 +322,50 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* PY Pre-Poll Surveys (2026 only) */}
+      {is2026 && isPY && (
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.02] to-transparent pointer-events-none" />
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">Pre-Poll Surveys – Puducherry</h2>
+              <p className="text-[11px] text-slate-500">Projected seats out of {config.totalSeats}. Majority mark: {config.majorityMark}.</p>
+            </div>
+            <span className="text-[9px] px-2.5 py-1 bg-purple-500/[0.08] text-purple-400 rounded-full uppercase tracking-widest font-semibold border border-purple-500/[0.12]">Opinion Polls</span>
+          </div>
+          <div className="space-y-3">
+            {PY_OPINION_POLLS_2026.map((poll, index) => (
+              <div key={index} className="glass rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-white">{poll.source}</span>
+                  <span className="text-[10px] text-slate-500">{poll.date}</span>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(poll.projections).map(([alliance, data]) => (
+                    <div key={alliance}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-400">{alliance}</span>
+                        <span className="text-xs font-bold tabular-nums" style={{ color: data.color }}>{data.min}–{data.max} seats</span>
+                      </div>
+                      <div className="relative h-5 bg-slate-800/80 rounded-full overflow-hidden">
+                        <div className="absolute inset-y-0 rounded-full" style={{
+                          left: `${(data.min / config.totalSeats) * 100}%`,
+                          width: `${((data.max - data.min) / config.totalSeats) * 100}%`,
+                          background: `linear-gradient(90deg, ${data.color}40, ${data.color}90)`,
+                          boxShadow: `0 0 8px ${data.color}30`,
+                        }} />
+                        <div className="absolute top-0 bottom-0 w-px" style={{ left: `${(config.majorityMark / config.totalSeats) * 100}%`, background: '#f59e0b80' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-600 mt-2">Pre-poll projections are estimates only and not indicative of final results.</p>
+        </div>
+      )}
+
       {/* Ad Banner */}
       <AdBanner variant="banner" />
 
@@ -306,7 +382,7 @@ export default function DashboardPage() {
             {partyData.slice(0, 10).map((entry, i) => {
               const maxSeats = partyData[0]?.seats || 1;
               const pct = (entry.seats / maxSeats) * 100;
-              const color = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+              const color = partyColors[entry.party] || partyColors.Others;
               return (
                 <div key={entry.party} className="group">
                   <div className="flex items-center justify-between mb-1">
@@ -355,7 +431,7 @@ export default function DashboardPage() {
               <PieChart>
                 <defs>
                   {pieData.map(entry => {
-                    const c = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+                    const c = partyColors[entry.party] || partyColors.Others;
                     return (
                       <linearGradient key={`pg-${entry.party}`} id={`pieGrad-${entry.party}`} x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stopColor={c} stopOpacity={0.85} />
@@ -382,7 +458,7 @@ export default function DashboardPage() {
                     <Cell
                       key={entry.party}
                       fill={`url(#pieGrad-${entry.party})`}
-                      style={{ filter: `drop-shadow(0 0 6px ${(PARTY_COLORS[entry.party] || PARTY_COLORS.Others)}50)` }}
+                      style={{ filter: `drop-shadow(0 0 6px ${(partyColors[entry.party] || partyColors.Others)}50)` }}
                     />
                   ))}
                 </Pie>
@@ -400,7 +476,7 @@ export default function DashboardPage() {
           {/* Legend grid */}
           <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 mt-2">
             {pieData.slice(0, 9).map(entry => {
-              const c = PARTY_COLORS[entry.party] || PARTY_COLORS.Others;
+              const c = partyColors[entry.party] || partyColors.Others;
               return (
                 <div key={entry.party} className="flex items-center gap-1.5">
                   <PartyFlag party={entry.party} size={8} />
@@ -418,7 +494,7 @@ export default function DashboardPage() {
       <AdBanner variant="in-feed" />
 
       {/* Charts Row 2 — Education & Age */}
-      {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
+      {(educationData[year] || liveEducation) && (ageData[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Education — horizontal bars with inline progress */}
         <div className="glass-card rounded-2xl p-4 overflow-hidden">
@@ -428,7 +504,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Education of Candidates' : 'Education of MLAs'}</h2>
           </div>
           {(() => {
-            const eduData = is2026 ? liveEducation : EDUCATION_DATA[year];
+            const eduData = is2026 ? liveEducation : educationData[year];
             const maxCount = eduData ? Math.max(...eduData.map(d => d.count)) : 1;
             const total = eduData ? eduData.reduce((s, d) => s + d.count, 0) : 1;
             const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#8b5cf6', '#ec4899'];
@@ -480,7 +556,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Age of Candidates' : 'Age of MLAs'}</h2>
           </div>
           {(() => {
-            const ageData = is2026 ? liveAge : AGE_DATA[year];
+            const ageData = is2026 ? liveAge : ageDataMap[year];
             const maxCount = ageData ? Math.max(...ageData.map(d => d.count)) : 1;
             return (
               <div className="flex items-end gap-3 h-[240px] pt-6">
@@ -520,7 +596,7 @@ export default function DashboardPage() {
             <TrendingUp className="w-5 h-5 text-rose-400" />
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">Vote Share Trend</h2>
-              <p className="text-[11px] text-slate-500">1952–2021 • 74 years of electoral history</p>
+              <p className="text-[11px] text-slate-500">{isPY ? '1964–2021 • 60 years of electoral history' : '1952–2021 • 74 years of electoral history'}</p>
             </div>
           </div>
           <Link to="/trends" className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg transition-all hover:bg-amber-500/15 hover:border-amber-500/30">
@@ -528,22 +604,22 @@ export default function DashboardPage() {
           </Link>
         </div>
         <ResponsiveContainer width="100%" height={340}>
-          <AreaChart data={HISTORICAL_VOTE_SHARE} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+          <AreaChart data={historicalVoteShare} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
             <defs>
               <linearGradient id="dashGradDMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.4} />
-                <stop offset="50%" stopColor={PARTY_COLORS.DMK} stopOpacity={0.08} />
-                <stop offset="100%" stopColor={PARTY_COLORS.DMK} stopOpacity={0} />
+                <stop offset="0%" stopColor={partyColors.DMK} stopOpacity={0.4} />
+                <stop offset="50%" stopColor={partyColors.DMK} stopOpacity={0.08} />
+                <stop offset="100%" stopColor={partyColors.DMK} stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="dashGradAIADMK" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.4} />
-                <stop offset="50%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0.08} />
-                <stop offset="100%" stopColor={PARTY_COLORS.AIADMK} stopOpacity={0} />
+              <linearGradient id={isPY ? 'dashGradAINRC' : 'dashGradAIADMK'} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={isPY ? (partyColors.AINRC || '#059669') : partyColors.AIADMK} stopOpacity={0.4} />
+                <stop offset="50%" stopColor={isPY ? (partyColors.AINRC || '#059669') : partyColors.AIADMK} stopOpacity={0.08} />
+                <stop offset="100%" stopColor={isPY ? (partyColors.AINRC || '#059669') : partyColors.AIADMK} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="dashGradINC" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={PARTY_COLORS.INC} stopOpacity={0.25} />
-                <stop offset="50%" stopColor={PARTY_COLORS.INC} stopOpacity={0.05} />
-                <stop offset="100%" stopColor={PARTY_COLORS.INC} stopOpacity={0} />
+                <stop offset="0%" stopColor={partyColors.INC} stopOpacity={0.25} />
+                <stop offset="50%" stopColor={partyColors.INC} stopOpacity={0.05} />
+                <stop offset="100%" stopColor={partyColors.INC} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" strokeOpacity={0.8} />
@@ -551,20 +627,38 @@ export default function DashboardPage() {
             <YAxis unit="%" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
             <Tooltip content={CUSTOM_TOOLTIP} />
             <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" />
-            <Area type="monotone" dataKey="INC" stroke={PARTY_COLORS.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={false} activeDot={{ r: 5, strokeWidth: 2, fill: '#1e293b' }} />
-            <Area type="monotone" dataKey="DMK" stroke={PARTY_COLORS.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
-            <Area type="monotone" dataKey="AIADMK" stroke={PARTY_COLORS.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
-            <Area type="monotone" dataKey="BJP" stroke={PARTY_COLORS.BJP} fill="none" strokeWidth={1.5} name="BJP" dot={false} activeDot={{ r: 4, strokeWidth: 2, fill: '#1e293b' }} strokeDasharray="6 3" />
+            <Area type="monotone" dataKey="INC" stroke={partyColors.INC} fill="url(#dashGradINC)" strokeWidth={2} name="Congress" dot={false} activeDot={{ r: 5, strokeWidth: 2, fill: '#1e293b' }} />
+            <Area type="monotone" dataKey="DMK" stroke={partyColors.DMK} fill="url(#dashGradDMK)" strokeWidth={2.5} name="DMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
+            {isPY ? (
+              <Area type="monotone" dataKey="AINRC" stroke={partyColors.AINRC || '#059669'} fill={`url(#dashGradAINRC)`} strokeWidth={2.5} name="AINRC" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
+            ) : (
+              <Area type="monotone" dataKey="AIADMK" stroke={partyColors.AIADMK} fill="url(#dashGradAIADMK)" strokeWidth={2.5} name="AIADMK" dot={false} activeDot={{ r: 6, strokeWidth: 2, fill: '#1e293b' }} />
+            )}
+            <Area type="monotone" dataKey="BJP" stroke={partyColors.BJP || '#f97316'} fill="none" strokeWidth={1.5} name="BJP" dot={false} activeDot={{ r: 4, strokeWidth: 2, fill: '#1e293b' }} strokeDasharray="6 3" />
           </AreaChart>
         </ResponsiveContainer>
         <div className="flex items-center justify-center gap-6 mt-2">
-          <span className="text-[10px] text-slate-600">Congress era 1952–62</span>
-          <span className="text-[10px] text-slate-600">→</span>
-          <span className="text-[10px] text-slate-600">DMK rises 1967</span>
-          <span className="text-[10px] text-slate-600">→</span>
-          <span className="text-[10px] text-slate-600">AIADMK emerges 1977</span>
-          <span className="text-[10px] text-slate-600">→</span>
-          <span className="text-[10px] text-slate-600">Dravidian duopoly</span>
+          {isPY ? (
+            <>
+              <span className="text-[10px] text-slate-600">Post-French era 1964</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">Congress dominance</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">AINRC emerges 2011</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">Multi-party competition</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[10px] text-slate-600">Congress era 1952–62</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">DMK rises 1967</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">AIADMK emerges 1977</span>
+              <span className="text-[10px] text-slate-600">→</span>
+              <span className="text-[10px] text-slate-600">Dravidian duopoly</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -593,7 +687,7 @@ export default function DashboardPage() {
                   <div
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{
-                      width: `${(data.seats / 234) * 100}%`,
+                      width: `${(data.seats / config.totalSeats) * 100}%`,
                       background: `linear-gradient(90deg, ${accent}60, ${accent})`,
                       boxShadow: `0 0 8px ${accent}30`,
                     }}
@@ -613,14 +707,14 @@ export default function DashboardPage() {
         <ElectionQuiz />
       </div>
 
-      <ShareBar title="TN Election Dashboard — India's most comprehensive Tamil Nadu election analytics" />
+      <ShareBar title={`${config.name} Election Dashboard — India's most comprehensive ${config.name} election analytics`} />
 
       {/* Data Source Disclaimer */}
       <div className="glass rounded-xl p-4">
         <p className="text-[10px] text-slate-500 leading-relaxed">
           <strong className="text-slate-400">Data Sources:</strong> Election results & voter data from{' '}
           <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">Election Commission of India</a> &{' '}
-          <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">TNSEC</a>.
+          <a href={config.electionCommissionURL} target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">{config.electionCommissionName}</a>.
           Criminal records & asset data from candidate self-sworn affidavits via{' '}
           <a href="https://myneta.info" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">myneta.info</a>{' '}
           (<a href="https://adrindia.org" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ADR</a>).

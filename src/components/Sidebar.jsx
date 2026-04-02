@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageToggle, useI18n } from '../i18n';
+import { useElectionState } from '../context/StateContext';
 
 const NAV_ITEMS = [
   { to: '/', icon: BarChart3, i18nKey: 'nav.dashboard' },
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const { t } = useI18n();
+  const { stateCode, config, switchState, states } = useElectionState();
 
   return (
     <>
@@ -47,15 +49,32 @@ export default function Sidebar() {
         <div className="p-4 border-b border-white/[0.04]">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img src="/tnsec-emblem.png" alt="Tamil Nadu State Election Commission" className="w-9 h-9 flex-shrink-0 object-contain" />
+              <img src={config.emblem} alt={`${config.name} Election Commission`} className="w-9 h-9 flex-shrink-0 object-contain" />
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full pulse-dot" />
             </div>
             <h1 className="text-lg font-bold text-white tracking-tight">
-              <span className="text-amber-400">TN</span> Election
+              <span className="text-amber-400">{config.shortName === 'Pondy' ? 'PY' : config.code}</span> Election
               <span className="block text-[10px] font-normal text-slate-500 mt-0.5 tracking-wide">
-                Dashboard • 1952–2026
+                Dashboard • {config.yearRange}
               </span>
             </h1>
+          </div>
+
+          {/* State Switcher */}
+          <div className="mt-3 flex glass rounded-lg p-0.5">
+            {Object.values(states).map((s) => (
+              <button
+                key={s.code}
+                onClick={() => switchState(s.code)}
+                className={`flex-1 text-[11px] font-semibold py-1.5 rounded-md transition-all duration-200 ${
+                  stateCode === s.code
+                    ? 'bg-amber-500/20 text-amber-400 shadow-sm shadow-amber-500/20'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {s.code === 'TN' ? 'Tamil Nadu' : 'Puducherry'}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -95,7 +114,7 @@ export default function Sidebar() {
             <NavLink to="/terms" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">Terms</NavLink>
           </div>
           <p className="text-[10px] text-slate-600 text-center">
-            <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">TNSEC</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">ECI</a> · myneta.info
+            <a href={config.electionCommissionURL} target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">{config.electionCommissionName}</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">ECI</a> · myneta.info
           </p>
         </div>
       </aside>
