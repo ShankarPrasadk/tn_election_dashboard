@@ -114,9 +114,9 @@ export default function DashboardPage() {
   const pieData = partyData.filter(d => d.seats > 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">
             {t('dashboard.title')} <span className="text-amber-400">{year}</span>
@@ -137,8 +137,8 @@ export default function DashboardPage() {
 
       {/* Countdown + Featured Candidates (2026 only) */}
       {is2026 && (
-        <div className="bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 border border-amber-500/10 rounded-xl p-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div className="bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 border border-amber-500/10 rounded-xl p-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-5 h-5 text-amber-400" />
@@ -173,7 +173,7 @@ export default function DashboardPage() {
       )}
 
       {/* Key Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title={is2026 ? t('dashboard.electionStatus') : 'CM Elect'}
           value={is2026 ? t('dashboard.multiCornered') : summary.chiefMinister}
@@ -217,7 +217,7 @@ export default function DashboardPage() {
 
       {/* Pre-Poll Surveys (2026 only) */}
       {is2026 && (
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.03] to-transparent pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -292,11 +292,11 @@ export default function DashboardPage() {
       <AdBanner variant="banner" />
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Party Seats — modern horizontal bars with inline values */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="w-5 h-5 text-amber-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Constituencies Announced' : 'Seats Won'}</h2>
           </div>
@@ -342,9 +342,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Seat Distribution — modern donut with center text */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2 mb-3">
             <Vote className="w-5 h-5 text-purple-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Contest Coverage' : 'Seat Distribution'}</h2>
           </div>
@@ -417,11 +417,11 @@ export default function DashboardPage() {
 
       {/* Charts Row 2 — Education & Age */}
       {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Education — horizontal bars with inline progress */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2 mb-3">
             <GraduationCap className="w-5 h-5 text-amber-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Education of Candidates' : 'Education of MLAs'}</h2>
           </div>
@@ -471,9 +471,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Age Demographics — modern vertical bars with labels */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2 mb-3">
             <Users className="w-5 h-5 text-blue-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? 'Age of Candidates' : 'Age of MLAs'}</h2>
           </div>
@@ -511,9 +511,9 @@ export default function DashboardPage() {
       )}
 
       {/* Historical Trends — modern area chart */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-rose-400" />
             <div>
@@ -567,13 +567,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Alliance Results — modern cards */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-6 backdrop-blur-sm overflow-hidden">
+      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-3">
           <Users className="w-5 h-5 text-amber-400" />
           <h2 className="text-lg font-bold text-white tracking-tight">{is2026 ? `Alliance Seat-Sharing – ${year}` : `Alliance Results – ${year}`}</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {Object.entries(summary.allianceResults).map(([alliance, data], idx) => {
             const accentColors = ['#e11d48', '#16a34a', '#f59e0b', '#3b82f6'];
             const accent = accentColors[idx % accentColors.length];
@@ -606,7 +606,7 @@ export default function DashboardPage() {
         </div>
       </div>
       {/* Engagement Section */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
         <CommunityPoll />
         <ElectionQuiz />
       </div>

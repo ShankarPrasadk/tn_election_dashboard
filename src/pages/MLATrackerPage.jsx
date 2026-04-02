@@ -173,7 +173,7 @@ export default function MLATrackerPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-6xl">
+      <div className="space-y-4 max-w-6xl">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Award className="text-amber-400" /> {t('mla.title')}
@@ -186,7 +186,7 @@ export default function MLATrackerPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-4 max-w-6xl">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
           <Award className="text-amber-400" /> {t('mla.title')}

@@ -83,7 +83,7 @@ export default function ForecastPage() {
   const leaderColor = FORECAST_ALLIANCE_COLORS[leader];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-4 max-w-5xl">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -135,7 +135,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Bar Chart */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
           <h3 className="text-sm font-semibold text-white mb-3">Seat Projection</h3>
           <ResponsiveContainer width="100%" height={220}>

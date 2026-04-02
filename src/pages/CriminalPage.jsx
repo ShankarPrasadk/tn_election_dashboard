@@ -53,8 +53,8 @@ export default function CriminalPage() {
 
   if (!data) {
     return (
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-white">{t('criminal.title')}</h1>
             <p className="text-slate-400 mt-1">{t('criminal.subtitle')}</p>
@@ -80,8 +80,8 @@ export default function CriminalPage() {
         .sort((a, b) => b.criminalCases.total - a.criminalCases.total);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">{t('criminal.title')}</h1>
           <p className="text-slate-400 mt-1">{t('criminal.subtitle')}</p>
@@ -129,9 +129,9 @@ export default function CriminalPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Criminal Cases by Party */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
           <SectionHeader title={`Criminal Cases by Party (${year})`} />
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data.topParties} layout="vertical">
@@ -149,7 +149,7 @@ export default function CriminalPage() {
         </div>
 
         {/* Case Distribution Pie */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
           <SectionHeader title="Case Distribution" />
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -174,7 +174,7 @@ export default function CriminalPage() {
       </div>
 
       {/* Trend Over Years */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
         <SectionHeader title="Criminal Cases Trend (2006–2021)" subtitle="Percentage of candidates with criminal records is increasing" />
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={trendData}>
@@ -190,7 +190,7 @@ export default function CriminalPage() {
       </div>
 
       {/* Top Candidates with Cases */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
         <SectionHeader title="Candidates with Most Criminal Cases" />
         <div className="space-y-3">
           {topCriminals.map((c, i) => (
@@ -211,7 +211,7 @@ export default function CriminalPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-xs text-slate-400">Total</p>
                   <p className="text-xl font-bold text-amber-400">{c.criminalCases.total}</p>
@@ -231,7 +231,7 @@ export default function CriminalPage() {
       <ExploreCTA exclude={['/criminal']} maxItems={4} title="Explore More Data" />
 
       {/* Disclaimer */}
-      <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
         <h4 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Legal Notice — Criminal Case Data</h4>
         <p className="text-xs text-slate-400 leading-relaxed">
           All criminal case data is sourced exclusively from candidates' own self-sworn affidavits filed with

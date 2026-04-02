@@ -26,7 +26,7 @@ export default function EmbedPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-4 max-w-4xl">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
           <Code className="text-amber-400" /> Embed Widget

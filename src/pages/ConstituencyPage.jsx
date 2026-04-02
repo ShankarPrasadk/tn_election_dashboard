@@ -58,7 +58,7 @@ export default function ConstituencyPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
           <MapPin className="text-amber-400" /> {t('constituency.title')}

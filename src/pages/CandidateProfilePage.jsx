@@ -127,7 +127,7 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
   const hasPublicProfile = Boolean(enrichment?.found);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-4">
       <button onClick={() => navigate('/candidates')} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Candidates
       </button>
@@ -191,7 +191,7 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
         <p className="text-slate-300 leading-relaxed">{profileSummary}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <BadgeInfo size={18} className="text-amber-400" /> Location And Ballot Details
@@ -265,7 +265,7 @@ function GenericCandidateProfile({ candidate, enrichment, enrichmentLoading, nav
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Users size={18} className="text-amber-400" /> Affidavit Identity Details
@@ -372,7 +372,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
   const profilePhoto = enrichment?.photo || candidate.photo;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-4">
       <button onClick={() => navigate('/candidates')} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Candidates
       </button>
@@ -432,7 +432,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
         <p className="text-slate-300 leading-relaxed">{candidate.bio}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
           <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
             <Calendar size={18} className="text-amber-400" /> Political Career
@@ -483,7 +483,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {candidate.achievements?.length > 0 && (
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
             <h2 className="text-lg font-bold text-green-400 mb-4 flex items-center gap-2">
@@ -517,7 +517,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {candidate.family && Object.keys(candidate.family).length > 0 && (
           <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
             <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">

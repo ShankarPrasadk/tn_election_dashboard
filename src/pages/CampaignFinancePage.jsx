@@ -74,7 +74,7 @@ export default function CampaignFinancePage() {
   const tnBondsTotal = tnBonds.reduce((s, b) => s + b.totalCr, 0);
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-4 max-w-5xl">
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
           <IndianRupee className="text-amber-400" /> {t('finance.title')}

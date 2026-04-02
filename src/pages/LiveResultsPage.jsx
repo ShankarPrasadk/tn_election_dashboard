@@ -66,7 +66,7 @@ export default function LiveResultsPage() {
 
   if (isPreCounting) {
     return (
-      <div className="space-y-6 max-w-5xl">
+      <div className="space-y-4 max-w-5xl">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Radio className="text-red-400 animate-pulse" /> {t('results.title')}

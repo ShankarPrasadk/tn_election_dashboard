@@ -9,7 +9,7 @@ export default function AboutPage() {
         India's most comprehensive Tamil Nadu election analytics platform
       </p>
 
-      <div className="space-y-8 text-slate-300 text-sm leading-relaxed">
+      <div className="space-y-5 text-slate-300 text-sm leading-relaxed">
         {/* Mission */}
         <section className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <h2 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
