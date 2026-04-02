@@ -18,6 +18,7 @@ const TRANSLATIONS = {
     'nav.mla': 'MLA Tracker',
     'nav.finance': 'Campaign Finance',
     'nav.voters': 'Voter Data',
+    'nav.stories': 'Election Stories',
     'nav.embed': 'Embed',
     // Common
     'common.seats': 'Seats',
@@ -179,6 +180,7 @@ const TRANSLATIONS = {
     'nav.mla': 'சட்டமன்ற உறுப்பினர்',
     'nav.finance': 'தேர்தல் நிதி',
     'nav.voters': 'வாக்காளர் தரவு',
+    'nav.stories': 'தேர்தல் கதைகள்',
     'nav.embed': 'உட்பொதி',
     // Common
     'common.seats': 'இடங்கள்',

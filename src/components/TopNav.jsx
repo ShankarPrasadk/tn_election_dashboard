@@ -2,7 +2,7 @@ import { NavLink, Link } from 'react-router-dom';
 import {
   BarChart3, Target, Radio, TrendingUp, Newspaper, Map,
   Menu, X, Users, Scale, Building2, AlertTriangle,
-  MessageCircleQuestion, MapPin, Award, IndianRupee, Vote, Sun, Moon
+  MessageCircleQuestion, MapPin, Award, IndianRupee, Vote, Sun, Moon, BookOpen
 } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageToggle, useI18n } from '../i18n';
@@ -38,7 +38,8 @@ const ALL_NAV_GROUPS = [
     { to: '/development', icon: Building2, i18nKey: 'nav.development' },
     { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
   ]},
-  { group: 'Tools', items: [
+  { group: 'Explore', items: [
+    { to: '/stories', icon: BookOpen, i18nKey: 'nav.stories' },
     { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
   ]},
 ];

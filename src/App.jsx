@@ -32,6 +32,7 @@ const LiveResultsPage = lazy(() => import('./pages/LiveResultsPage'));
 const MLATrackerPage = lazy(() => import('./pages/MLATrackerPage'));
 const CampaignFinancePage = lazy(() => import('./pages/CampaignFinancePage'));
 const VoterDataPage = lazy(() => import('./pages/VoterDataPage'));
+const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -97,6 +98,7 @@ export default function App() {
               <Route path="/mla-tracker" element={<MLATrackerPage />} />
               <Route path="/finance" element={<CampaignFinancePage />} />
               <Route path="/voters" element={<VoterDataPage />} />
+              <Route path="/stories" element={<StoriesPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/about" element={<AboutPage />} />
