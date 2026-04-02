@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee, Code } from 'lucide-react';
+import { BarChart3, Users, Scale, TrendingUp, Building2, AlertTriangle, Menu, X, MessageCircleQuestion, MapPin, Map, Newspaper, Target, Radio, Award, IndianRupee } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageToggle, useI18n } from '../i18n';
 
@@ -18,7 +18,6 @@ const NAV_ITEMS = [
   { to: '/mla-tracker', icon: Award, i18nKey: 'nav.mla' },
   { to: '/finance', icon: IndianRupee, i18nKey: 'nav.finance' },
   { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
-  { to: '/embed', icon: Code, i18nKey: 'nav.embed' },
 ];
 
 export default function Sidebar() {
