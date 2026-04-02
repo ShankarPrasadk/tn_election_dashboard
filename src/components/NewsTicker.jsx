@@ -32,17 +32,17 @@ export default function NewsTicker() {
   const tickerText = headlines.join('  •  ');
 
   return (
-    <div className="bg-slate-800/80 border-b border-slate-700/50 overflow-hidden">
+    <div className="bg-[#080c16]/90 backdrop-blur-xl border-b border-white/[0.03] overflow-hidden">
       <div className="flex items-center">
         <Link
           to="/news"
-          className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500/20 px-3 py-1.5 text-amber-400 text-xs font-bold uppercase z-10"
+          className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500/[0.08] border-r border-amber-500/[0.1] px-3 py-1.5 text-amber-400 text-[10px] font-bold uppercase tracking-widest z-10"
         >
-          <Newspaper size={12} />
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 pulse-dot" />
           Live
         </Link>
         <div className="overflow-hidden flex-1 relative">
-          <div className="animate-ticker whitespace-nowrap py-1.5 text-xs text-slate-300">
+          <div className="animate-ticker whitespace-nowrap py-1.5 text-[11px] text-slate-500">
             {tickerText}  •  {tickerText}
           </div>
         </div>

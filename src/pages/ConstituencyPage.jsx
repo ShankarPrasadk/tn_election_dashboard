@@ -117,7 +117,7 @@ export default function ConstituencyPage() {
         {filtered.map((seat) => {
           const parties = Object.entries(seat.candidates).filter(([, name]) => name && name !== 'TBD');
           return (
-            <div key={seat.no} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div key={seat.no} className="glass rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -160,7 +160,7 @@ export default function ConstituencyPage() {
                   if (!name || name === 'TBD') return null;
                   const candidateId = resolveId(name, party, seat.constituency);
                   const content = (
-                    <div className="flex items-center justify-between gap-2 bg-slate-900/50 border border-slate-700/30 rounded-lg px-3 py-2 hover:border-amber-500/30 transition-colors">
+                    <div className="flex items-center justify-between gap-2 glass rounded-lg px-3 py-2 hover:border-amber-500/30 transition-colors">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white truncate">{name}</p>
                         <PartyBadge party={party} />
@@ -178,7 +178,7 @@ export default function ConstituencyPage() {
                 {Object.entries(seat.candidates)
                   .filter(([party, name]) => name && name !== 'TBD' && !PARTY_ORDER.includes(party))
                   .map(([party, name]) => (
-                    <div key={party} className="flex items-center justify-between gap-2 bg-slate-900/50 border border-slate-700/30 rounded-lg px-3 py-2">
+                    <div key={party} className="flex items-center justify-between gap-2 glass rounded-lg px-3 py-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white truncate">{name}</p>
                         <PartyBadge party={party} />

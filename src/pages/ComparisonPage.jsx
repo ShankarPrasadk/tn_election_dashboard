@@ -197,7 +197,7 @@ export default function ComparisonPage() {
       {/* Head to Head Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[c1, c2].map((c) => (
-          <div key={c.id} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div key={c.id} className="glass rounded-xl p-4">
             <div className="flex items-center gap-4 mb-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center"
@@ -226,7 +226,7 @@ export default function ComparisonPage() {
       </div>
 
       {/* Comparison Table */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+      <div className="glass rounded-xl p-4">
         <h3 className="text-lg font-bold text-white mb-4">Head-to-Head Comparison</h3>
         <CompareRow label="Total Criminal Cases" v1={c1.criminalCases.total} v2={c2.criminalCases.total} highlight="lower" />
         <CompareRow label="Serious Cases" v1={c1.criminalCases.serious} v2={c2.criminalCases.serious} highlight="lower" />
@@ -247,7 +247,7 @@ export default function ComparisonPage() {
 
       {/* Radar Chart – only for KEY_CANDIDATES profiles */}
       {radarData.length > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="glass rounded-xl p-4">
           <h3 className="text-lg font-bold text-white mb-4">Performance Radar</h3>
           <ResponsiveContainer width="100%" height={400}>
             <RadarChart data={radarData}>
@@ -264,7 +264,7 @@ export default function ComparisonPage() {
 
       {/* Assets Comparison Chart */}
       {assetComparison.length > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="glass rounded-xl p-4">
           <h3 className="text-lg font-bold text-white mb-4">Asset Growth Comparison (₹ Cr)</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={assetComparison}>

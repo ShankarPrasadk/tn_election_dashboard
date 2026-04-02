@@ -91,7 +91,7 @@ export default function DevelopmentPage() {
       </div>
 
       {/* Schemes */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="glass rounded-xl p-6">
         <SectionHeader title="Key Government Schemes" subtitle={`Welfare and development schemes during ${data.period}`} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {data.keySchemes.map((scheme, i) => (
@@ -120,7 +120,7 @@ export default function DevelopmentPage() {
       </div>
 
       {/* Corruption Allegations */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="glass rounded-xl p-6">
         <SectionHeader title="Corruption Allegations" subtitle="Major scandals and allegations during this period" />
         {data.corruptionAllegations.length > 0 ? (
           <div className="space-y-3">
@@ -143,7 +143,7 @@ export default function DevelopmentPage() {
       </div>
 
       {/* Comparison Across All Periods */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="glass rounded-xl p-6">
         <SectionHeader title="Government Performance Comparison" subtitle="Key metrics across all government periods" />
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={comparisonMetrics}>
@@ -161,7 +161,7 @@ export default function DevelopmentPage() {
       </div>
 
       {/* Radar Comparison */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="glass rounded-xl p-6">
         <SectionHeader title="Performance Radar – All Periods" />
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart data={radarCompare}>
@@ -178,7 +178,7 @@ export default function DevelopmentPage() {
       </div>
 
       {/* Investment Trend */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
+      <div className="glass rounded-xl p-6">
         <SectionHeader title="Infrastructure Spending (₹ Cr)" />
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={PERIODS.map(p => ({ period: p, spend: DEVELOPMENT_DATA[p].infrastructureSpend }))}>

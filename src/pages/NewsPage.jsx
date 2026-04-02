@@ -160,7 +160,7 @@ export default function NewsPage() {
       </div>
 
       {/* Auto-refresh indicator with countdown */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-2 flex items-center justify-between text-xs text-slate-400">
+      <div className="glass rounded-lg px-4 py-2 flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           Auto-refreshing • {filtered.length} articles
@@ -195,7 +195,7 @@ export default function NewsPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   categoryFilter === key
                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+                    : 'glass text-slate-400 hover:border-white/[0.08]'
                 }`}
               >
                 {label}
@@ -216,7 +216,7 @@ export default function NewsPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   partyFilter === 'all'
                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+                    : 'glass text-slate-400 hover:border-white/[0.08]'
                 }`}
               >
                 All
@@ -228,7 +228,7 @@ export default function NewsPage() {
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     partyFilter === party
                       ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                      : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+                      : 'glass text-slate-400 hover:border-white/[0.08]'
                   }`}
                   style={partyFilter === party ? { borderColor: PARTY_COLORS[party] || '#f59e0b', color: PARTY_COLORS[party] || '#f59e0b' } : {}}
                 >
@@ -254,7 +254,7 @@ export default function NewsPage() {
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-amber-500/30 hover:bg-slate-800/80 transition-all duration-200 flex flex-col"
+              className="group glass rounded-xl p-5 hover:border-amber-500/30 hover:bg-slate-800/80 transition-all duration-200 flex flex-col"
             >
               {/* Category + Source */}
               <div className="flex items-center justify-between mb-3">

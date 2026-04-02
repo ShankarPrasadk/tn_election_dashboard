@@ -52,13 +52,13 @@ function CountdownTimer() {
   ];
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-2.5">
       {blocks.map(b => (
         <div key={b.label} className="text-center">
-          <div className="bg-slate-800/80 border border-amber-500/20 rounded-lg w-16 h-16 flex items-center justify-center">
-            <span className="text-2xl font-bold text-amber-400 tabular-nums">{String(b.value).padStart(2, '0')}</span>
+          <div className="glass-card rounded-xl w-14 h-14 flex items-center justify-center border border-amber-500/[0.08] glow-amber">
+            <span className="text-xl font-bold text-amber-400 tabular-nums font-mono">{String(b.value).padStart(2, '0')}</span>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{b.label}</p>
+          <p className="text-[9px] text-slate-600 mt-1 uppercase tracking-widest font-medium">{b.label}</p>
         </div>
       ))}
     </div>
@@ -68,13 +68,13 @@ function CountdownTimer() {
 const CUSTOM_TOOLTIP = ({ active, payload, label }) => {
   if (!active || !payload) return null;
   return (
-    <div className="backdrop-blur-xl bg-slate-900/90 border border-slate-600/50 rounded-xl p-4 shadow-2xl shadow-black/50">
-      <p className="text-sm font-semibold text-white mb-2 border-b border-slate-700/50 pb-1.5">{label}</p>
+    <div className="glass-card rounded-xl p-3 shadow-2xl shadow-black/60">
+      <p className="text-xs font-semibold text-white mb-1.5 border-b border-white/[0.06] pb-1.5">{label}</p>
       {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-2 py-0.5">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color, boxShadow: `0 0 6px ${p.color}60` }} />
-          <span className="text-xs text-slate-400">{p.name}:</span>
-          <span className="text-xs font-medium text-white">{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</span>
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color, boxShadow: `0 0 8px ${p.color}80` }} />
+          <span className="text-[11px] text-slate-500">{p.name}:</span>
+          <span className="text-[11px] font-semibold text-white">{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</span>
         </div>
       ))}
     </div>
@@ -118,16 +118,16 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-2xl font-black text-white tracking-tight">
             {t('dashboard.title')} <span className="text-amber-400">{year}</span>
-            {is2026 && <span className="text-sm ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">{t('dashboard.upcoming')}</span>}
+            {is2026 && <span className="text-[10px] ml-2 px-2.5 py-1 bg-amber-500/[0.08] text-amber-400 rounded-full font-semibold border border-amber-500/[0.12] uppercase tracking-wider">{t('dashboard.upcoming')}</span>}
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-slate-500 text-sm mt-1">
             {summary.totalConstituencies} constituencies • {(summary.totalVoters / 1000000).toFixed(1)}M voters
             {summary.turnoutPercent ? ` • ${summary.turnoutPercent}% turnout` : ' • Polling on April 23, 2026'}
           </p>
           {is2026 && (
-            <p className="text-sm text-sky-300 mt-2">
+            <p className="text-xs text-sky-400/70 mt-1.5">
               {t('dashboard.preElectionNote')}
             </p>
           )}
@@ -137,34 +137,36 @@ export default function DashboardPage() {
 
       {/* Countdown + Featured Candidates (2026 only) */}
       {is2026 && (
-        <div className="bg-gradient-to-r from-slate-800/80 via-slate-800/60 to-slate-800/80 border border-amber-500/10 rounded-xl p-4">
+        <div className="glass-card gradient-border rounded-2xl p-4 grid-bg">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-5 h-5 text-amber-400" />
-                <h2 className="text-lg font-semibold text-white">{t('dashboard.countdown')}</h2>
+                <div className="bg-amber-500/[0.08] rounded-lg p-1.5">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                </div>
+                <h2 className="text-base font-bold text-white tracking-tight">{t('dashboard.countdown')}</h2>
               </div>
-              <p className="text-slate-400 text-sm mb-3">{t('dashboard.countdownSubtitle')}</p>
+              <p className="text-slate-500 text-xs mb-3">{t('dashboard.countdownSubtitle')}</p>
               <CountdownTimer />
             </div>
             <div className="flex-1 max-w-xl">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">{t('dashboard.majorLeaders')}</p>
-              <div className="flex gap-3 overflow-x-auto pb-1">
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest font-semibold mb-2">{t('dashboard.majorLeaders')}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {CANDIDATE_PROFILES.slice(0, 5).map(c => (
-                  <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 bg-slate-900/60 border border-slate-700/40 rounded-lg px-3 py-2 hover:border-amber-500/30 transition-colors min-w-fit">
-                    <img src={c.photo} alt={c.name} className="w-8 h-8 rounded-full object-cover" onError={e => { e.target.style.display = 'none'; }} />
+                  <Link key={c.id} to={`/candidate/${c.id}`} className="flex items-center gap-2 glass rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-200 min-w-fit group">
+                    <img src={c.photo} alt={c.name} className="w-7 h-7 rounded-full object-cover ring-1 ring-white/[0.06]" onError={e => { e.target.style.display = 'none'; }} />
                     <div>
-                      <p className="text-sm font-medium text-white whitespace-nowrap">{c.name}</p>
+                      <p className="text-xs font-semibold text-white whitespace-nowrap group-hover:text-amber-400 transition-colors">{c.name}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <PartyFlag party={c.party} size={8} />
                         <PartySymbolIcon party={c.party} size={10} color={PARTY_COLORS[c.party]} />
-                        <span className="text-[10px] text-slate-500">{c.party}</span>
+                        <span className="text-[9px] text-slate-600">{c.party}</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
-              <Link to="/candidates" className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 mt-2">
+              <Link to="/candidates" className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 hover:text-amber-300 mt-2 font-medium">
                 {t('dashboard.viewAllCandidates')} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -217,14 +219,14 @@ export default function DashboardPage() {
 
       {/* Pre-Poll Surveys (2026 only) */}
       {is2026 && (
-        <div className="relative bg-gradient-to-br from-slate-800/70 via-slate-800/50 to-slate-900/70 border border-slate-700/30 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.03] to-transparent pointer-events-none" />
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.02] to-transparent pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-white">Pre-Poll Surveys</h2>
-              <p className="text-xs text-slate-500">Latest surveys from multiple agencies. Projected seats out of 234. Majority mark: 118.</p>
+              <h2 className="text-base font-bold text-white tracking-tight">Pre-Poll Surveys</h2>
+              <p className="text-[11px] text-slate-500">Latest surveys from multiple agencies. Projected seats out of 234. Majority mark: 118.</p>
             </div>
-            <span className="text-[10px] px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full uppercase tracking-wider">Opinion Polls</span>
+            <span className="text-[9px] px-2.5 py-1 bg-purple-500/[0.08] text-purple-400 rounded-full uppercase tracking-widest font-semibold border border-purple-500/[0.12]">Opinion Polls</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -294,7 +296,7 @@ export default function DashboardPage() {
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Party Seats — modern horizontal bars with inline values */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="w-5 h-5 text-amber-400" />
@@ -342,7 +344,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Seat Distribution — modern donut with center text */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
           <div className="flex items-center gap-2 mb-3">
             <Vote className="w-5 h-5 text-purple-400" />
@@ -419,7 +421,7 @@ export default function DashboardPage() {
       {(EDUCATION_DATA[year] || liveEducation) && (AGE_DATA[year] || liveAge) && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Education — horizontal bars with inline progress */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
           <div className="flex items-center gap-2 mb-3">
             <GraduationCap className="w-5 h-5 text-amber-400" />
@@ -471,7 +473,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Age Demographics — modern vertical bars with labels */}
-        <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+        <div className="glass-card rounded-2xl p-4 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
           <div className="flex items-center gap-2 mb-3">
             <Users className="w-5 h-5 text-blue-400" />
@@ -511,7 +513,7 @@ export default function DashboardPage() {
       )}
 
       {/* Historical Trends — modern area chart */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+      <div className="glass-card rounded-2xl p-4 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -567,7 +569,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Alliance Results — modern cards */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/60 to-slate-800/80 border border-slate-700/20 rounded-2xl p-4 backdrop-blur-sm overflow-hidden">
+      <div className="glass-card rounded-2xl p-4 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
         <div className="flex items-center gap-2 mb-3">
           <Users className="w-5 h-5 text-amber-400" />
@@ -578,7 +580,7 @@ export default function DashboardPage() {
             const accentColors = ['#e11d48', '#16a34a', '#f59e0b', '#3b82f6'];
             const accent = accentColors[idx % accentColors.length];
             return (
-              <div key={alliance} className="relative bg-slate-900/60 rounded-xl p-5 border border-slate-700/20 overflow-hidden group hover:border-slate-600/40 transition-all duration-300">
+              <div key={alliance} className="relative glass rounded-xl p-5 overflow-hidden group hover:border-white/[0.08] transition-all duration-300">
                 <div className="absolute top-0 left-0 w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${accent}40, transparent)` }} />
                 <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-5" style={{ background: accent, filter: 'blur(30px)' }} />
                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{alliance}</p>
@@ -614,7 +616,7 @@ export default function DashboardPage() {
       <ShareBar title="TN Election Dashboard — India's most comprehensive Tamil Nadu election analytics" />
 
       {/* Data Source Disclaimer */}
-      <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-4">
+      <div className="glass rounded-xl p-4">
         <p className="text-[10px] text-slate-500 leading-relaxed">
           <strong className="text-slate-400">Data Sources:</strong> Election results & voter data from{' '}
           <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">Election Commission of India</a> &{' '}

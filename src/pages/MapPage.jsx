@@ -328,7 +328,7 @@ export default function MapPage() {
 
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Map */}
-        <div className="flex-1 bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden" style={{ minHeight: 500 }}>
+        <div className="flex-1 glass rounded-xl overflow-hidden" style={{ minHeight: 500 }}>
           {geojson && (
             <MapContainer
               center={[10.8, 78.8]}
@@ -357,7 +357,7 @@ export default function MapPage() {
         <div className="w-full lg:w-80 space-y-4">
           {selected && selectedResult ? (
             <>
-              <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-4">
+              <div className="glass rounded-xl p-4">
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-lg font-bold text-white">{selected.properties.AC_NAME}</h2>
                   <button onClick={() => setSelected(null)} className="text-slate-500 hover:text-white p-1 rounded hover:bg-slate-700">
@@ -386,12 +386,12 @@ export default function MapPage() {
                 )}
 
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                  <div className="glass rounded-lg p-2 text-center">
                     <Vote size={14} className="mx-auto text-blue-400 mb-1" />
                     <p className="text-white font-semibold">{selectedResult.turnout_percent}%</p>
                     <p className="text-slate-500 text-xs">Turnout</p>
                   </div>
-                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                  <div className="glass rounded-lg p-2 text-center">
                     <Users size={14} className="mx-auto text-purple-400 mb-1" />
                     <p className="text-white font-semibold">{selectedResult.num_candidates}</p>
                     <p className="text-slate-500 text-xs">Candidates</p>
@@ -400,7 +400,7 @@ export default function MapPage() {
               </div>
 
               {/* All candidates */}
-              <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-4">
+              <div className="glass rounded-xl p-4">
                 <h3 className="text-sm font-semibold text-slate-300 mb-3">All Candidates</h3>
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {selectedResult.candidates
@@ -428,7 +428,7 @@ export default function MapPage() {
               </div>
             </>
           ) : (
-            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6 text-center">
+            <div className="glass rounded-xl p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
                 <Search size={20} className="text-slate-500" />
               </div>
@@ -437,7 +437,7 @@ export default function MapPage() {
           )}
 
           {/* Always-visible legend & results summary */}
-          <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-4">
+          <div className="glass rounded-xl p-4">
             <p className="text-xs text-slate-500 uppercase font-medium mb-2">Party Colors</p>
             <div className="grid grid-cols-2 gap-1">
               {['DMK', 'AIADMK', 'BJP', 'INC', 'PMK', 'NTK', 'DMDK', 'IND'].map(p => (

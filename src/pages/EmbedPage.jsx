@@ -37,7 +37,7 @@ export default function EmbedPage() {
       </div>
 
       {/* Widget Selector */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Choose a widget</h3>
         <div className="flex flex-wrap gap-2">
           {EMBED_OPTIONS.map((opt) => (
@@ -55,7 +55,7 @@ export default function EmbedPage() {
       </div>
 
       {/* Preview */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Preview</h3>
         <div className="bg-slate-900 rounded-lg p-4 flex justify-center overflow-auto">
           <iframe
@@ -70,7 +70,7 @@ export default function EmbedPage() {
       </div>
 
       {/* Embed Code */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-white">Embed Code</h3>
           <button

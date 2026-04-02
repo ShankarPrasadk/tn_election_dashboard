@@ -29,61 +29,73 @@ export default function Sidebar() {
       {/* Mobile toggle */}
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-slate-800 p-2 rounded-lg text-slate-300"
+        className="lg:hidden fixed top-4 left-4 z-50 glass rounded-xl p-2.5 text-slate-300 hover:text-white transition-colors"
       >
         {open ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-slate-700/50
-        transform transition-transform duration-200
+        fixed lg:static inset-y-0 left-0 z-40 w-60
+        bg-[#080c16]/90 backdrop-blur-xl border-r border-white/[0.04]
+        transform transition-transform duration-300 ease-out
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-4 border-b border-slate-700/50">
+        {/* Ambient glow */}
+        <div className="absolute top-0 left-0 w-40 h-40 bg-amber-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+
+        <div className="p-4 border-b border-white/[0.04]">
           <div className="flex items-center gap-3">
-            <img src="/tnsec-emblem.png" alt="Tamil Nadu State Election Commission" className="w-10 h-10 flex-shrink-0 object-contain" />
-            <h1 className="text-xl font-bold text-white">
+            <div className="relative">
+              <img src="/tnsec-emblem.png" alt="Tamil Nadu State Election Commission" className="w-9 h-9 flex-shrink-0 object-contain" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full pulse-dot" />
+            </div>
+            <h1 className="text-lg font-bold text-white tracking-tight">
               <span className="text-amber-400">TN</span> Election
-              <span className="block text-xs font-normal text-slate-400 mt-0.5">
+              <span className="block text-[10px] font-normal text-slate-500 mt-0.5 tracking-wide">
                 Dashboard • 1952–2026
               </span>
             </h1>
           </div>
         </div>
 
-        <nav aria-label="Main navigation" className="p-4 space-y-1">
+        <nav aria-label="Main navigation" className="p-3 space-y-0.5 overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(100vh - 180px)' }}>
           {NAV_ITEMS.map(({ to, icon: Icon, i18nKey }) => (
             <NavLink
               key={to}
               to={to}
               onClick={() => setOpen(false)}
               className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all relative
+                flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 relative group
                 ${isActive
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 border-l-2 border-l-amber-400'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'}
+                  ? 'bg-amber-500/[0.08] text-amber-400'
+                  : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'}
               `}
             >
-              <Icon size={18} />
-              {t(i18nKey)}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                  )}
+                  <Icon size={16} className={isActive ? 'text-amber-400' : 'text-slate-600 group-hover:text-slate-400'} />
+                  {t(i18nKey)}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
+        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/[0.04] bg-[#080c16]/80 backdrop-blur-sm">
           <div className="flex justify-center mb-2">
             <LanguageToggle />
           </div>
-          <div className="flex justify-center gap-3 mb-2">
-            <NavLink to="/about" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">About</NavLink>
-            <NavLink to="/privacy" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">Privacy</NavLink>
-            <NavLink to="/terms" className="text-[10px] text-slate-500 hover:text-amber-400 transition-colors">Terms</NavLink>
+          <div className="flex justify-center gap-3 mb-1.5">
+            <NavLink to="/about" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">About</NavLink>
+            <NavLink to="/privacy" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">Privacy</NavLink>
+            <NavLink to="/terms" className="text-[10px] text-slate-600 hover:text-amber-400 transition-colors">Terms</NavLink>
           </div>
-          <p className="text-xs text-slate-500 text-center">
-            Source: <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">TNSEC</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/70 hover:text-amber-400">ECI</a> · myneta.info
-            <br />
-            Based on candidate affidavits
+          <p className="text-[10px] text-slate-600 text-center">
+            <a href="https://tnsec.tn.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">TNSEC</a> · <a href="https://www.eci.gov.in" target="_blank" rel="noopener noreferrer" className="text-amber-500/50 hover:text-amber-400">ECI</a> · myneta.info
           </p>
         </div>
       </aside>
@@ -91,7 +103,7 @@ export default function Sidebar() {
       {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}

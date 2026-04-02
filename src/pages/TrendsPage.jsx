@@ -68,7 +68,7 @@ function EraSelector({ era, setEra }) {
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
             era === e
               ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-              : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+              : 'glass text-slate-400 hover:border-white/[0.08]'
           }`}>
           {e}
         </button>
@@ -91,7 +91,7 @@ function HeroStats() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((s, i) => (
-        <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 text-center">
+        <div key={i} className="glass rounded-xl p-5 text-center">
           <p className="text-3xl font-black tracking-tight" style={{ color: s.color }}>{s.value}</p>
           <p className="text-xs text-slate-400 mt-1">{s.label}</p>
           {s.suffix && <p className="text-[10px] text-slate-500">{s.suffix}</p>}
@@ -481,13 +481,13 @@ export default function TrendsPage() {
       {activeTab === 'overview' && (
         <div className="space-y-5">
           {/* CM Timeline Bar */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Chief Ministers of Tamil Nadu" subtitle="1952 to present — hover for details" />
             <CMVisualTimeline />
           </div>
 
           {/* Combined Seats Chart (1952-2021) */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Seats Won by Major Parties" subtitle="All 16 completed elections (1952–2021)" />
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={HISTORICAL_SEATS} barGap={1}>
@@ -531,7 +531,7 @@ export default function TrendsPage() {
                 statLabel: 'film stars turned politicians',
               },
             ].map((obs, i) => (
-              <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 border-t-2"
+              <div key={i} className="glass rounded-xl p-5 border-t-2"
                 style={{ borderTopColor: obs.color }}>
                 <p className="text-2xl font-black" style={{ color: obs.color }}>{obs.stat}</p>
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider">{obs.statLabel}</p>
@@ -546,7 +546,7 @@ export default function TrendsPage() {
       {/* ═══════════════ SEATS & VOTE SHARE TAB ═══════════════ */}
       {activeTab === 'seats' && (
         <div className="space-y-5">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Seats Won — Stacked View" subtitle="Composition of legislature after each election" />
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={HISTORICAL_SEATS}>
@@ -565,7 +565,7 @@ export default function TrendsPage() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Vote Share Trend (%)" subtitle="How party vote shares evolved from 1952 to 2021" />
             <ResponsiveContainer width="100%" height={400}>
               <AreaChart data={HISTORICAL_VOTE_SHARE}>
@@ -598,7 +598,7 @@ export default function TrendsPage() {
           </div>
 
           {/* DMK vs AIADMK head-to-head */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="DMK vs AIADMK — Head to Head" subtitle="Seats won in elections where both contested (1977–2021)" />
             <div className="space-y-3">
               {HISTORICAL_ELECTIONS
@@ -653,7 +653,7 @@ export default function TrendsPage() {
       {/* ═══════════════ TURNOUT TAB ═══════════════ */}
       {activeTab === 'turnout' && (
         <div className="space-y-5">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Voter Turnout (1952–2021)" subtitle="Percentage of registered voters who voted" />
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart data={HISTORICAL_TURNOUT}>
@@ -683,7 +683,7 @@ export default function TrendsPage() {
               { label: 'Lowest Turnout', value: '58.0%', year: '1952', note: 'First election — voter awareness low', color: '#ef4444' },
               { label: 'Voter Growth', value: '2.3x', year: '1952→2021', note: '27.8M → 62.4M registered voters', color: '#3b82f6' },
             ].map((s, i) => (
-              <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 text-center">
+              <div key={i} className="glass rounded-xl p-5 text-center">
                 <p className="text-3xl font-black" style={{ color: s.color }}>{s.value}</p>
                 <p className="text-xs text-slate-400 mt-1">{s.label} ({s.year})</p>
                 <p className="text-[10px] text-slate-500 mt-1">{s.note}</p>
@@ -696,7 +696,7 @@ export default function TrendsPage() {
       {/* ═══════════════ ANTI-INCUMBENCY TAB ═══════════════ */}
       {activeTab === 'incumbency' && (
         <div className="space-y-5">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="The Anti-Incumbency Pattern" subtitle="Tamil Nadu's famous pattern of rejecting ruling parties" />
             <AntiIncumbencyChart />
           </div>
@@ -717,7 +717,7 @@ export default function TrendsPage() {
       {/* ═══════════════ PARTY EVOLUTION TAB ═══════════════ */}
       {activeTab === 'evolution' && (
         <div className="space-y-5">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Party Family Tree" subtitle="How Tamil Nadu's political parties were born — from DK to TVK" />
             <PartyFamilyTree />
           </div>
@@ -744,7 +744,7 @@ export default function TrendsPage() {
                 desc: 'The Dravidian duopoly continues but faces challenges from NTK, TVK, and national parties. Generational shift as second-gen leaders take charge.',
               },
             ].map((e, i) => (
-              <div key={i} className="bg-slate-800/50 border-t-2 border border-slate-700/50 rounded-xl p-5"
+              <div key={i} className="glass border-t-2 rounded-xl p-5"
                 style={{ borderTopColor: e.color }}>
                 <p className="text-lg font-black" style={{ color: e.color }}>{e.era}</p>
                 <p className="text-xs text-slate-500">{e.period}</p>
@@ -758,7 +758,7 @@ export default function TrendsPage() {
       {/* ═══════════════ MONEY & CRIME TAB ═══════════════ */}
       {activeTab === 'money' && (
         <div className="space-y-5">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader
               title="Criminalization of Politics"
               subtitle="Percentage of candidates with criminal records (2006–2021)"
@@ -786,7 +786,7 @@ export default function TrendsPage() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+          <div className="glass rounded-xl p-4">
             <SectionHeader title="Wealth of Candidates" subtitle="Average, median, and peak assets of candidates" />
             <ResponsiveContainer width="100%" height={350}>
               <ComposedChart data={assetTrend}>
@@ -816,7 +816,7 @@ export default function TrendsPage() {
                 color: '#22c55e',
               },
             ].map((obs, i) => (
-              <div key={i} className="rounded-xl p-5 border-l-4 bg-slate-800/50 border border-slate-700/50"
+              <div key={i} className="rounded-xl p-5 border-l-4 glass"
                 style={{ borderLeftColor: obs.color }}>
                 <h4 className="text-sm font-semibold text-white">{obs.title}</h4>
                 <p className="text-xs text-slate-400 mt-2 leading-relaxed">{obs.desc}</p>
@@ -830,7 +830,7 @@ export default function TrendsPage() {
       <SwingAnalysis />
 
       {/* Footer attribution & Legal Disclaimer */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 space-y-4">
+      <div className="glass rounded-xl p-4 space-y-4">
         <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Data Sources & Disclaimer</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-slate-400 leading-relaxed">
           <div>

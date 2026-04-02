@@ -111,7 +111,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Win Probability */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
           <BarChart3 className="text-amber-400" size={16} /> {t('forecast.winProbability')}
         </h3>
@@ -125,7 +125,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Seat Range Visualization */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-4">{t('forecast.projectedSeatRanges')}</h3>
         <div className="space-y-5">
           {Object.entries(forecast).map(([key, data]) => (
@@ -136,7 +136,7 @@ export default function ForecastPage() {
 
       {/* Bar Chart */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+        <div className="glass rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-3">Seat Projection</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={barData} barSize={40}>
@@ -154,7 +154,7 @@ export default function ForecastPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+        <div className="glass rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.projectedSeatShare')}</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
@@ -169,7 +169,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Opinion Polls Table */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.sourcePolls')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-slate-300">
@@ -200,7 +200,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Vote Share Comparison */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">{t('forecast.projectedVoteShare')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {barData.map((d) => (
@@ -213,7 +213,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Methodology */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700/50">
+      <div className="glass rounded-xl">
         <button
           onClick={() => setShowMethodology(!showMethodology)}
           className="w-full p-4 flex items-center justify-between text-sm font-semibold text-white hover:bg-slate-700/20 transition-colors rounded-xl"

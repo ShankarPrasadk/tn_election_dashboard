@@ -195,7 +195,7 @@ export default function ElectionQuiz() {
 
       {answered && (
         <div className="space-y-3">
-          <p className="text-xs text-slate-400 bg-slate-800/50 rounded-lg p-3">
+          <p className="text-xs text-slate-400 glass rounded-lg p-3">
             <span className="text-amber-400 font-medium">Did you know?</span> {q.fact}
           </p>
           <button

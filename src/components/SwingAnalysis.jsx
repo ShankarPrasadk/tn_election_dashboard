@@ -42,7 +42,7 @@ export function SwingChart({ from, to, partySwings }) {
   }));
 
   return (
-    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+    <div className="glass rounded-xl p-4">
       <h4 className="text-xs font-semibold text-white mb-2">{from} → {to} Vote Swing (%)</h4>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} barSize={24} layout="vertical">

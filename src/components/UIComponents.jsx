@@ -4,34 +4,33 @@ import PartyFlag from './PartyFlag';
 
 export function StatCard({ title, value, subtitle, icon: Icon, trend, color = 'amber' }) {
   const colorMap = {
-    amber: 'from-amber-500/10 via-amber-600/5 to-amber-700/[0.02] border-amber-500/20 text-amber-400',
-    red: 'from-red-500/10 via-red-600/5 to-red-700/[0.02] border-red-500/20 text-red-400',
-    green: 'from-green-500/10 via-green-600/5 to-green-700/[0.02] border-green-500/20 text-green-400',
-    blue: 'from-blue-500/10 via-blue-600/5 to-blue-700/[0.02] border-blue-500/20 text-blue-400',
-    purple: 'from-purple-500/10 via-purple-600/5 to-purple-700/[0.02] border-purple-500/20 text-purple-400',
+    amber:  { border: 'border-amber-500/[0.12]',  glow: 'rgba(245,158,11,0.06)',  accent: '#f59e0b', iconBg: 'bg-amber-500/[0.08]' },
+    red:    { border: 'border-red-500/[0.12]',     glow: 'rgba(239,68,68,0.06)',   accent: '#ef4444', iconBg: 'bg-red-500/[0.08]' },
+    green:  { border: 'border-emerald-500/[0.12]', glow: 'rgba(16,185,129,0.06)',  accent: '#10b981', iconBg: 'bg-emerald-500/[0.08]' },
+    blue:   { border: 'border-blue-500/[0.12]',    glow: 'rgba(59,130,246,0.06)',   accent: '#3b82f6', iconBg: 'bg-blue-500/[0.08]' },
+    purple: { border: 'border-purple-500/[0.12]',  glow: 'rgba(168,85,247,0.06)',   accent: '#a855f7', iconBg: 'bg-purple-500/[0.08]' },
   };
-  const glowMap = {
-    amber: 'shadow-amber-500/5',
-    red: 'shadow-red-500/5',
-    green: 'shadow-green-500/5',
-    blue: 'shadow-blue-500/5',
-    purple: 'shadow-purple-500/5',
-  };
+  const c = colorMap[color] || colorMap.amber;
 
   return (
-    <div className={`relative bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-5 backdrop-blur-sm shadow-lg ${glowMap[color]} overflow-hidden transition-all duration-300 hover:scale-[1.01]`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+    <div className={`relative glass-card ${c.border} rounded-2xl p-4 overflow-hidden group hover:scale-[1.02] transition-all duration-300`}>
+      {/* Corner glow */}
+      <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-60 blur-2xl pointer-events-none" style={{ backgroundColor: c.glow }} />
       <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</span>
-          {Icon && <Icon size={18} className="text-slate-500" />}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{title}</span>
+          {Icon && (
+            <div className={`${c.iconBg} rounded-lg p-1.5`}>
+              <Icon size={14} style={{ color: c.accent }} />
+            </div>
+          )}
         </div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
+        <p className="text-2xl font-bold text-white tracking-tight animate-fadeInUp">{value}</p>
+        {subtitle && <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{subtitle}</p>}
         {trend !== undefined && (
-          <p className={`text-xs mt-2 ${trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
             {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from previous
-          </p>
+          </div>
         )}
       </div>
     </div>
@@ -75,15 +74,15 @@ export function PartyIdentity({ party, size = 'md' }) {
 
 export function YearSelector({ selectedYear, onChange, years = [2006, 2011, 2016, 2021, 2026] }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1.5 glass rounded-xl p-1">
       {years.map(year => (
         <button
           key={year}
           onClick={() => onChange(year)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
             selectedYear === year
-              ? 'bg-amber-500 text-slate-900'
-              : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/25'
+              : 'text-slate-500 hover:text-white hover:bg-white/[0.04]'
           }`}
         >
           {year}
@@ -95,9 +94,9 @@ export function YearSelector({ selectedYear, onChange, years = [2006, 2011, 2016
 
 export function SectionHeader({ title, subtitle, action }) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-between mb-4">
       <div>
-        <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
+        <h2 className="text-lg font-bold text-white tracking-tight">{title}</h2>
         {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
       </div>
       {action}

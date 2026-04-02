@@ -149,7 +149,7 @@ export default function AskPage() {
                 <button
                   key={q}
                   onClick={() => handleSuggestion(q)}
-                  className="text-left text-sm text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-amber-500/30 rounded-lg px-4 py-2.5 transition-all"
+                  className="text-left text-sm text-slate-300 glass hover:bg-white/[0.06] hover:border-amber-500/30 rounded-lg px-4 py-2.5 transition-all"
                 >
                   {q}
                 </button>

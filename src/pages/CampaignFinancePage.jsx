@@ -86,26 +86,26 @@ export default function CampaignFinancePage() {
 
       {/* Key Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
+        <div className="glass rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-amber-400">₹40L</p>
           <p className="text-[10px] text-slate-400">2026 Candidate Limit</p>
         </div>
-        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
+        <div className="glass rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-white">₹{totalDeclared}Cr</p>
           <p className="text-[10px] text-slate-400">{selectedYear} Total Declared</p>
         </div>
-        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
+        <div className="glass rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-red-400">₹{tnBondsTotal}Cr</p>
           <p className="text-[10px] text-slate-400">Electoral Bonds (TN parties)</p>
         </div>
-        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 text-center">
+        <div className="glass rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-green-400">4x</p>
           <p className="text-[10px] text-slate-400">Limit growth since 2006</p>
         </div>
       </div>
 
       {/* Expenditure Limit Trend */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">ECI Expenditure Limit per Candidate (₹ Lakhs)</h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={limitChart} barSize={36}>
@@ -118,7 +118,7 @@ export default function CampaignFinancePage() {
       </div>
 
       {/* Party Spending */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-white">Party-wise Spending (₹ Crores)</h3>
           <div className="flex gap-2">
@@ -149,7 +149,7 @@ export default function CampaignFinancePage() {
       </div>
 
       {/* Electoral Bonds */}
-      <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+      <div className="glass rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-1">Electoral Bonds — Party-wise Encashment</h3>
         <p className="text-[10px] text-slate-400 mb-3">Data disclosed after Supreme Court order (Feb 15, 2024) · 2019-2024 cumulative</p>
         <div className="grid md:grid-cols-2 gap-4">

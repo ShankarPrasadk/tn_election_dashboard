@@ -212,7 +212,7 @@ export default function CandidatesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+            <div className="glass rounded-xl p-4">
               <h3 className="text-sm font-semibold text-red-400 mb-3 uppercase">Secular Progressive Alliance (SPA)</h3>
               <div className="space-y-2">
                 {ALLIANCE_2026.SPA.parties.map((party) => (
@@ -227,7 +227,7 @@ export default function CandidatesPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+            <div className="glass rounded-xl p-4">
               <h3 className="text-sm font-semibold text-green-400 mb-3 uppercase">AIADMK-led Alliance (NDA)</h3>
               <div className="space-y-2">
                 {ALLIANCE_2026.NDA.parties.map((party) => (
@@ -302,7 +302,7 @@ export default function CandidatesPage() {
 
           <p className="text-sm text-slate-400">{filtered2026.length} constituencies found</p>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="glass rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-900">
@@ -371,7 +371,7 @@ export default function CandidatesPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {historicalYears.filter((year) => year !== 'All').map((year) => (
-              <div key={year} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+              <div key={year} className="glass rounded-xl p-4">
                 <p className="text-xs text-slate-400 uppercase">{year}</p>
                 <p className="text-2xl font-bold text-white">{directory?.countsByYear?.[year] || 0}</p>
                 <p className="text-xs text-slate-500 mt-1">public affidavit records</p>
@@ -422,7 +422,7 @@ export default function CandidatesPage() {
             </p>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="glass rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-900">

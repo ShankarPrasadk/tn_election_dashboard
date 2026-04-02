@@ -90,7 +90,7 @@ export default function LiveResultsPage() {
         </div>
 
         {/* What to expect */}
-        <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+        <div className="glass rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-4">{t('results.whatToExpect')}</h3>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="bg-slate-700/30 rounded-lg p-4">
@@ -113,22 +113,22 @@ export default function LiveResultsPage() {
 
         {/* Pre-counting Overview */}
         <div className="grid sm:grid-cols-3 gap-4">
-          <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-5 text-center">
             <p className="text-3xl font-bold text-white">{totalConstituencies}</p>
             <p className="text-xs text-slate-400">{t('common.constituencies')}</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-5 text-center">
             <p className="text-3xl font-bold text-white">{partiesContesting}+</p>
             <p className="text-xs text-slate-400">{t('results.partiesContesting')}</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-5 text-center">
             <p className="text-3xl font-bold text-amber-400">118</p>
             <p className="text-xs text-slate-400">{t('results.seatsForMajority')}</p>
           </div>
         </div>
 
         {/* Key Alliances */}
-        <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+        <div className="glass rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-3">{t('results.keyAlliances')}</h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4">

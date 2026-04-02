@@ -35,7 +35,10 @@ function ScrollToTop() {
 function PageLoader() {
   return (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-400 border-t-transparent" />
+      <div className="relative">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-amber-400/30 border-t-amber-400" />
+        <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-amber-400" />
+      </div>
     </div>
   );
 }
@@ -48,7 +51,7 @@ export default function App() {
       <NewsTicker />
       <div className="flex min-h-screen">
         <Sidebar />
-        <main id="main-content" className="flex-1 p-4 lg:p-8 overflow-auto" role="main">
+        <main id="main-content" className="flex-1 p-4 lg:p-6 overflow-auto" role="main">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />

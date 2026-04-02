@@ -567,7 +567,7 @@ function CuratedCandidateProfile({ candidate, enrichment, navigate }) {
           {CANDIDATE_PROFILES.filter((profile) => profile.id !== candidate.id).slice(0, 12).map((profile) => {
             const partyColor = PARTY_COLORS[profile.party] || '#6b7280';
             return (
-              <Link key={profile.id} to={`/candidate/${profile.id}`} className="group flex flex-col items-center p-3 rounded-xl bg-slate-800/50 border border-slate-700/30 hover:border-slate-600 hover:bg-slate-800 transition-all">
+              <Link key={profile.id} to={`/candidate/${profile.id}`} className="group flex flex-col items-center p-3 rounded-xl glass hover:border-slate-600 hover:bg-slate-800 transition-all">
                 <div className="w-12 h-12 rounded-full overflow-hidden mb-2 ring-2 transition-all group-hover:ring-4" style={{ ringColor: `${partyColor}40` }}>
                   <img src={profile.photo} alt={profile.name} className="w-full h-full object-cover" />
                 </div>

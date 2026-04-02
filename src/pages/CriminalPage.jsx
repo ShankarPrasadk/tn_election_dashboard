@@ -131,7 +131,7 @@ export default function CriminalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Criminal Cases by Party */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="glass rounded-xl p-4">
           <SectionHeader title={`Criminal Cases by Party (${year})`} />
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data.topParties} layout="vertical">
@@ -149,7 +149,7 @@ export default function CriminalPage() {
         </div>
 
         {/* Case Distribution Pie */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="glass rounded-xl p-4">
           <SectionHeader title="Case Distribution" />
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -174,7 +174,7 @@ export default function CriminalPage() {
       </div>
 
       {/* Trend Over Years */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+      <div className="glass rounded-xl p-4">
         <SectionHeader title="Criminal Cases Trend (2006–2021)" subtitle="Percentage of candidates with criminal records is increasing" />
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={trendData}>
@@ -190,11 +190,11 @@ export default function CriminalPage() {
       </div>
 
       {/* Top Candidates with Cases */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+      <div className="glass rounded-xl p-4">
         <SectionHeader title="Candidates with Most Criminal Cases" />
         <div className="space-y-3">
           {topCriminals.map((c, i) => (
-            <div key={c.id} className="flex items-center justify-between bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
+            <div key={c.id} className="flex items-center justify-between glass rounded-lg p-4">
               <div className="flex items-center gap-4">
                 <span className="text-lg font-bold text-slate-500 w-8">#{i + 1}</span>
                 <div

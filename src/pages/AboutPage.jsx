@@ -11,7 +11,7 @@ export default function AboutPage() {
 
       <div className="space-y-5 text-slate-300 text-sm leading-relaxed">
         {/* Mission */}
-        <section className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+        <section className="glass rounded-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
             <BarChart3 className="text-amber-400" size={20} />
             Our Mission
@@ -49,7 +49,7 @@ export default function AboutPage() {
         </section>
 
         {/* Data Sources */}
-        <section className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+        <section className="glass rounded-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
             <Database className="text-amber-400" size={20} />
             Data Sources
@@ -95,7 +95,7 @@ export default function AboutPage() {
         </section>
 
         {/* Contact */}
-        <section className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+        <section className="glass rounded-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
             <Mail className="text-amber-400" size={20} />
             Contact Us

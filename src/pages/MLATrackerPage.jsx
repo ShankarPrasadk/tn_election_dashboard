@@ -199,27 +199,27 @@ export default function MLATrackerPage() {
       {/* Summary Stats */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-white">{stats.total}</p>
             <p className="text-[10px] text-slate-400">MLAs Elected</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-red-400">{stats.withCases}</p>
             <p className="text-[10px] text-slate-400">With Criminal Cases</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-amber-400">₹{stats.avgAssets} Cr</p>
             <p className="text-[10px] text-slate-400">Avg Assets</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-blue-400">{stats.incumbents}</p>
             <p className="text-[10px] text-slate-400">Re-elected</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-purple-400">{stats.female}</p>
             <p className="text-[10px] text-slate-400">Women MLAs</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 text-center">
+          <div className="glass rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-green-400">{stats.avgMargin}%</p>
             <p className="text-[10px] text-slate-400">Avg Victory Margin</p>
           </div>
@@ -229,7 +229,7 @@ export default function MLATrackerPage() {
       {/* Charts Row */}
       {stats && (
         <div className="grid lg:grid-cols-2 gap-4">
-          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+          <div className="glass rounded-xl p-4">
             <h3 className="text-sm font-semibold text-white mb-3">Seats Won by Party — 2021</h3>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={stats.partyBreakdown} layout="vertical">
@@ -244,7 +244,7 @@ export default function MLATrackerPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+          <div className="glass rounded-xl p-4">
             <h3 className="text-sm font-semibold text-white mb-3">MLA Education Profile</h3>
             <div className="space-y-2">
               {stats.eduBreakdown.map(([edu, count]) => (
@@ -303,7 +303,7 @@ export default function MLATrackerPage() {
       {/* MLA Cards */}
       <div className="space-y-2">
         {paginated.map((mla) => (
-          <div key={mla.cid} className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden hover:border-slate-600/50 transition-colors">
+          <div key={mla.cid} className="glass rounded-xl overflow-hidden hover:border-slate-600/50 transition-colors">
             <button
               onClick={() => setExpandedMLA(expandedMLA === mla.cid ? null : mla.cid)}
               className="w-full p-3 sm:p-4 text-left"
