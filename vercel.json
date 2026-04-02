@@ -53,6 +53,10 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap.mjs"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/index.mjs"
     },
