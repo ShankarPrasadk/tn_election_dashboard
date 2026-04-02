@@ -18,7 +18,22 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "X-Robots-Tag", "value": "noai, noimageai" },
         { "key": "X-Download-Options", "value": "noopen" },
-        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" }
+        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
+        { "key": "Link", "value": "<https://tn-election-dashboard.vercel.app>; rel=\"canonical\"" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {

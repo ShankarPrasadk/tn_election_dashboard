@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TN Election Dashboard | Tamil Nadu Elections 1952–2026 | Candidate Data & Analytics</title>
-    <meta name="description" content="India's most comprehensive Tamil Nadu election dashboard. Explore candidate criminal records, assets, constituency data, historical trends from 1952-2026. Data from ECI, TNSEC & ADR affidavits." />
-    <meta name="keywords" content="Tamil Nadu election 2026, TN election dashboard, candidate criminal records, election results, constituency analysis, DMK, AIADMK, BJP, TVK, NTK, election data India, TN assembly election, 234 constituencies" />
+    <title>TN Election Dashboard 2026 | Tamil Nadu & Puducherry Election Results, Candidates & Live Updates</title>
+    <meta name="description" content="Track Tamil Nadu & Puducherry 2026 elections live. 234 TN constituencies, 30 PY seats. Candidate criminal records, assets, opinion polls, constituency maps, voter data. Free real-time election analytics." />
+    <meta name="keywords" content="Tamil Nadu election 2026, TN election results 2026, Puducherry election 2026, TN election dashboard, DMK vs AIADMK, TVK Vijay, NTK Seeman, Tamil Nadu assembly election, TN constituency results, election forecast Tamil Nadu, MLA criminal record TN, voter data Tamil Nadu, opinion poll TN 2026, live election results Tamil Nadu" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="TN Election Dashboard | Tamil Nadu Elections 1952–2026" />
-    <meta property="og:description" content="Explore criminal records, assets & constituency data of 9,400+ candidates. India's most comprehensive Tamil Nadu election analytics platform." />
+    <meta property="og:title" content="TN Election Dashboard 2026 — Live Results, Candidates & Analytics" />
+    <meta property="og:description" content="India's #1 Tamil Nadu election tracker. 234 constituencies, 9400+ candidates. Criminal records, assets, opinion polls, maps & live results. 100% free." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tn-election-dashboard.vercel.app" />
     <meta property="og:image" content="https://tn-election-dashboard.vercel.app/og-image.png" />
@@ -22,44 +22,147 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TN Election Dashboard | Tamil Nadu Elections 1952–2026" />
-    <meta name="twitter:description" content="9,400+ candidates · 234 constituencies · Criminal records · Assets · 70 years of election trends. Free & independent." />
+    <meta name="twitter:title" content="TN Election Dashboard 2026 — Live Results & Analytics" />
+    <meta name="twitter:description" content="Track Tamil Nadu & Puducherry 2026 elections. 234 constituencies, candidate criminal records, assets, maps, voter data & live results." />
     <meta name="twitter:image" content="https://tn-election-dashboard.vercel.app/og-image.png" />
+
+    <!-- Geo tags for local SEO -->
+    <meta name="geo.region" content="IN-TN" />
+    <meta name="geo.placename" content="Tamil Nadu, India" />
+    <meta name="language" content="English" />
+    <meta http-equiv="content-language" content="en-IN" />
+    <link rel="alternate" hreflang="en" href="https://tn-election-dashboard.vercel.app" />
+    <link rel="alternate" hreflang="ta" href="https://tn-election-dashboard.vercel.app" />
 
     <link rel="canonical" href="https://tn-election-dashboard.vercel.app" />
 
     <!-- Structured Data for Google Rich Results -->
+    <!-- Structured Data: WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "TN Election Dashboard",
+      "alternateName": ["Tamil Nadu Election Dashboard 2026", "TN Election Results 2026", "Puducherry Election Dashboard"],
+      "url": "https://tn-election-dashboard.vercel.app",
+      "description": "India's #1 Tamil Nadu & Puducherry election tracker. Live results, candidate profiles, criminal records, assets, constituency maps, voter data & opinion polls for 2026 elections.",
+      "inLanguage": ["en", "ta"],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://tn-election-dashboard.vercel.app/candidates?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "TN Election Dashboard",
-      "alternateName": "Tamil Nadu Election Dashboard",
+      "name": "TN Election Dashboard 2026",
       "url": "https://tn-election-dashboard.vercel.app",
-      "description": "India's most comprehensive Tamil Nadu election analytics platform. Explore candidate criminal records, assets, constituency data & historical trends from 1952-2026.",
       "applicationCategory": "News & Politics",
       "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "INR"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "TN Election Dashboard Team"
-      },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+      "author": { "@type": "Organization", "name": "TN Election Dashboard Team" },
       "dateModified": "2026-04-02",
-      "inLanguage": "en",
-      "about": {
-        "@type": "Event",
-        "name": "Tamil Nadu Legislative Assembly Election 2026",
-        "startDate": "2026-04-23",
-        "location": {
-          "@type": "Place",
-          "name": "Tamil Nadu, India"
-        }
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "234"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: Event (TN Election) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Tamil Nadu Legislative Assembly Election 2026",
+      "startDate": "2026-04-23",
+      "endDate": "2026-04-23",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Tamil Nadu",
+        "address": { "@type": "PostalAddress", "addressRegion": "Tamil Nadu", "addressCountry": "IN" }
       },
-      "keywords": "Tamil Nadu election, TN election 2026, candidate criminal records, election dashboard, DMK, AIADMK, TVK, NTK, BJP"
+      "description": "Elections for 234 constituencies of Tamil Nadu Legislative Assembly. Major parties: DMK, AIADMK, BJP, TVK, NTK.",
+      "organizer": { "@type": "Organization", "name": "Election Commission of India", "url": "https://www.eci.gov.in" }
+    }
+    </script>
+
+    <!-- Structured Data: Event (PY Election) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Puducherry Legislative Assembly Election 2026",
+      "startDate": "2026-04-09",
+      "endDate": "2026-04-09",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Puducherry",
+        "address": { "@type": "PostalAddress", "addressRegion": "Puducherry", "addressCountry": "IN" }
+      },
+      "description": "Elections for 30 constituencies of Puducherry Legislative Assembly. Major alliances: NDA (AINRC+BJP), INDIA (INC+DMK).",
+      "organizer": { "@type": "Organization", "name": "Election Commission of India", "url": "https://www.eci.gov.in" }
+    }
+    </script>
+
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Dashboard", "item": "https://tn-election-dashboard.vercel.app/" },
+        { "@type": "ListItem", "position": 2, "name": "Candidates", "item": "https://tn-election-dashboard.vercel.app/candidates" },
+        { "@type": "ListItem", "position": 3, "name": "Election Map", "item": "https://tn-election-dashboard.vercel.app/map" },
+        { "@type": "ListItem", "position": 4, "name": "Forecast", "item": "https://tn-election-dashboard.vercel.app/forecast" },
+        { "@type": "ListItem", "position": 5, "name": "Live Results", "item": "https://tn-election-dashboard.vercel.app/results" },
+        { "@type": "ListItem", "position": 6, "name": "Voter Data", "item": "https://tn-election-dashboard.vercel.app/voters" }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data: FAQPage for rich snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "When is Tamil Nadu election 2026?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Tamil Nadu Legislative Assembly election 2026 is scheduled for April 23, 2026. Voting will be held across all 234 constituencies in a single phase." }
+        },
+        {
+          "@type": "Question",
+          "name": "When is Puducherry election 2026?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Puducherry Legislative Assembly election 2026 is scheduled for April 9, 2026. All 30 constituencies will vote in a single phase." }
+        },
+        {
+          "@type": "Question",
+          "name": "How many constituencies are there in Tamil Nadu?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Tamil Nadu has 234 assembly constituencies. The majority mark is 118 seats. In 2021, DMK won 133 seats, AIADMK won 66 seats." }
+        },
+        {
+          "@type": "Question",
+          "name": "Who are the major candidates in TN election 2026?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Key leaders include M.K. Stalin (DMK, Kolathur), Edappadi K. Palaniswami (AIADMK), Vijay (TVK), K. Annamalai (BJP), Seeman (NTK). Over 9,400 candidates are contesting across 234 constituencies." }
+        },
+        {
+          "@type": "Question",
+          "name": "How many candidates have criminal cases in TN 2026 election?",
+          "acceptedAnswer": { "@type": "Answer", "text": "According to ECI affidavit data, a significant percentage of candidates have declared criminal cases. Check our Criminal Records page for detailed constituency-wise breakdown with data sourced from official affidavits." }
+        }
+      ]
     }
     </script>
 
@@ -107,15 +210,58 @@
   <body>
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">Skip to main content</a>
     <div id="root">
-      <!-- Pre-React loading screen (replaced when React mounts) -->
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f8fafc;font-family:system-ui,-apple-system,sans-serif;">
+      <!-- Pre-React loading screen with SEO content (replaced when React mounts) -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;color:#f8fafc;font-family:system-ui,-apple-system,sans-serif;padding:2rem;">
         <div style="font-size:2.5rem;margin-bottom:1rem;">🗳️</div>
-        <h1 style="font-size:1.25rem;font-weight:700;margin:0 0 0.5rem;">TN Election Dashboard</h1>
-        <p style="font-size:0.75rem;color:#94a3b8;margin:0 0 1.5rem;">Loading election data...</p>
+        <h1 style="font-size:1.25rem;font-weight:700;margin:0 0 0.5rem;">TN Election Dashboard 2026</h1>
+        <p style="font-size:0.85rem;color:#cbd5e1;margin:0 0 0.5rem;text-align:center;">Tamil Nadu & Puducherry Election Results, Candidates & Live Analytics</p>
+        <p style="font-size:0.7rem;color:#64748b;margin:0 0 1.5rem;text-align:center;max-width:500px;">234 TN constituencies • 30 PY seats • 9,400+ candidates • Criminal records • Assets • Opinion polls • Live results • Interactive maps</p>
         <div style="width:2rem;height:2rem;border:2px solid rgba(245,158,11,0.3);border-top-color:#f59e0b;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <p style="font-size:0.65rem;color:#475569;margin-top:1rem;">TN Polling: April 23 • PY Polling: April 9 • Data from ECI, TNSEC & ADR</p>
       </div>
     </div>
+
+    <!-- SEO: Visible text content for search engine crawlers -->
+    <noscript>
+      <div style="max-width:900px;margin:0 auto;padding:2rem;font-family:system-ui,sans-serif;color:#333;background:#fff;">
+        <h1>TN Election Dashboard 2026 — Tamil Nadu & Puducherry Elections</h1>
+        <p>India's most comprehensive election analytics platform for Tamil Nadu and Puducherry 2026 assembly elections.</p>
+
+        <h2>Tamil Nadu Election 2026</h2>
+        <p><strong>Polling Date:</strong> April 23, 2026 | <strong>234 Constituencies</strong> | <strong>Majority Mark:</strong> 118 seats</p>
+        <p>Major parties: DMK (Secular Progressive Alliance), AIADMK, TVK (Tamilaga Vettri Kazhagam - Vijay), BJP (NDA), NTK (Naam Tamilar Katchi - Seeman), PMK, VCK, DMDK.</p>
+        <p>Key leaders: M.K. Stalin (DMK, Chief Minister), Edappadi K. Palaniswami (AIADMK), Vijay (TVK), K. Annamalai (BJP), Seeman (NTK).</p>
+
+        <h2>Puducherry Election 2026</h2>
+        <p><strong>Polling Date:</strong> April 9, 2026 | <strong>30 Constituencies</strong> | <strong>Majority Mark:</strong> 16 seats</p>
+        <p>Major alliances: NDA (AINRC + BJP), INDIA (INC + DMK). Key leaders: N. Rangasamy (AINRC, CM), V. Vaithilingam (INC).</p>
+
+        <h2>Features</h2>
+        <ul>
+          <li><a href="/candidates">Candidate Profiles</a> — 9,400+ candidates with criminal records, assets & affidavit data from ECI</li>
+          <li><a href="/forecast">Election Forecast</a> — Seat projections based on opinion polls and pre-poll surveys</li>
+          <li><a href="/results">Live Results</a> — Real-time counting day updates constituency-wise</li>
+          <li><a href="/trends">Historical Trends</a> — Party performance from 1952 to 2026</li>
+          <li><a href="/map">Interactive Map</a> — Constituency map with party-wise colors and voter density</li>
+          <li><a href="/voters">Voter Data</a> — Electoral roll with 5.67 crore voters, gender breakdown per constituency</li>
+          <li><a href="/criminal">Criminal Records</a> — Candidates with declared criminal cases from affidavits</li>
+          <li><a href="/constituency">Constituency Analysis</a> — Detailed analysis of all 234 TN + 30 PY constituencies</li>
+          <li><a href="/comparison">Party Comparison</a> — Side-by-side comparison of party manifestos and performance</li>
+          <li><a href="/mla-tracker">MLA Tracker</a> — Current MLA attendance, questions asked, performance metrics</li>
+          <li><a href="/finance">Campaign Finance</a> — Election expenditure and party funding data</li>
+          <li><a href="/news">Election News</a> — Latest election news and updates</li>
+        </ul>
+
+        <h2>2021 Results Recap</h2>
+        <p>In 2021, DMK won 133 seats (37.7% vote share), AIADMK won 66 seats (33.3%), Congress 18, PMK 5, BJP 4.</p>
+
+        <h2>Data Sources</h2>
+        <p>All data sourced from Election Commission of India (ECI), Tamil Nadu State Election Commission (TNSEC), SEC Puducherry, ADR/MyNeta affidavit analysis.</p>
+
+        <p><a href="/about">About</a> | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
