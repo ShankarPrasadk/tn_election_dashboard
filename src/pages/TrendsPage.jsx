@@ -38,24 +38,23 @@ const CM_PARTY_COLORS = {
 };
 
 const CM_PHOTOS = {
-  'C. Rajagopalachari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/C._Rajagopalachari_1948.jpg/220px-C._Rajagopalachari_1948.jpg',
-  'K. Kamaraj': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Kamaraj_portrait_%28cropped%29.jpg/220px-Kamaraj_portrait_%28cropped%29.jpg',
-  'M. Bhaktavatsalam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/M._Bhakthavatsalam.jpg/220px-M._Bhakthavatsalam.jpg',
-  'C.N. Annadurai': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/CN_Annadurai.jpg/220px-CN_Annadurai.jpg',
-  'M. Karunanidhi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Karunanidhi_in_the_1940s.jpg/220px-Karunanidhi_in_the_1940s.jpg',
-  'M.G. Ramachandran': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/M.G._Ramachandran_%28headshot%29.jpg/220px-M.G._Ramachandran_%28headshot%29.jpg',
-  'V.R. Janaki': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Janaki_amma.jpg/220px-Janaki_amma.jpg',
-  'J. Jayalalithaa': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/J_Jayalalithaa.jpg/220px-J_Jayalalithaa.jpg',
-  'O. Panneerselvam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/O._Panneerselvam.jpg/220px-O._Panneerselvam.jpg',
-  'Edappadi K. Palaniswami': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Palanisamy.jpg/220px-Palanisamy.jpg',
-  'M.K. Stalin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg/220px-The_Chief_Minister_of_Tamil_Nadu%2C_Thiru_MK_Stalin.jpg',
+  'C. Rajagopalachari': '/images/cms/rajagopalachari.jpg',
+  'K. Kamaraj': '/images/cms/kamaraj.jpg',
+  'M. Bhaktavatsalam': '/images/cms/bhaktavatsalam.jpg',
+  'C.N. Annadurai': '/images/cms/annadurai.jpg',
+  'M. Karunanidhi': '/images/cms/karunanidhi.jpg',
+  'M.G. Ramachandran': '/images/cms/mgr.jpg',
+  'V.R. Janaki': '/images/cms/janaki.jpg',
+  'J. Jayalalithaa': '/images/cms/jayalalithaa.jpg',
+  'O. Panneerselvam': '/images/cms/panneerselvam.jpg',
+  'Edappadi K. Palaniswami': '/images/cms/palaniswami.jpg',
+  'M.K. Stalin': '/images/cms/stalin.jpg',
 };
 
 const PY_CM_PHOTOS = {
-  'N. Rangasamy': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Puducherry_CM_N_Rangasamy.jpg/220px-Puducherry_CM_N_Rangasamy.jpg',
-  'V. Vaithilingam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/V._Vaithilingam.jpg/220px-V._Vaithilingam.jpg',
-  'V. Narayanasamy': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/V._Narayanasamy.jpg/220px-V._Narayanasamy.jpg',
-  'R. V. Janakiraman': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/R._V._Janakiraman.jpg/220px-R._V._Janakiraman.jpg',
+  'N. Rangasamy': '/images/cms/rangasamy.jpg',
+  'V. Vaithilingam': '/images/cms/vaithilingam.jpg',
+  'V. Narayanasamy': '/images/cms/narayanasamy.jpg',
 };
 
 const ALL_CM_PHOTOS = { ...CM_PHOTOS, ...PY_CM_PHOTOS };
