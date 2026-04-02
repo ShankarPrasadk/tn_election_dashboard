@@ -31,10 +31,11 @@ import {
 } from '../data/pyElectionData';
 
 function CountdownTimer() {
+  const { config } = useElectionState();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date('2026-04-23T07:00:00+05:30');
+    const target = new Date(`${config.pollingDate}T07:00:00+05:30`);
     const update = () => {
       const diff = target - new Date();
       if (diff <= 0) { setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 }); return; }
@@ -48,7 +49,7 @@ function CountdownTimer() {
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [config.pollingDate]);
 
   const blocks = [
     { label: 'Days', value: timeLeft.days },
