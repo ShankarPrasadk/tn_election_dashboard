@@ -154,8 +154,8 @@ export const CANDIDATE_PROFILES = [
     name: 'Vijay',
     fullName: 'Chandrasekaran Joseph Vijay',
     party: 'TVK',
-    constituency: 'Perambur',
-    district: 'Chennai',
+    constituency: 'Perambur / Tiruchirappalli (East)',
+    district: 'Chennai / Tiruchirappalli',
     role: 'TVK President',
     designation: 'President, Tamilaga Vettri Kazhagam',
     dob: '1974-06-22',
@@ -164,7 +164,7 @@ export const CANDIDATE_PROFILES = [
     education: 'Loyola College, Chennai (dropped out)',
     religion: 'Christian',
     photo: generateAvatarUrl('Vijay', 'TVK'),
-    bio: 'Joseph Vijay, known as "Thalapathy", is one of India\'s highest-paid actors who turned politician. After a 30-year film career with 69 films, he launched Tamilaga Vettri Kazhagam (TVK) in February 2024. His party contests all 234 seats in the 2026 election. He is contesting from Perambur in Chennai.',
+    bio: 'Joseph Vijay, known as "Thalapathy", is one of India\'s highest-paid actors who turned politician. After a 30-year film career with 69 films, he launched Tamilaga Vettri Kazhagam (TVK) in February 2024. His party contests all 234 seats in the 2026 election. He is contesting from two constituencies — Perambur in Chennai and Tiruchirappalli (East).',
     career: [
       { year: 1984, event: 'Debuted as child actor' },
       { year: 1992, event: 'First lead role in Tamil cinema' },
@@ -190,7 +190,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Sankgeetha Sornalingam (separated 2026)', children: '2 (Jason Sanjay, Dhivya Sasha)' },
     assets: { declared: 'Est. ₹474 Cr', net_worth: 'Est. ₹474 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@acaborvijay', instagram: '@actorvijay' },
+    socialMedia: { twitter: '@actorvijay', instagram: '@actorvijay', x: '@actorvijay' },
     electoralHistory: [],
     tags: ['Actor-Politician', 'TVK Founder', 'Debutant'],
   },
@@ -233,7 +233,7 @@ export const CANDIDATE_PROFILES = [
     family: { father: 'M. K. Stalin (CM)', spouse: 'Kiruthiga Udhayanidhi', children: '2 (Inban, Tanmaya)' },
     assets: { declared: '₹24.5 Cr (2021)' },
     criminalCases: 0,
-    socialMedia: { twitter: '@Aborudhay_off' },
+    socialMedia: { twitter: '@Udhay_offl' },
     electoralHistory: [
       { year: 2021, constituency: 'Chepauk-Thiruvallikeni', result: 'Won', margin: 48987 },
     ],
@@ -283,7 +283,10 @@ export const CANDIDATE_PROFILES = [
     assets: { declared: '₹0.9 Cr' },
     criminalCases: 2,
     socialMedia: { twitter: '@NaamTamilarOff' },
-    electoralHistory: [],
+    electoralHistory: [
+      { year: 2019, constituency: 'Tiruvallur (LS)', result: 'Lost', margin: -230000 },
+      { year: 2024, constituency: 'Tiruvallur (LS)', result: 'Lost', margin: -180000 },
+    ],
     tags: ['NTK Leader', 'Tamil Nationalist'],
   },
   {
@@ -432,7 +435,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Megala Senthil Balaji', children: '2' },
     assets: { declared: '₹30+ Cr' },
     criminalCases: 5,
-    socialMedia: { twitter: '@senaborhilbalaji' },
+    socialMedia: { twitter: '@SenthilBalaji_V' },
     electoralHistory: [
       { year: 2006, constituency: 'Karur', result: 'Won', margin: 12400 },
       { year: 2011, constituency: 'Karur', result: 'Won', margin: 28900 },
@@ -483,8 +486,14 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Selvi', children: '2' },
     assets: { declared: '₹2.1 Cr' },
     criminalCases: 3,
-    socialMedia: { twitter: '@thiaboruma' },
-    electoralHistory: [],
+    socialMedia: { twitter: '@thiruma_vck' },
+    electoralHistory: [
+      { year: 2004, constituency: 'Chidambaram (LS)', result: 'Won', margin: 58000 },
+      { year: 2009, constituency: 'Chidambaram (LS)', result: 'Lost', margin: -45000 },
+      { year: 2014, constituency: 'Chidambaram (LS)', result: 'Lost', margin: -62000 },
+      { year: 2019, constituency: 'Chidambaram (LS)', result: 'Won', margin: 93000 },
+      { year: 2024, constituency: 'Chidambaram (LS)', result: 'Won', margin: 120000 },
+    ],
     tags: ['Dalit Leader', 'VCK Founder', 'SPA Ally'],
   },
   {
@@ -531,7 +540,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Jayanthi', children: '2' },
     assets: { declared: '₹45 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@ptaborhiaga_rajan' },
+    socialMedia: { twitter: '@PTR_Thiagarajan' },
     electoralHistory: [
       { year: 2011, constituency: 'Madurai Central', result: 'Won', margin: 5630 },
       { year: 2016, constituency: 'Madurai Central', result: 'Won', margin: 22100 },
@@ -631,7 +640,7 @@ export const CANDIDATE_PROFILES = [
     family: { father: 'Poyyamozhi (former DMK functionary)', spouse: 'Anitha', children: '2' },
     assets: { declared: '₹8.5 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@aboranbaborilmahesh' },
+    socialMedia: { twitter: '@AnbilMahesh' },
     electoralHistory: [
       { year: 2006, constituency: 'Thiruverumbur', result: 'Won', margin: 8920 },
       { year: 2011, constituency: 'Thiruverumbur', result: 'Lost', margin: -12300 },
@@ -768,7 +777,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Chandra Nagendran', children: '2' },
     assets: { declared: '₹5.5 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@NaborainarNagen' },
+    socialMedia: { twitter: '@NainarNagworken' },
     electoralHistory: [],
     tags: ['BJP State President', 'NDA'],
   },
@@ -1665,7 +1674,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Married', children: '2' },
     assets: { declared: '₹5 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@peraborunthagai_' },
+    socialMedia: { twitter: '@selvaperunthagai' },
     electoralHistory: [
       { year: 2006, constituency: 'Sriperumbudur', result: 'Won', margin: 14300 },
       { year: 2011, constituency: 'Sriperumbudur', result: 'Lost', margin: -18600 },
@@ -1717,7 +1726,7 @@ export const CANDIDATE_PROFILES = [
     family: { spouse: 'Married', children: '2' },
     assets: { declared: '₹3 Cr' },
     criminalCases: 0,
-    socialMedia: { twitter: '@mdaborkmk_vaiko' },
+    socialMedia: { twitter: '@VaikoMDMK' },
     electoralHistory: [
       { year: 1978, constituency: 'Sivakasi (LS)', result: 'Won', margin: 8700 },
       { year: 1991, constituency: 'Sivakasi (LS)', result: 'Won', margin: 14200 },
@@ -1812,7 +1821,7 @@ export const CANDIDATE_PROFILES = [
     family: { father: 'Dr. S. Ramadoss (PMK Founder & President)', spouse: 'Dr. Sowmiya Anbumani', children: '2' },
     assets: { declared: '₹25 Cr (family)' },
     criminalCases: 0,
-    socialMedia: { twitter: '@aboranbumaboraniramadoss' },
+    socialMedia: { twitter: '@anbumaniramadoss' },
     electoralHistory: [
       { year: 1999, constituency: 'Dharmapuri (LS)', result: 'Won', margin: 62000 },
       { year: 2004, constituency: 'Dharmapuri (LS)', result: 'Won', margin: 85000 },
@@ -1861,7 +1870,7 @@ export const CANDIDATE_PROFILES = [
     family: { children: 'Dr. Anbumani Ramadoss (former Union Minister, MP)' },
     assets: { declared: '₹15 Cr (est.)' },
     criminalCases: 0,
-    socialMedia: { twitter: '@draborramadoss' },
+    socialMedia: { twitter: '@drramadoss' },
     electoralHistory: [
       { year: 1998, constituency: 'Perambalur (LS)', result: 'Won', margin: 42000 },
     ],

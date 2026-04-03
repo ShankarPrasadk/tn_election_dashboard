@@ -91,8 +91,9 @@ export const PY_ALLIANCE_2026 = {
     leader: 'V. Vaithilingam',
     cmCandidate: 'V. Vaithilingam',
     parties: [
-      { party: 'INC', seats: 21, leader: 'V. Vaithilingam' },
+      { party: 'INC', seats: 16, leader: 'V. Vaithilingam' },
       { party: 'DMK', seats: 13, leader: 'R. Siva' },
+      { party: 'VCK', seats: 1, leader: 'Deva Pozhilan' },
     ],
     totalSeats: 30,
   },

@@ -289,8 +289,8 @@ export const ALLIANCE_2026 = {
       { party: 'NTK', seats: 234, symbol: 'NTK Symbol', leader: 'Seeman' },
       { party: 'TVK', seats: 234, symbol: 'TVK Symbol', leader: 'Vijay' },
       { party: 'Puthiya Tamilagam', seats: 43, symbol: 'PT Symbol', leader: 'K. Krishnasamy' },
-      { party: 'PMK(R)', seats: 'TBD', symbol: 'PMK(R) Symbol', leader: 'S. Ramadoss' },
-      { party: 'AIPTMMK', seats: 'TBD', symbol: 'AIPTMMK Symbol', leader: 'V. K. Sasikala' },
+      { party: 'PMK(R)', seats: null, symbol: 'PMK(R) Symbol', leader: 'S. Ramadoss' },
+      { party: 'AIPTMMK', seats: null, symbol: 'AIPTMMK Symbol', leader: 'V. K. Sasikala' },
     ],
   },
 };
@@ -342,6 +342,7 @@ export const OPINION_POLLS_2026 = [
     marginOfError: 3,
     seats: { SPA: '113-123', 'AIADMK+': '106-116', TVK: '2-8', Others: '0' },
     voteShare: { SPA: '40%', 'AIADMK+': '38%', TVK: '15%', Others: '7%' },
+    source: 'News18',
   },
   {
     agency: 'Agni News Agency',
@@ -350,6 +351,7 @@ export const OPINION_POLLS_2026 = [
     marginOfError: 3,
     seats: { SPA: '180+', 'AIADMK+': '50-60', TVK: '0-10', Others: '0' },
     voteShare: { SPA: '44.9%', 'AIADMK+': '38.5%', TVK: '9.7%', Others: '6.9%' },
+    source: 'Agni News Agency',
   },
   {
     agency: 'IANS-Matrize',
@@ -358,6 +360,7 @@ export const OPINION_POLLS_2026 = [
     marginOfError: 3,
     seats: { SPA: '104-114', 'AIADMK+': '114-127', TVK: '6-12', Others: '1-6' },
     voteShare: { SPA: '37-38%', 'AIADMK+': '39-40%', TVK: '14-15%', Others: '10-12%' },
+    source: 'IANS',
   },
 ];
 
