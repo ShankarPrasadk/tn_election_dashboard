@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Target, Users, Scale, Building2, AlertTriangle, MessageCircleQuestion, MapPin, Award, IndianRupee, Vote, BookOpen } from 'lucide-react';
+import { Target, Users, Scale, Building2, AlertTriangle, MessageCircleQuestion, MapPin, Award, IndianRupee, Vote } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { useElectionState } from '../context/StateContext';
 
@@ -20,7 +20,6 @@ const SIDEBAR_GROUPS = [
     { to: '/criminal', icon: AlertTriangle, i18nKey: 'nav.criminal' },
   ]},
   { label: 'Explore', items: [
-    { to: '/stories', icon: BookOpen, i18nKey: 'nav.stories' },
     { to: '/ask', icon: MessageCircleQuestion, i18nKey: 'nav.ask' },
   ]},
 ];
